@@ -12,6 +12,15 @@ It creates a folder /tmp/browserlab where all experiment traces are collected be
 At the moment, traces are not deleted from /tmp/browserlab/
 Note: We refer to the wireless client device as A, gateway as R, and server as S
 
+
+		              (home)		                      (gateway)	     (Internet)	            (server @ GT)
+(wireless device) 	A - - - - - - - - - - - - - - - - R ------------------------------------- S
+			                  [Private address space]        [Public IP]		                [130.207.97.240]
+
+				                               Inside		     v/s	          Outside
+
+				                                  Fig 1: Real Home Network Topology
+
 Collected traces
 - iperf (10 sec tests between AR, AS, RS)
 - fping (AR, AS, RA, RS)
