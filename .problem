@@ -1,0 +1,2 @@
+-   uploads should be organized into folders based on user. can we use mac address
+    as foldername to create /home/browserlab/MACADDR/<run_num>_<comment> directory instead?
