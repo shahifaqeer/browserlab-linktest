@@ -9,9 +9,10 @@ import os
 import time
 
 CLIENT_ADDRESS = 'localhost'
-SERVER_ADDRESS = '130.207.97.240'
+#SERVER_ADDRESS = '130.207.97.240'
+SERVER_ADDRESS = 'localhost'
 ROUTER_ADDRESS = '50.167.212.31'
-port = 12345
+port = 12344
 backlog = 5
 size = 1024
 run_number = 100000

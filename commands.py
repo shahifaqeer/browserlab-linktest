@@ -16,6 +16,16 @@ import fcntl
 from constants import *
 
 
+def logcmd(cmd, name):
+    if not os.path.exists('/tmp/browserlab/'):
+        os.mkdir('/tmp/browserlab/')
+    fileout = open('/tmp/browserlab/A_logcmd.log', 'a+w')
+    fileout.write(name + ': ' + str(time.time()) + ': ' + cmd + '\n')
+    print 'DEBUG: ' + name + ': ' + str(time.time()) + ': ' + cmd
+    fileout.close()
+    return
+
+
 # client commands
 class Command(object):
     def __init__(self, cmd):
@@ -38,16 +48,6 @@ class Command(object):
             self.process.terminate()
             thread.join()
         print self.process.returncode
-
-
-def logcmd(cmd, name):
-    if not os.path.exists('/tmp/browserlab/'):
-        os.mkdir('/tmp/browserlab/')
-    fileout = open('/tmp/browserlab/A_logcmd.log', 'a+w')
-    fileout.write(name + ': ' + str(time.time()) +': '+ cmd + '\n')
-    print 'DEBUG: '+ name + ': ' + str(time.time()) +': '+ cmd
-    fileout.close()
-    return
 
 
 class Router:
@@ -98,7 +98,6 @@ class Router:
     """
 
 
-
 class Client:
     def __init__(self, ip):
         self.name = 'A'
@@ -112,7 +111,7 @@ class Client:
             else:
                 outfile = None
             #use subprocess for immediate command
-            p = subprocess.call(cmd['CMD'], stdout = outfile, shell = True)
+            p = subprocess.call(cmd['CMD'], stdout=outfile, shell=True)
         else:
             Command(cmd['CMD']).run(cmd['TIMEOUT'])
         logcmd(str(cmd), self.name)
@@ -162,7 +161,7 @@ class Server:
 
     def command(self, cmd):
         if type(cmd) is dict:
-            msg = str(cmd)  #remember to eval and check for flags on other end (START, TIMEOUT, CMD, SUDO(?))
+            msg = str(cmd)  # remember to eval and check for flags on other end (START, TIMEOUT, CMD, SUDO(?))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((SERVER_ADDRESS, CONTROL_PORT))
         s.send(msg)
@@ -201,56 +200,76 @@ class Experiment:
         self.S = Server(SERVER_ADDRESS)
         self.device_list = [self.A, self.R, self.S]
         self.run_number = 0
-        self.unique_id = self.get_mac_address()
+        self.measurement_name = raw_input('Enter measurement name: ')
+        if self.measurement_name is not None:
+            self.unique_id = self.get_mac_address() + '_' + self.measurement_name
+        else:
+            self.unique_id = self.get_mac_address()
         self.create_monitor_interface()
 
     def get_mac_address(self, ifname=CLIENT_WIRELESS_INTERFACE_NAME):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', ifname[:15]))
-        return ''.join(['%02x:' % ord(char) for char in info[18:24]])[:-1].replace(':','')
+        return ''.join(['%02x:' % ord(char) for char in info[18:24]])[:-1].replace(':', '')
 
     def get_folder_name_from_server(self):
-        serv, run_number, pid = self.S.command({'CMD':'echo "create folder name"', 'START':1})
+        serv, run_number, pid = self.S.command({'CMD': 'echo "Bollocks!"', 'START': 1})
         self.run_number = run_number
-        print 'DEBUG: run_number '+run_number
+        #print 'DEBUG: run_number ' + run_number
         return 0
 
     def create_monitor_interface(self):
-        self.A.command({'CMD': 'iw dev '+ CLIENT_WIRELESS_INTERFACE_NAME +' interface add mon0 type monitor flags none'})
-        self.R.command({'CMD': 'iw dev '+ ROUTER_WIRELESS_INTERFACE_NAME +' interface add mon0 type monitor flags none'})
-        return 0
-
-    def ifup_monitor_interface(self):
-        self.A.command({'CMD': 'ifconfig mon0 up'})
-        self.R.command({'CMD': 'ifconfig mon0 up'})
-        return 0
-
-    def radiotap_dump(self):
+        self.A.command({'CMD': 'iw dev '+CLIENT_WIRELESS_INTERFACE_NAME+'mon del'})
+        self.R.command({'CMD': 'iw dev '+ROUTER_WIRELESS_INTERFACE_NAME+'mon del'})
+        self.A.command({'CMD': 'iw dev mon0 del'})
+        self.R.command({'CMD': 'iw dev mon0 del'})
+        self.A.command({'CMD': 'iw dev '+CLIENT_WIRELESS_INTERFACE_NAME+' interface add '+CLIENT_WIRELESS_INTERFACE_NAME+'mon type monitor flags none'})
+        self.R.command({'CMD': 'iw dev '+ROUTER_WIRELESS_INTERFACE_NAME+' interface add '+ROUTER_WIRELESS_INTERFACE_NAME+'mon type monitor flags none'})
         self.ifup_monitor_interface()
-        self.A.command({'CMD':'tcpdump -i mon0 -s 0 -p -U -w /tmp/browserlab/A_radiotap.pcap -G ' + str(experiment_timeout) + ' &'})
-        self.R.command({'CMD':'tcpdump -i mon0 -s 0 -p -U -w /tmp/browserlab/R_radiotap.pcap -G ' + str(experiment_timeout)})
-
-    def ping_all(self):
-        self.S.command({'CMD':'fping '+ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A >> /tmp/browserlab/fping_S.log &'})
-
-        self.A.command({'CMD':'fping '+ROUTER_ADDRESS_LOCAL+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A >> /tmp/browserlab/fping_A.log &'})
-        #self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
-        self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A >> /tmp/browserlab/fping_R.log &'})
         return
 
-    def tcpdump_all(self):
+    def ifup_monitor_interface(self):
+        self.A.command({'CMD': 'ifconfig '+CLIENT_WIRELESS_INTERFACE_NAME+'mon up'})
+        self.R.command({'CMD': 'ifconfig '+ROUTER_WIRELESS_INTERFACE_NAME+'mon up'})
+        return
+
+    def radiotap_dump(self, state, timeout):
+        #state = before, during, after
+        self.A.command({'CMD':'tcpdump -i '+CLIENT_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_A_'+state+'.pcap', 'TIMEOUT':timeout})
+        self.R.command({'CMD':'tcpdump -i '+ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_R_'+state+'.pcap'})
+        return
+
+    def tcpdump_all(self, state, timeout):
         #weird bug with R.command(tcpdump) -> doesn't work with &
-        self.S.command({'CMD':'tcpdump -s 100 -i eth0 -w /tmp/browserlab/S.pcap -G '+str(experiment_timeout)+' &'})
-        self.A.command({'CMD':'tcpdump -s 100 -i '+ CLIENT_WIRELESS_INTERFACE_NAME +' -w /tmp/browserlab/A.pcap -G '+str(experiment_timeout)+' &'})
-        self.R.command({'CMD':'tcpdump -s 100 -i '+ ROUTER_WIRELESS_INTERFACE_NAME +' -w /tmp/browserlab/R.pcap -G '+str(experiment_timeout)})
+        self.S.command({'CMD':'tcpdump -s 100 -i '+SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S_'+state+'.pcap', 'TIMEOUT': timeout})
+        self.A.command({'CMD':'tcpdump -s 100 -i '+CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A_'+state+'.pcap', 'TIMEOUT': timeout})
+        self.R.command({'CMD':'tcpdump -s 100 -i '+ROUTER_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_R_'+state+'.pcap'})
+        return
+
+    def ping_all(self):
+        self.S.command({'CMD':'fping '+ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
+        self.A.command({'CMD':'fping '+ROUTER_ADDRESS_LOCAL+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
+        #self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
+        self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
         return
 
     def process_log(self):
-        self.S.command({'CMD':'sleep 5; top -b -n1 > /tmp/browserlab/S_process.log'})
-        self.R.command({'CMD':'sleep 5; top -b -n1 > /tmp/browserlab/R_process.log'})
-        self.A.command({'CMD':'sleep 5; top -b -n1 > /tmp/browserlab/A_process.log'})
+        poll_freq = 0.2
+        ctr_len = str(experiment_timeout/poll_freq)
 
-        self.R.command({'CMD':'ifconfig > /tmp/browserlab/R_ifconfig.log'})
+        for dev in [self.S, self.R, self.A]:
+            dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep 0.2; done &'})
+        return
+
+    def interface_log(self):
+        poll_freq = 0.2
+        ctr_len = str(experiment_timeout/poll_freq)
+        #ifconfig (byte counters) for S
+        self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep 0.2; done &'})
+
+        #iw dev (radiotap info) for wireless
+        self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep 0.2; done &'})
+        self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep 0.2; done &'})
         return
 
     def kill_all(self):
@@ -285,37 +304,51 @@ class Experiment:
         self.S.command({'CMD':'rm -rf /tmp/browserlab/*.pcap'})
         self.S.command({'CMD':'rm -rf /tmp/browserlab/*.log'})
 
-        # TODO ftp upload /tmp/browserlab/run_number to server?
         self.S.command({'CMD': 'chown -R browserlab.browserlab /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
         self.S.command({'CMD': 'chmod -R 777 /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
-        self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/'+run_number+'_'+comment+' browserlab@riverside.noise.gatech.edu:'+self.unique_id})
+        self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/'+run_number+'_'+comment+' browserlab@' + SERVER_ADDRESS + ':'+self.unique_id})
 
+        return
+
+    def passive(self, comment, timeout):
+        '''
+        comment = 'before', 'during', 'after', 'calibrate'
+        sleep_timeout = experiment_timeout, passive_timeout, calibrate_timeout
+        '''
+        self.tcpdump_all(comment, timeout)
+        self.radiotap_dump(comment, timeout)
+
+        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as '+comment+' runs'
+        time.sleep(timeout)
+
+        self.kill_all()
         return
 
     def run_experiment(self, exp):
         self.get_folder_name_from_server()
-        self.tcpdump_all()
-        self.radiotap_dump()
+
+        self.passive('before', passive_timeout)
+
+        state = 'during'
+        timeout = experiment_timeout + 1
+        self.tcpdump_all(state, timeout)
+        self.radiotap_dump(state, timeout)
         self.ping_all()
         comment = exp()
         self.process_log()
-        sleep_time = experiment_timeout + 2
-        print '\nDEBUG: Sleep for ' + str(sleep_time) + ' seconds as experiment ' + comment + ' runs'
-        time.sleep(sleep_time)
+        self.interface_log()
+        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as '+comment+' runs'
+        time.sleep(timeout)
         self.kill_all()
+
+        self.passive('after', passive_timeout)
+
         self.transfer_logs(self.run_number, comment)
         return
 
-    def run_passive(self):
-        comment = 'calibrate'
+    def run_calibrate(self):
         self.get_folder_name_from_server()
-        self.tcpdump_all()
-        self.radiotap_dump()
-        self.process_log()
-        sleep_time = calibrate_timeout
-        print '\nDEBUG: Sleep for ' + str(sleep_time) + ' seconds as experiment ' + comment + ' runs'
-        time.sleep(sleep_time)
-        self.kill_all()
+        self.passive('calibrate', calibrate_timeout)
         self.transfer_logs(self.run_number, comment)
         return
 
@@ -326,48 +359,52 @@ class Experiment:
         return 'no_tra'
 
     def iperf_tcp_up_AR(self):
-        self.R.command({'CMD':'iperf -s -y C >> /tmp/browserlab/iperf_AR_R.log &'})
-        self.A.command({'CMD':'iperf -c ' + ROUTER_ADDRESS_LOCAL + ' -y C -i 0.5 >> /tmp/browserlab/iperf_AR_A.log &'})
+        self.R.command({'CMD': 'iperf -s -y C >> /tmp/browserlab/iperf_AR_R.log &'})
+        self.A.command({'CMD': 'iperf -c ' + ROUTER_ADDRESS_LOCAL + ' -y C -i 0.5 >> /tmp/browserlab/iperf_AR_A.log &'})
         return 'AR_tcp'
 
     def iperf_tcp_dw_RA(self):
-        self.A.command({'CMD':'iperf -s -y C >> /tmp/browserlab/iperf_RA_A.log &'})
-        self.R.command({'CMD':'iperf -c ' + CLIENT_ADDRESS + ' -y C -i 0.5 >> /tmp/browserlab/iperf_RA_R.log &'})
+        self.A.command({'CMD': 'iperf -s -y C >> /tmp/browserlab/iperf_RA_A.log &'})
+        self.R.command({'CMD': 'iperf -c ' + CLIENT_ADDRESS + ' -y C -i 0.5 >> /tmp/browserlab/iperf_RA_R.log &'})
         return 'RA_tcp'
 
     def iperf_tcp_up_RS(self):
-        self.S.command({'CMD':'iperf -s -y C >> /tmp/browserlab/iperf_RS_S.log &'})
-        self.R.command({'CMD':'iperf -c ' + SERVER_ADDRESS + ' -y C -i 0.5 >> /tmp/browserlab/iperf_RS_R.log &'})
+        self.S.command({'CMD': 'iperf -s -y C >> /tmp/browserlab/iperf_RS_S.log &'})
+        self.R.command({'CMD': 'iperf -c ' + SERVER_ADDRESS + ' -y C -i 0.5 >> /tmp/browserlab/iperf_RS_R.log &'})
         return 'RS_tcp'
 
     def iperf_tcp_dw_SR(self):
-        self.R.command({'CMD':'iperf -s -y C >> /tmp/browserlab/iperf_SR_R.log &'})
-        self.S.command({'CMD':'iperf -c ' + ROUTER_ADDRESS_GLOBAL + ' -y C -i 0.5 >> /tmp/browserlab/iperf_SR_S.log &'})
+        self.R.command({'CMD': 'iperf -s -y C >> /tmp/browserlab/iperf_SR_R.log &'})
+        self.S.command({'CMD': 'iperf -c ' + ROUTER_ADDRESS_GLOBAL + ' -y C -i 0.5 >> /tmp/browserlab/iperf_SR_S.log &'})
         return 'SR_tcp'
 
     def iperf_tcp_up_AS(self):
-        self.S.command({'CMD':'iperf -s -y C >> /tmp/browserlab/iperf_AR_R.log &'})
-        self.A.command({'CMD':'iperf -c ' + SERVER_ADDRESS + ' -y C -i 0.5 >> /tmp/browserlab/iperf_AR_A.log &'})
+        self.S.command({'CMD': 'iperf -s -y C >> /tmp/browserlab/iperf_AS_S.log &'})
+        self.A.command({'CMD': 'iperf -c ' + SERVER_ADDRESS + ' -y C -i 0.5 >> /tmp/browserlab/iperf_AS_A.log &'})
         return 'AS_tcp'
 
     def iperf_tcp_dw_SA(self):
         #NOTE this requires iperf reverse installed on client and server
-        self.S.command({'CMD':'iperf -s -y C -i 0.5 -t 10 --reverse >> /tmp/browserlab/iperf_SA_S.log &'})
-        self.A.command({'CMD':'iperf -c ' + SERVER_ADDRESS + ' -y C --reverse >> /tmp/browserlab/iperf_SA_A.log &'})
+        self.S.command({'CMD': 'iperf -s -y C -i 0.5 -t 10 --reverse >> /tmp/browserlab/iperf_SA_S.log &'})
+        self.A.command({'CMD': 'iperf -c ' + SERVER_ADDRESS + ' -y C --reverse >> /tmp/browserlab/iperf_SA_A.log &'})
         return 'SA_tcp'
 
     # udpprobe gives both up and dw
     def probe_udp_AR(self):
-        self.R.command({'CMD':'udpprobeserver >> /tmp/browserlab/probe_AR_R.log &'})
-        self.A.command({'CMD':'udpprober -s ' + ROUTER_ADDRESS_LOCAL + ' >> /tmp/browserlab/probe_AR_A.log &'})
+        self.R.command({'CMD': 'udpprobeserver >> /tmp/browserlab/probe_AR_R.log &'})
+        self.A.command({'CMD': 'udpprober -s ' + ROUTER_ADDRESS_LOCAL + ' >> /tmp/browserlab/probe_AR_A.log &'})
         return 'AR_udp'
 
     def probe_udp_RS(self):
-        self.S.command({'CMD':'udpprobeserver >> /tmp/browserlab/probe_RS_S.log &'})
-        self.R.command({'CMD':'udpprober -s ' + SERVER_ADDRESS + ' >> /tmp/browserlab/probe_RS_R.log &'})
+        self.S.command({'CMD': 'udpprobeserver >> /tmp/browserlab/probe_RS_S.log &'})
+        self.R.command({'CMD': 'udpprober -s ' + SERVER_ADDRESS + ' >> /tmp/browserlab/probe_RS_R.log &'})
         return 'RS_udp'
 
     def probe_udp_AS(self):
-        self.S.command({'CMD':'udpprobeserver >> /tmp/browserlab/probe_AS_S.log &'})
-        self.A.command({'CMD':'udpprober -s ' + SERVER_ADDRESS + ' >> /tmp/browserlab/probe_AS_A.log &'})
+        self.S.command({'CMD': 'udpprobeserver >> /tmp/browserlab/probe_AS_S.log &'})
+        self.A.command({'CMD': 'udpprober -s ' + SERVER_ADDRESS + ' >> /tmp/browserlab/probe_AS_A.log &'})
         return 'AS_udp'
+
+    def ABWprobe(self):
+        #TODO
+        return
