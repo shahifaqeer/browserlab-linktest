@@ -52,10 +52,11 @@ CLIENT
 - fping: https://github.com/shahifaqeer/fping (follow installation steps in README)
 - iperf reverse: https://github.com/shahifaqeer/iperf (replace normal iperf either by uninstalling first or using 'install' command)
 - udpprobe: https://github.com/shahifaqeer/shaperprobe
-- make shaperprobe/shaperprobe/linux/ and shaperprobe/shaperprobeserver/ (I haven't fixed the osx or windows version yet)
-- in these folders run 
-  sudo install -D -t /usr/local/bin/ udpprober
-  sudo install -D -t /usr/local/bin/ udpprobeserver
+-- make shaperprobe/shaperprobe/linux/ and shaperprobe/shaperprobeserver/ (I haven't fixed the osx or windows version yet) and give it execution permissions
+	sudo chmod 777 udpprober
+-- in these folders run 
+  	sudo install -D -t /usr/local/bin/ udpprober
+  	sudo install -D -t /usr/local/bin/ udpprobeserver
 - schedule (python library): sudo pip install schedule
 
 Update constants.py
