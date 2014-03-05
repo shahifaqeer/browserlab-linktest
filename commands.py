@@ -273,17 +273,17 @@ class Experiment:
         return
 
     def kill_all(self):
-        self.S.command({'CMD':'killall fping'}) #should be done with pid instead
-        self.S.command({'CMD':'killall tcpdump'})
-        self.S.command({'CMD':'killall iperf'})
+        self.S.command({'CMD': 'killall fping'}) #should be done with pid instead
+        self.S.command({'CMD': 'killall tcpdump'})
+        self.S.command({'CMD': 'killall iperf'})
 
-        self.A.command({'CMD':'killall fping'}) #should be done with pid instead
-        self.A.command({'CMD':'killall tcpdump'})
-        self.A.command({'CMD':'killall iperf'})
+        self.A.command({'CMD': 'killall fping'}) #should be done with pid instead
+        self.A.command({'CMD': 'killall tcpdump'})
+        self.A.command({'CMD': 'killall iperf'})
 
-        self.R.command({'CMD':'killall fping'}) #should be done with pid instead
-        self.R.command({'CMD':'killall tcpdump'})
-        self.R.command({'CMD':'killall iperf'})
+        self.R.command({'CMD': 'killall fping'}) #should be done with pid instead
+        self.R.command({'CMD': 'killall tcpdump'})
+        self.R.command({'CMD': 'killall iperf'})
         return
 
     def clear_all(self):
