@@ -286,6 +286,12 @@ class Experiment:
         self.R.command({'CMD':'killall iperf'})
         return
 
+    def clear_all(self):
+        self.S.command({'CMD': 'rm -rf /tmp/browserlab/*'})
+        self.R.command({'CMD': 'rm -rf /tmp/browserlab/*'})
+        self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.log'})
+        self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.pcap'})
+
     def transfer_logs(self, run_number, comment):
         self.S.command({'CMD': 'mkdir -p /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
         self.S.command({'CMD':'cp /tmp/browserlab/*.log /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
@@ -349,7 +355,7 @@ class Experiment:
     def run_calibrate(self):
         self.get_folder_name_from_server()
         self.passive('calibrate', calibrate_timeout)
-        self.transfer_logs(self.run_number, comment)
+        self.transfer_logs(self.run_number, 'calibrate')
         return
 
 
