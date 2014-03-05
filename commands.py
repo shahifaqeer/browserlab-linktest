@@ -200,11 +200,16 @@ class Experiment:
         self.S = Server(SERVER_ADDRESS)
         self.device_list = [self.A, self.R, self.S]
         self.run_number = 0
+        self.experiment_counter = 0
         if measurement_name is not None:
             self.unique_id = self.get_mac_address() + '_' + measurement_name
         else:
             self.unique_id = self.get_mac_address()
         self.create_monitor_interface()
+
+    def increment_experiment_counter(self):
+        self.experiment_counter += 1
+        print "Run Number ", self.experiment_counter
 
     def get_mac_address(self, ifname=CLIENT_WIRELESS_INTERFACE_NAME):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
