@@ -194,15 +194,14 @@ def experiment(S,R,C, exp):
 
 
 class Experiment:
-    def __init__(self):
+    def __init__(self, measurement_name=None):
         self.A = Client(CLIENT_ADDRESS)
         self.R = Router(ROUTER_ADDRESS_LOCAL, ROUTER_USER, ROUTER_PASS)
         self.S = Server(SERVER_ADDRESS)
         self.device_list = [self.A, self.R, self.S]
         self.run_number = 0
-        self.measurement_name = raw_input('Enter measurement name: ')
-        if self.measurement_name is not None:
-            self.unique_id = self.get_mac_address() + '_' + self.measurement_name
+        if measurement_name is not None:
+            self.unique_id = self.get_mac_address() + '_' + measurement_name
         else:
             self.unique_id = self.get_mac_address()
         self.create_monitor_interface()

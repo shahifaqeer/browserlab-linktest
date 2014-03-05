@@ -8,10 +8,9 @@ import schedule
 #time_wait = 20 # wait 20 sec before each experiment
 
 
-def experiment_suit():
-    e = Experiment()                        # Total ~ 470 s ~ 7:50 mins
+def experiment_suit(e):
 
-    print "RUN Experiment"
+    print "RUN Experiment"                  # Total ~ 470 s ~ 7:50 mins
     e.run_calibrate()                       # 120 + 20 = 140 s
     #time.sleep(time_wait)
     # latency without load
@@ -51,11 +50,15 @@ def try_job():
 
 if __name__ == "__main__":
 
-    schedule.every(10).minutes.do(experiment_suit)
+    measurement_folder_name = raw_input('Enter measurement name: ')
+
+    e = Experiment(measurement_folder_name)
+
+    schedule.every(10).minutes.do(experiment_suit(e))
     #schedule.every(1).minutes.do(try_job)
 
     indx = 0
-    experiment_suit()
+    experiment_suit(e)
     indx += 1
 
     while True:
