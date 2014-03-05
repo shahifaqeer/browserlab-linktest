@@ -291,6 +291,8 @@ class Experiment:
         self.R.command({'CMD': 'rm -rf /tmp/browserlab/*'})
         self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.log'})
         self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.pcap'})
+        self.R.host.close()
+        return
 
     def transfer_logs(self, run_number, comment):
         self.S.command({'CMD': 'mkdir -p /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
@@ -324,7 +326,7 @@ class Experiment:
         self.tcpdump_all(comment, timeout)
         self.radiotap_dump(comment, timeout)
 
-        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as '+comment+' runs'
+        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as '+comment+' runs\n'
         time.sleep(timeout)
 
         self.kill_all()
@@ -343,7 +345,7 @@ class Experiment:
         comment = exp()
         self.process_log()
         self.interface_log()
-        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as '+comment+' runs'
+        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as '+comment+' runs\n'
         time.sleep(timeout)
         self.kill_all()
 
