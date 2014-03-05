@@ -57,7 +57,8 @@ CLIENT
 	- in these folders run 
   		sudo install -D -t /usr/local/bin/ udpprober
   		sudo install -D -t /usr/local/bin/ udpprobeserver
-- schedule (python library): sudo pip install schedule
+- schedule (python module): sudo pip install schedule
+- paramiko (python module): sudo pip install paramiko
 
 Update constants.py
 -------------------
