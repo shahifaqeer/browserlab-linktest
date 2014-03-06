@@ -10,7 +10,8 @@ import schedule
 
 def experiment_suit(e):
 
-    print "RUN Experiment"                  # Total ~ 430 s ~ 7:10 mins
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+    # Total ~ 430 s ~ 7:10 mins
     e.run_calibrate()                       # 120 + 20 = 140 s
     #time.sleep(time_wait)
     # latency without load
@@ -37,6 +38,8 @@ def experiment_suit(e):
     e.run_experiment(e.probe_udp_RS)
     #time.sleep(time_wait)
     e.increment_experiment_counter()
+    print "WAIT 60 s before next run"
+    time.sleep(60)                          # 60 s wait before next suit
 
     return
 
