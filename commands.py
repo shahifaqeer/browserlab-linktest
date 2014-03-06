@@ -209,7 +209,7 @@ class Experiment:
 
     def increment_experiment_counter(self):
         self.experiment_counter += 1
-        print "Run Number ", self.experiment_counter
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())), ": Run Number ", self.experiment_counter
 
     def get_mac_address(self, ifname=CLIENT_WIRELESS_INTERFACE_NAME):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
