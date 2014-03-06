@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from __future__ import division
 #from datetime import datetime
@@ -14,7 +14,7 @@ import subprocess
 import struct
 import fcntl
 
-from constants import *
+from const import *
 
 
 def logcmd(cmd, name):

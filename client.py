@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+
 #CLIENT
 from __future__ import division
 from commands import Experiment
