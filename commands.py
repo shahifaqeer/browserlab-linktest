@@ -1,6 +1,6 @@
 from __future__ import division
-from datetime import datetime
-from random import randint
+#from datetime import datetime
+#from random import randint
 
 import time
 import socket
@@ -8,8 +8,7 @@ import os
 import paramiko
 import threading
 import subprocess
-import shlex
-import subprocess
+#import shlex
 import struct
 import fcntl
 
@@ -210,6 +209,7 @@ class Experiment:
     def increment_experiment_counter(self):
         self.experiment_counter += 1
         print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())), ": Run Number ", self.experiment_counter
+        return
 
     def get_mac_address(self, ifname=CLIENT_WIRELESS_INTERFACE_NAME):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
