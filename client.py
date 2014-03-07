@@ -99,7 +99,10 @@ if __name__ == "__main__":
 
 
     #for rate in [1,2,3,4,6,8,12,16,20,0]:
-    #tot_runs = 50
+        #tot_runs = 50
+        #measure_link(tot_runs, rate)
 
-    measure_link(10, 0)
-    measure_link(10, 1)
+
+    measure_link(30, 0)
+    measure_link(30, 1)
+    measure_link(30, 12)
