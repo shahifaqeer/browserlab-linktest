@@ -15,7 +15,7 @@ def experiment_suit(e):
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
     # Total ~ 430 s ~ 7:10 mins
     if e.collect_calibrate:
-        # e.run_calibrate()                       # 120 + 20 = 140 s
+        e.run_calibrate()                       # 120 + 20 = 140 s
     else:
         print "not doing calibrate"
     #time.sleep(time_wait)
@@ -96,13 +96,13 @@ def test_measurements(tot_runs, rate):
 
     return
 
-def real_measurements():
+def real_measurements(calibrate=True):
 
     measurement_folder_name = raw_input('Enter measurement name: ')
     tot_runs = int(raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 50 with laptop in the same location. '))
 
     e = Experiment(measurement_folder_name)
-    e.collect_calibrate = True
+    e.collect_calibrate = calibrate
 
     for nruns in range(tot_runs):
         print "\t\t\n RUN : " + str(nruns) + "\n"
