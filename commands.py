@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from __future__ import division
 #from datetime import datetime
 #from random import randint
@@ -12,7 +14,7 @@ import subprocess
 import struct
 import fcntl
 
-from constants import *
+from const import *
 
 
 def logcmd(cmd, name):
@@ -258,18 +260,18 @@ class Experiment:
         return
 
     def process_log(self):
-        poll_freq = 0.2
-        ctr_len = str(experiment_timeout/poll_freq)
+        poll_freq = 1
+        ctr_len = str(int(experiment_timeout/poll_freq))
 
         for dev in [self.S, self.R, self.A]:
-            dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep 0.2; done &'})
+            dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
         return
 
     def interface_log(self):
-        poll_freq = 0.2
-        ctr_len = str(experiment_timeout/poll_freq)
+        poll_freq = 1
+        ctr_len = str(int(experiment_timeout/poll_freq))
         #ifconfig (byte counters) for S
-        self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep 0.2; done &'})
+        self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
 
         #iw dev (radiotap info) for wireless
         self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep 0.2; done &'})
