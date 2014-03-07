@@ -293,12 +293,13 @@ class Experiment:
         self.R.command({'CMD': 'killall iperf'})
         return
 
-    def clear_all(self):
+    def clear_all(self, close_R=1):
         self.S.command({'CMD': 'rm -rf /tmp/browserlab/*'})
         self.R.command({'CMD': 'rm -rf /tmp/browserlab/*'})
         self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.log'})
         self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.pcap'})
-        self.R.host.close()
+        if close_R:
+            self.R.host.close()
         return
 
     def transfer_logs(self, run_number, comment):
