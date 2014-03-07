@@ -241,15 +241,17 @@ class Experiment:
 
     def radiotap_dump(self, state, timeout):
         #state = before, during, after
-        self.A.command({'CMD':'tcpdump -i '+CLIENT_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_A_'+state+'.pcap', 'TIMEOUT':timeout})
         self.R.command({'CMD':'tcpdump -i '+ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_R_'+state+'.pcap'})
+        #self.A.command({'CMD':'tcpdump -i '+CLIENT_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_A_'+state+'.pcap', 'TIMEOUT':timeout})
+        self.A.command({'CMD':'tcpdump -i '+CLIENT_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_A_'+state+'.pcap &'})
         return
 
     def tcpdump_all(self, state, timeout):
         # weird bug with R.command(tcpdump) -> doesn't work with &
-        self.S.command({'CMD':'tcpdump -s 100 -i '+SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S_'+state+'.pcap'})
+        self.S.command({'CMD':'tcpdump -s 100 -i '+SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S_'+state+'.pcap', 'TIMEOUT': timeout})
         self.R.command({'CMD':'tcpdump -s 100 -i '+ROUTER_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_R_'+state+'.pcap'})
-        self.A.command({'CMD':'tcpdump -s 100 -i '+CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A_'+state+'.pcap', 'TIMEOUT': timeout})
+        #self.A.command({'CMD':'tcpdump -s 100 -i '+CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A_'+state+'.pcap', 'TIMEOUT': timeout})
+        self.A.command({'CMD':'tcpdump -s 100 -i '+CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A_'+state+'.pcap &'})
         return
 
     def ping_all(self):
