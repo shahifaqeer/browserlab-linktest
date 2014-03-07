@@ -254,6 +254,7 @@ class Experiment:
 
     def ping_all(self):
         self.S.command({'CMD':'fping '+ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
+        self.S.command({'CMD':'fping '+CLIENT_ADDRESS+' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
         self.A.command({'CMD':'fping '+ROUTER_ADDRESS_LOCAL+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
         #self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
         self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})

@@ -69,7 +69,20 @@ def try_job():
 
 
 def measure_link(tot_runs, rate):
-    e = Experiment('hnl1_'+str(rate)+'MBps')
+
+    rate = str(rate)
+    Q = Router('192.168.1.1', 'root', 'passw0rd')
+
+    if rate != 0:
+        Q.remoteCommand('sh ratelimit3.sh eth0 '+rate)
+        Q.remoteCommand('sh ratelimit3.sh eth1 '+rate)
+    else:
+        Q.remoteCommand('tc qdisc del dev eth0 root')
+        Q.remoteCommand('tc qdisc del dev eth1 root')
+
+    Q.host.close()
+
+    e = Experiment('hnl1_'+rate+'MBps')
 
     for nruns in range(tot_runs):
         print "\t\t\n RUN : " + str(nruns) + "\n"
@@ -78,12 +91,12 @@ def measure_link(tot_runs, rate):
 
     e.kill_all()
     e.clear_all()
+
     return
 
 
 if __name__ == "__main__":
 
-    Q = Router('192.168.1.1', 'root', 'passw0rd')
 
     #for rate in [1,2,3,4,6,8,12,16,20,0]:
     #tot_runs = 50
