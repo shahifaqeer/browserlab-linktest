@@ -201,6 +201,7 @@ class Experiment:
         self.S = Server(SERVER_ADDRESS)
         self.device_list = [self.A, self.R, self.S]
         self.run_number = 0
+        self.collect_calibrate = False
         self.experiment_counter = 0
         if measurement_name is not None:
             self.unique_id = self.get_mac_address() + '_' + measurement_name
