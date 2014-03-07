@@ -106,6 +106,7 @@ class Client:
         #self.logfile = initialize_logfile()
 
     def command(self, cmd):
+        logcmd(str(cmd), self.name)
         if not ('TIMEOUT' in cmd):
             if 'STDOUT' in cmd:
                 outfile = open(cmd['STDOUT'], 'a+w')
@@ -115,7 +116,6 @@ class Client:
             p = subprocess.call(cmd['CMD'], stdout=outfile, shell=True)
         else:
             Command(cmd['CMD']).run(cmd['TIMEOUT'])
-        logcmd(str(cmd), self.name)
         return
 
     """
@@ -246,18 +246,18 @@ class Experiment:
         return
 
     def tcpdump_all(self, state, timeout):
-        #weird bug with R.command(tcpdump) -> doesn't work with &
-        self.S.command({'CMD':'tcpdump -s 100 -i '+SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S_'+state+'.pcap', 'TIMEOUT': timeout})
-        self.A.command({'CMD':'tcpdump -s 100 -i '+CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A_'+state+'.pcap', 'TIMEOUT': timeout})
+        # weird bug with R.command(tcpdump) -> doesn't work with &
+        self.S.command({'CMD':'tcpdump -s 100 -i '+SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S_'+state+'.pcap'})
         self.R.command({'CMD':'tcpdump -s 100 -i '+ROUTER_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_R_'+state+'.pcap'})
+        self.A.command({'CMD':'tcpdump -s 100 -i '+CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A_'+state+'.pcap', 'TIMEOUT': timeout})
         return
 
     def ping_all(self):
         self.S.command({'CMD':'fping '+ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
         self.S.command({'CMD':'fping '+CLIENT_ADDRESS+' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
-        self.A.command({'CMD':'fping '+ROUTER_ADDRESS_LOCAL+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
         #self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
         self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
+        self.A.command({'CMD':'fping '+ROUTER_ADDRESS_LOCAL+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
         return
 
     def process_log(self):
