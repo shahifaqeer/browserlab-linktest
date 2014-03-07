@@ -106,6 +106,7 @@ class Client:
         #self.logfile = initialize_logfile()
 
     def command(self, cmd):
+        logcmd(str(cmd), self.name)
         if not ('TIMEOUT' in cmd):
             if 'STDOUT' in cmd:
                 outfile = open(cmd['STDOUT'], 'a+w')
@@ -115,7 +116,6 @@ class Client:
             p = subprocess.call(cmd['CMD'], stdout=outfile, shell=True)
         else:
             Command(cmd['CMD']).run(cmd['TIMEOUT'])
-        logcmd(str(cmd), self.name)
         return
 
     """
@@ -201,6 +201,7 @@ class Experiment:
         self.S = Server(SERVER_ADDRESS)
         self.device_list = [self.A, self.R, self.S]
         self.run_number = 0
+        self.collect_calibrate = False
         self.experiment_counter = 0
         if measurement_name is not None:
             self.unique_id = self.get_mac_address() + '_' + measurement_name
@@ -241,22 +242,26 @@ class Experiment:
 
     def radiotap_dump(self, state, timeout):
         #state = before, during, after
-        self.A.command({'CMD':'tcpdump -i '+CLIENT_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_A_'+state+'.pcap', 'TIMEOUT':timeout})
         self.R.command({'CMD':'tcpdump -i '+ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_R_'+state+'.pcap'})
+        #self.A.command({'CMD':'tcpdump -i '+CLIENT_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_A_'+state+'.pcap', 'TIMEOUT':timeout})
+        self.A.command({'CMD':'tcpdump -i '+CLIENT_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_A_'+state+'.pcap &'})
         return
 
     def tcpdump_all(self, state, timeout):
-        #weird bug with R.command(tcpdump) -> doesn't work with &
-        self.S.command({'CMD':'tcpdump -s 100 -i '+SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S_'+state+'.pcap', 'TIMEOUT': timeout})
-        self.A.command({'CMD':'tcpdump -s 100 -i '+CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A_'+state+'.pcap', 'TIMEOUT': timeout})
-        self.R.command({'CMD':'tcpdump -s 100 -i '+ROUTER_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_R_'+state+'.pcap'})
+        # weird bug with R.command(tcpdump) -> doesn't work with &
+        # also seems like timeout only kills the bash/sh -c process but not tcpdump itself - no wonder it doesn't work!
+        self.S.command({'CMD':'tcpdump -s 100 -i '+SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
+        self.R.command({'CMD':'tcpdump -s 100 -i '+ROUTER_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
+        #self.A.command({'CMD':'tcpdump -s 100 -i '+CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap', 'TIMEOUT': timeout})
+        self.A.command({'CMD':'tcpdump -s 100 -i '+CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap &'})
         return
 
     def ping_all(self):
         self.S.command({'CMD':'fping '+ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
-        self.A.command({'CMD':'fping '+ROUTER_ADDRESS_LOCAL+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
+        self.S.command({'CMD':'fping '+CLIENT_ADDRESS+' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
         #self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
         self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
+        self.A.command({'CMD':'fping '+ROUTER_ADDRESS_LOCAL+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
         return
 
     def process_log(self):
@@ -274,8 +279,8 @@ class Experiment:
         self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
 
         #iw dev (radiotap info) for wireless
-        self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep 0.2; done &'})
-        self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep 0.2; done &'})
+        self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
         return
 
     def kill_all(self):
@@ -292,12 +297,13 @@ class Experiment:
         self.R.command({'CMD': 'killall iperf'})
         return
 
-    def clear_all(self):
+    def clear_all(self, close_R=1):
         self.S.command({'CMD': 'rm -rf /tmp/browserlab/*'})
         self.R.command({'CMD': 'rm -rf /tmp/browserlab/*'})
         self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.log'})
         self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.pcap'})
-        self.R.host.close()
+        if close_R:
+            self.R.host.close()
         return
 
     def transfer_logs(self, run_number, comment):
@@ -341,21 +347,31 @@ class Experiment:
     def run_experiment(self, exp):
         self.get_folder_name_from_server()
 
-        self.passive('before', passive_timeout)
+        #self.passive('before', passive_timeout)
 
-        state = 'during'
-        timeout = experiment_timeout + 1
-        self.tcpdump_all(state, timeout)
-        self.radiotap_dump(state, timeout)
+        timeout = 3 * experiment_timeout      # 30 sec
+
+        self.tcpdump_all('', experiment_timeout)
+        self.radiotap_dump('', experiment_timeout)
+
+        state = 'before'
+        print "DEBUG: "+str(time.time())+" state = " + state
+        time.sleep(experiment_timeout)
+
+        state = 'during + after'
+        print "DEBUG: "+str(time.time())+" state = " + state
         self.ping_all()
         comment = exp()
         self.process_log()
         self.interface_log()
-        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as '+comment+' runs\n'
-        time.sleep(timeout)
+        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs\n'
+        time.sleep(2 * experiment_timeout)
+
+        state = "done: kill 'em all"
+        print "DEBUG: "+str(time.time())+" state = " + state
         self.kill_all()
 
-        self.passive('after', passive_timeout)
+        #self.passive('after', passive_timeout)
 
         self.transfer_logs(self.run_number, comment)
         return
