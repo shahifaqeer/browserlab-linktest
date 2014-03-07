@@ -353,11 +353,11 @@ class Experiment:
         self.radiotap_dump('', timeout)
 
         state = 'before'
-        print "DEBUG: state = " + state
+        print "DEBUG: "+str(time.time())+" state = " + state
         time.sleep(experiment_timeout)
 
         state = 'during + after'
-        print "DEBUG: state = " + state
+        print "DEBUG: "+str(time.time())+" state = " + state
         self.ping_all()
         comment = exp()
         self.process_log()
@@ -366,7 +366,7 @@ class Experiment:
         time.sleep(2 * experiment_timeout)
 
         state = "done: kill 'em all"
-        print "DEBUG: state = " + state
+        print "DEBUG: "+str(time.time())+" state = " + state
         self.kill_all()
 
         #self.passive('after', passive_timeout)
