@@ -345,21 +345,31 @@ class Experiment:
     def run_experiment(self, exp):
         self.get_folder_name_from_server()
 
-        self.passive('before', passive_timeout)
+        #self.passive('before', passive_timeout)
 
-        state = 'during'
-        timeout = experiment_timeout + 1
-        self.tcpdump_all(state, timeout)
-        self.radiotap_dump(state, timeout)
+        timeout = 3 * experiment_timeout      # 30 sec
+
+        self.tcpdump_all('', timeout)
+        self.radiotap_dump('', timeout)
+
+        state = 'before'
+        print "DEBUG: state = " + state
+        time.sleep(experiment_timeout)
+
+        state = 'during + after'
+        print "DEBUG: state = " + state
         self.ping_all()
         comment = exp()
         self.process_log()
         self.interface_log()
-        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as '+comment+' runs\n'
-        time.sleep(timeout)
+        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs\n'
+        time.sleep(2 * experiment_timeout)
+
+        state = "done: kill 'em all"
+        print "DEBUG: state = " + state
         self.kill_all()
 
-        self.passive('after', passive_timeout)
+        #self.passive('after', passive_timeout)
 
         self.transfer_logs(self.run_number, comment)
         return
