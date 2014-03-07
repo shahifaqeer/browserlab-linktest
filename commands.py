@@ -349,8 +349,8 @@ class Experiment:
 
         timeout = 3 * experiment_timeout      # 30 sec
 
-        self.tcpdump_all('', timeout)
-        self.radiotap_dump('', timeout)
+        self.tcpdump_all('', experiment_timeout)
+        self.radiotap_dump('', experiment_timeout)
 
         state = 'before'
         print "DEBUG: "+str(time.time())+" state = " + state
