@@ -52,7 +52,7 @@ CLIENT
 - fping: https://github.com/shahifaqeer/fping (follow installation steps in README)
 - iperf reverse: https://github.com/shahifaqeer/iperf (replace normal iperf either by uninstalling first or using 'install' command)
 - udpprobe: https://github.com/shahifaqeer/shaperprobe
-	- make shaperprobe/shaperprobe/linux/ and shaperprobe/shaperprobeserver/ (I haven't fixed the osx or windows version yet)
+	- make shaperprobe/udpprobe/linux/ and shaperprobe/udpprobeserver/ (I haven't fixed the osx or windows version yet)
 	- in these folders run 
   		sudo install udpprober /usr/local/bin/
   		sudo install udpprobeserver /usr/local/bin/ 
