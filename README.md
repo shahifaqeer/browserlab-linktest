@@ -41,7 +41,7 @@ Required Tools (Dependencies)
 -----------------------------
 
 ROUTER
-- udpprobe: opkg install http://riverside.noise.gatech.edu:8080/udpprobe_2013-12-11_ar71xx.ipk
+- udpprobe: opkg install http://riverside.noise.gatech.edu:8080/udpprobe_2014-03-08_ar71xx.ipk
 
 If the router is not bismark, you will also need
 - iperf: opkg install iperf
@@ -52,11 +52,11 @@ CLIENT
 - fping: https://github.com/shahifaqeer/fping (follow installation steps in README)
 - iperf reverse: https://github.com/shahifaqeer/iperf (replace normal iperf either by uninstalling first or using 'install' command)
 - udpprobe: https://github.com/shahifaqeer/shaperprobe
-	- make shaperprobe/shaperprobe/linux/ and shaperprobe/shaperprobeserver/ (I haven't fixed the osx or windows version yet) and give it execution permissions
-		sudo chmod 777 udpprober
+	- make shaperprobe/udpprobe/linux/ and shaperprobe/udpprobeserver/ (I haven't fixed the osx or windows version yet)
 	- in these folders run 
-  		sudo install -D -t /usr/local/bin/ udpprober
-  		sudo install -D -t /usr/local/bin/ udpprobeserver
+  		sudo install udpprober /usr/local/bin/
+  		sudo install udpprobeserver /usr/local/bin/ 
+	- (or simply add these directory to your PATH)
 - schedule (python module): sudo pip install schedule
 - paramiko (python module): sudo pip install paramiko
 
