@@ -257,30 +257,39 @@ class Experiment:
         return
 
     def ping_all(self):
-        self.S.command({'CMD':'fping '+ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
-        self.S.command({'CMD':'fping '+CLIENT_ADDRESS+' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
+        self.S.command({'CMD':'fping '+ROUTER_ADDRESS_GLOBAL+' -p 200 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
+        self.S.command({'CMD':'fping '+CLIENT_ADDRESS+' -p 200 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
         #self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
-        self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
-        self.A.command({'CMD':'fping '+ROUTER_ADDRESS_LOCAL+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
+        self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 200 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
+        self.A.command({'CMD':'fping '+ROUTER_ADDRESS_LOCAL+' '+ SERVER_ADDRESS +' -p 200 -c '+ str(experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
         return
 
-    def process_log(self):
+    def process_log(self, comment):
         poll_freq = 1
         ctr_len = str(int(experiment_timeout/poll_freq))
 
         for dev in [self.S, self.R, self.A]:
-            dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
+            #dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
+            dev.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/top_'+dev.name+'.log;'})
+            dev.command({'CMD':'top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log;'})
         return
 
-    def interface_log(self):
+    def interface_log(self, comment):
         poll_freq = 1
         ctr_len = str(int(experiment_timeout/poll_freq))
+
         #ifconfig (byte counters) for S
-        self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        #self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        self.S.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/ifconfig_'+self.S.name+'.log;'})
+        self.S.command({'CMD':'ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log'})
 
         #iw dev (radiotap info) for wireless
-        self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
-        self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        #self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        #self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        self.R.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/ifconfig_'+dev.name+'.log;'})
+        self.R.command({'CMD':'iw dev '+ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log'})
+        self.A.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/ifconfig_'+dev.name+'.log;'})
+        self.A.command({'CMD':'iw dev '+CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log'})
         return
 
     def kill_all(self):
@@ -358,21 +367,23 @@ class Experiment:
         print "DEBUG: "+str(time.time())+" state = " + state
         time.sleep(experiment_timeout)
 
-        state = 'during + after'
-        print "DEBUG: "+str(time.time())+" state = " + state
         self.ping_all()
+        self.process_log(state)
+        self.interface_log(state)
+
+        state = 'during'
+        print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()
-        self.process_log()
-        self.interface_log()
         print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs\n'
         time.sleep(2 * experiment_timeout)
 
-        state = "done: kill 'em all"
+        state = 'after'
         print "DEBUG: "+str(time.time())+" state = " + state
+        self.process_log(state)
+        self.interface_log(state)
+
         self.kill_all()
-
         #self.passive('after', passive_timeout)
-
         self.transfer_logs(self.run_number, comment)
         return
 
