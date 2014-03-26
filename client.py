@@ -127,3 +127,6 @@ if __name__ == "__main__":
     #measure_link(30, 0)
     #measure_link(30, 1)
     #measure_link(30, 12)
+    #test_measurements(30, 0)
+    #test_measurements(30, 1)
+    #test_measurements(30, 12)
