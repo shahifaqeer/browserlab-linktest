@@ -2,7 +2,7 @@
 
 #CLIENT
 from __future__ import division
-from commands import Experiment, Router
+from cmds import Experiment, Router
 
 import time
 #import schedule
