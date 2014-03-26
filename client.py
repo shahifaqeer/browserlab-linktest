@@ -44,14 +44,14 @@ def experiment_suit(e):
     e.run_experiment(e.iperf_tcp_dw_SR)
     #time.sleep(time_wait)
     # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AR"
-    e.run_experiment(e.probe_udp_AR)
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AR"
+    #e.run_experiment(e.probe_udp_AR)
     #time.sleep(time_wait)
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AS"
-    e.run_experiment(e.probe_udp_AS)
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AS"
+    #e.run_experiment(e.probe_udp_AS)
     #time.sleep(time_wait)
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe RS"
-    e.run_experiment(e.probe_udp_RS)
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe RS"
+    #e.run_experiment(e.probe_udp_RS)
     #time.sleep(time_wait)
     e.increment_experiment_counter()
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 60 sec before next run"
@@ -116,12 +116,14 @@ def real_measurements(calibrate=True):
 
 if __name__ == "__main__":
 
+    real_measurements(False)
+
 
     #for rate in [1,2,3,4,6,8,12,16,20,0]:
         #tot_runs = 50
         #measure_link(tot_runs, rate)
 
 
-    measure_link(30, 0)
-    measure_link(30, 1)
-    measure_link(30, 12)
+    #measure_link(30, 0)
+    #measure_link(30, 1)
+    #measure_link(30, 12)
