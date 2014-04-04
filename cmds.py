@@ -209,6 +209,7 @@ class Experiment:
         else:
             self.unique_id = self.get_mac_address()
         self.create_monitor_interface()
+        self.start_netperf_servers()
 
     def increment_experiment_counter(self):
         self.experiment_counter += 1
@@ -258,9 +259,6 @@ class Experiment:
         self.R.command({'CMD': 'ifconfig '+ROUTER_WIRELESS_INTERFACE_NAME+'mon up'})
         return
 
-    def radiotap_dump(self, state, timeout):
-        return
-
     def tcpdump_radiotapdump(self, state, timeout):
         # weird bug with R.command(tcpdump) -> doesn't work with &
         # also seems like timeout only kills the bash/sh -c process but not tcpdump itself - no wonder it doesn't work!
@@ -274,11 +272,16 @@ class Experiment:
         return
 
     def ping_all(self):
-        self.S.command({'CMD':'fping '+ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(2 * experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
-        self.S.command({'CMD':'fping '+CLIENT_ADDRESS+' -p 100 -c '+ str(2 * experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
+        self.S.command({'CMD':'fping '+ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(2 * experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S.log', 'TIMEOUT': timeout})
+        self.S.command({'CMD':'fping '+CLIENT_ADDRESS+' -p 100 -c '+ str(2 * experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S2.log', 'TIMEOUT': timeout})
         #self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
-        self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(2 * experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
-        self.A.command({'CMD':'fping '+ROUTER_ADDRESS_LOCAL+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(2 * experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
+        self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(2 * experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_R.log &', 'TIMEOUT': timeout})
+        self.A.command({'CMD':'fping '+ROUTER_ADDRESS_LOCAL+' '+ SERVER_ADDRESS +' -p 100 -c '+ str(2 * experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &', 'TIMEOUT': timeout})
+        return
+
+    def start_netperf_servers(self):
+        self.S.command({'CMD': 'netserver'})
+        self.A.command({'CMD': 'netserver'})
         return
 
     def process_log(self, comment):
@@ -310,17 +313,9 @@ class Experiment:
         return
 
     def kill_all(self):
-        self.S.command({'CMD': 'killall fping'}) #should be done with pid instead
         self.S.command({'CMD': 'killall tcpdump'})
-        self.S.command({'CMD': 'killall iperf'})
-
-        self.A.command({'CMD': 'killall fping'}) #should be done with pid instead
         self.A.command({'CMD': 'killall tcpdump'})
-        self.A.command({'CMD': 'killall iperf'})
-
-        self.R.command({'CMD': 'killall fping'}) #should be done with pid instead
         self.R.command({'CMD': 'killall tcpdump'})
-        self.R.command({'CMD': 'killall iperf'})
         return
 
     def clear_all(self, close_R=1):
@@ -449,37 +444,30 @@ class Experiment:
 
     def netperf_tcp_up_AR(self):
         # v2.4.5; default port 12865; reverse tcp stream RA
-        # instead we can switch on all netservers on A and S initially.
-        self.A.command({'CMD': 'netserver'})
         self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + CLIENT_ADDRESS + ' >> /tmp/browserlab/netperf_AR_R.log &'})
         return 'AR_tcp'
 
     def netperf_tcp_up_RS(self):
         # reverse tcp stream RS
-        self.S.command({'CMD': 'netserver'})
         self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + SERVER_ADDRESS + ' >> /tmp/browserlab/netperf_RS_R.log &'})
         return 'RS_tcp'
 
     def netperf_tcp_up_AS(self):
         # reverse tcp stream AS
-        self.S.command({'CMD': 'netserver'})
         self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + SERVER_ADDRESS + ' >> /tmp/browserlab/netperf_AS_A.log &'})
 
     def netperf_tcp_dw_RA(self):
         # v2.4.5; default port 12865; tcp stream RA
-        self.A.command({'CMD': 'netserver'})
         self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + CLIENT_ADDRESS + ' >> /tmp/browserlab/netperf_RA_R.log &'})
         return 'RA_tcp'
 
     def netperf_tcp_dw_SR(self):
         # reverse tcp stream RS
-        self.S.command({'CMD': 'netserver'})
         self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + SERVER_ADDRESS + ' >> /tmp/browserlab/netperf_SR_R.log &'})
         return 'SR_tcp'
 
     def netperf_tcp_dw_SA(self):
         # reverse tcp stream AS
-        self.S.command({'CMD': 'netserver'})
         self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + SERVER_ADDRESS + ' >> /tmp/browserlab/netperf_SA_A.log &'})
         return 'SA_tcp'
 
