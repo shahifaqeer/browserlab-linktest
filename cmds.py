@@ -432,6 +432,7 @@ class Experiment:
 
     def netperf_tcp_up_AR(self):
         # v2.4.5; default port 12865; reverse tcp stream RA
+        # instead we can switch on all netservers on A and S initially.
         self.A.command({'CMD': 'netserver'})
         self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + CLIENT_ADDRESS + ' >> /tmp/browserlab/netperf_AR_R.log &'})
         return 'AR_tcp'
