@@ -18,30 +18,26 @@ def experiment_suit(e):
         e.run_calibrate()                       # 120 + 20 = 140 s
     else:
         print "not doing calibrate"
-    #time.sleep(time_wait)
     # latency without load
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run No Traffic"
     # Total ~ 430 s ~ 7:10 mins
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run No Traffic"
     e.run_experiment(e.no_traffic)          # 12 + 15 = 27 s
-    #time.sleep(time_wait)
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AS"
     # tcp bw and latency under load         # 12 * 6 + 15 * 6 = 172 s
     e.run_experiment(e.iperf_tcp_up_AS)
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf SA"
-    #time.sleep(time_wait)
-    e.run_experiment(e.iperf_tcp_dw_SA)
+    #e.run_experiment(e.iperf_tcp_dw_SA)
+    e.run_experiment(e.netperf_tcp_dw_SA)
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AR"
-    #time.sleep(time_wait)
     e.run_experiment(e.iperf_tcp_up_AR)
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf RA"
-    #time.sleep(time_wait)
-    e.run_experiment(e.iperf_tcp_dw_RA)
+    #e.run_experiment(e.iperf_tcp_dw_RA)
+    e.run_experiment(e.netperf_tcp_dw_RA)
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf RS"
-    #time.sleep(time_wait)
     e.run_experiment(e.iperf_tcp_up_RS)
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf SR"
-    #time.sleep(time_wait)
-    e.run_experiment(e.iperf_tcp_dw_SR)
+    #e.run_experiment(e.iperf_tcp_dw_SR)
+    e.run_experiment(e.netperf_tcp_dw_SR)
     #time.sleep(time_wait)
     # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AR"
