@@ -272,6 +272,7 @@ class Experiment:
         return
 
     def ping_all(self):
+        timeout = 2 * experiment_timeout      # 20 sec
         self.S.command({'CMD':'fping '+ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(2 * experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S.log', 'TIMEOUT': timeout})
         self.S.command({'CMD':'fping '+CLIENT_ADDRESS+' -p 100 -c '+ str(2 * experiment_timeout * 10) + ' -r 1 -A > /tmp/browserlab/fping_S2.log', 'TIMEOUT': timeout})
         #self.R.command({'CMD':'fping '+CLIENT_ADDRESS+' '+ SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
@@ -378,6 +379,7 @@ class Experiment:
         state = 'before'
         print "DEBUG: "+str(time.time())+" state = " + state
         time.sleep(experiment_timeout)
+        print '\nDEBUG: Sleep for ' + str(experiment_timeout) + ' seconds as dump runs\n'
 
         self.ping_all()
         self.process_log(state)
@@ -386,7 +388,7 @@ class Experiment:
         state = 'during'
         print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()
-        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs\n'
+        print '\nDEBUG: Sleep for ' + str(2 * experiment_timeout) + ' seconds as ' + comment + ' runs\n'
         time.sleep(2 * experiment_timeout)
 
         state = 'after'
