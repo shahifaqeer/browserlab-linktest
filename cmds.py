@@ -199,6 +199,7 @@ class Experiment:
         self.A = Client(CLIENT_ADDRESS)
         self.R = Router(ROUTER_ADDRESS_LOCAL, ROUTER_USER, ROUTER_PASS)
         self.S = Server(SERVER_ADDRESS)
+        self.ifname = self.get_default_interface()
         self.device_list = [self.A, self.R, self.S]
         self.run_number = 0
         self.collect_calibrate = False
@@ -214,9 +215,27 @@ class Experiment:
         print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())), ": Run Number ", self.experiment_counter
         return
 
-    def get_mac_address(self, ifname=CLIENT_WIRELESS_INTERFACE_NAME):
+    def get_default_interface(self):
+        iface = []
+        try:
+            route = subprocess.check_output('cat /proc/net/route').split('\n')
+            for interface in route:
+                if interface != '':
+                    x = interface.split('\t')
+                        if x[3] == '0003' and x[2] != '00000000':
+                            iface.append(x[0])
+            if len(iface) == 1:
+                self.iface = iface[0]
+            else:
+                self.iface = CLIENT_WIRELESS_INTERFACE_NAME
+        except:
+            self.iface = CLIENT_WIRELESS_INTERFACE_NAME
+        return
+
+
+    def get_mac_address(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', ifname[:15]))
+        info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', self.ifname[:15]))
         return ''.join(['%02x:' % ord(char) for char in info[18:24]])[:-1].replace(':', '')
 
     def get_folder_name_from_server(self):
@@ -226,34 +245,33 @@ class Experiment:
         return 0
 
     def create_monitor_interface(self):
-        self.A.command({'CMD': 'iw dev '+CLIENT_WIRELESS_INTERFACE_NAME+'mon del'})
+        self.A.command({'CMD': 'iw dev '+ self.iface +'mon del'})
         self.R.command({'CMD': 'iw dev '+ROUTER_WIRELESS_INTERFACE_NAME+'mon del'})
         self.A.command({'CMD': 'iw dev mon0 del'})
         self.R.command({'CMD': 'iw dev mon0 del'})
-        self.A.command({'CMD': 'iw dev '+CLIENT_WIRELESS_INTERFACE_NAME+' interface add '+CLIENT_WIRELESS_INTERFACE_NAME+'mon type monitor flags none'})
+        self.A.command({'CMD': 'iw dev '+self.iface+' interface add '+self.iface+'mon type monitor flags none'})
         self.R.command({'CMD': 'iw dev '+ROUTER_WIRELESS_INTERFACE_NAME+' interface add '+ROUTER_WIRELESS_INTERFACE_NAME+'mon type monitor flags none'})
         self.ifup_monitor_interface()
         return
 
     def ifup_monitor_interface(self):
-        self.A.command({'CMD': 'ifconfig '+CLIENT_WIRELESS_INTERFACE_NAME+'mon up'})
+        self.A.command({'CMD': 'ifconfig '+self.iface+'mon up'})
         self.R.command({'CMD': 'ifconfig '+ROUTER_WIRELESS_INTERFACE_NAME+'mon up'})
         return
 
     def radiotap_dump(self, state, timeout):
-        #state = before, during, after
-        self.R.command({'CMD':'tcpdump -i '+ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_R_'+state+'.pcap'})
-        #self.A.command({'CMD':'tcpdump -i '+CLIENT_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_A_'+state+'.pcap', 'TIMEOUT':timeout})
-        self.A.command({'CMD':'tcpdump -i '+CLIENT_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_A_'+state+'.pcap &'})
         return
 
-    def tcpdump_all(self, state, timeout):
+    def tcpdump_radiotapdump(self, state, timeout):
         # weird bug with R.command(tcpdump) -> doesn't work with &
         # also seems like timeout only kills the bash/sh -c process but not tcpdump itself - no wonder it doesn't work!
         self.S.command({'CMD':'tcpdump -s 100 -i '+SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
-        self.R.command({'CMD':'tcpdump -s 100 -i '+ROUTER_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
+        # dump at both incoming wireless and outgoing eth1 for complete picture
+        self.R.command({'CMD':'tcpdump -s 100 -i '+ROUTER_WIRELESS_INTERFACE_NAME+' eth1 -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
+        self.R.command({'CMD':'tcpdump -i '+ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
         #self.A.command({'CMD':'tcpdump -s 100 -i '+CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap', 'TIMEOUT': timeout})
-        self.A.command({'CMD':'tcpdump -s 100 -i '+CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap &'})
+        self.A.command({'CMD':'tcpdump -s 100 -i '+self.iface+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap &'})
+        self.A.command({'CMD':'tcpdump -i '+self.iface+'mon -s 0 -p -U -w /tmp/browserlab/radio_A'+state+'.pcap &'})
         return
 
     def ping_all(self):
@@ -289,7 +307,7 @@ class Experiment:
         self.R.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/ifconfig_'+self.R.name+'.log;'})
         self.R.command({'CMD':'iw dev '+ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log'})
         self.A.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/ifconfig_'+self.A.name+'.log;'})
-        self.A.command({'CMD':'iw dev '+CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log'})
+        self.A.command({'CMD':'iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log'})
         return
 
     def kill_all(self):
@@ -344,8 +362,8 @@ class Experiment:
         comment = 'before', 'during', 'after', 'calibrate'
         sleep_timeout = experiment_timeout, passive_timeout, calibrate_timeout
         '''
-        self.tcpdump_all(comment, timeout)
-        self.radiotap_dump(comment, timeout)
+        self.tcpdump_radiotapdump(comment, timeout)
+        #self.radiotap_dump(comment, timeout)
 
         print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as '+comment+' runs\n'
         time.sleep(timeout)
@@ -360,8 +378,8 @@ class Experiment:
 
         timeout = 3 * experiment_timeout      # 30 sec
 
-        self.tcpdump_all('', experiment_timeout)
-        self.radiotap_dump('', experiment_timeout)
+        self.tcpdump_radiotapdump('', experiment_timeout)
+        #self.radiotap_dump('', experiment_timeout)
 
         state = 'before'
         print "DEBUG: "+str(time.time())+" state = " + state
