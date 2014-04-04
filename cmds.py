@@ -430,6 +430,23 @@ class Experiment:
         self.A.command({'CMD': 'iperf -c ' + SERVER_ADDRESS + ' -y C --reverse >> /tmp/browserlab/iperf_SA_A.log &'})
         return 'SA_tcp'
 
+    def netperf_tcp_up_AR(self):
+        # v2.4.5; default port 12865; reverse tcp stream RA
+        self.A.command({'CMD': 'netserver'})
+        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + CLIENT_ADDRESS + ' >> /tmp/browserlab/netperf_AR_R.log &'})
+        return 'AR_tcp'
+
+    def netperf_tcp_up_RS(self):
+        # reverse tcp stream RS
+        self.S.command({'CMD': 'netserver'})
+        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + SERVER_ADDRESS + ' >> /tmp/browserlab/netperf_RS_R.log &'})
+        return 'RS_tcp'
+
+    def netperf_tcp_up_AS(self):
+        # reverse tcp stream AS
+        self.S.command({'CMD': 'netserver'})
+        self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + SERVER_ADDRESS + ' >> /tmp/browserlab/netperf_AS_A.log &'})
+
     def netperf_tcp_dw_RA(self):
         # v2.4.5; default port 12865; tcp stream RA
         self.A.command({'CMD': 'netserver'})
