@@ -199,7 +199,7 @@ class Experiment:
         self.A = Client(CLIENT_ADDRESS)
         self.R = Router(ROUTER_ADDRESS_LOCAL, ROUTER_USER, ROUTER_PASS)
         self.S = Server(SERVER_ADDRESS)
-        self.ifname = self.get_default_interface()
+        self.iface = self.get_default_interface()
         self.device_list = [self.A, self.R, self.S]
         self.run_number = 0
         self.collect_calibrate = False
@@ -218,24 +218,23 @@ class Experiment:
     def get_default_interface(self):
         iface = []
         try:
-            route = subprocess.check_output('cat /proc/net/route').split('\n')
+            route = subprocess.check_output('cat /proc/net/route', shell=True).split('\n')
             for interface in route:
                 if interface != '':
                     x = interface.split('\t')
-                        if x[3] == '0003' and x[2] != '00000000':
-                            iface.append(x[0])
+                    if x[3] == '0003' and x[2] != '00000000':
+                        iface.append(x[0])
+            print "iface ", iface
             if len(iface) == 1:
-                self.iface = iface[0]
-            else:
-                self.iface = CLIENT_WIRELESS_INTERFACE_NAME
+                return iface[0]
         except:
-            self.iface = CLIENT_WIRELESS_INTERFACE_NAME
-        return
+            return CLIENT_WIRELESS_INTERFACE_NAME
+        return CLIENT_WIRELESS_INTERFACE_NAME
 
 
     def get_mac_address(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', self.ifname[:15]))
+        info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', self.iface[:15]))
         return ''.join(['%02x:' % ord(char) for char in info[18:24]])[:-1].replace(':', '')
 
     def get_folder_name_from_server(self):
