@@ -20,25 +20,25 @@ def experiment_suit(e):
         print "not doing calibrate"
     # latency without load
     # Total ~ 430 s ~ 7:10 mins
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run No Traffic"
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run No Traffic "+str(e.experiment_counter)
     e.run_experiment(e.no_traffic)          # 12 + 15 = 27 s
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AS"
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AS " +str(e.experiment_counter)
     # tcp bw and latency under load         # 12 * 6 + 15 * 6 = 172 s
     #e.run_experiment(e.iperf_tcp_up_AS)
     e.run_experiment(e.netperf_tcp_up_AS)
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf SA"
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf SA " +str(e.experiment_counter)
     #e.run_experiment(e.iperf_tcp_dw_SA)
     e.run_experiment(e.netperf_tcp_dw_SA)
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AR"
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AR " +str(e.experiment_counter)
     #e.run_experiment(e.iperf_tcp_up_AR)
     e.run_experiment(e.netperf_tcp_up_AR)
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf RA"
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf RA " +str(e.experiment_counter)
     #e.run_experiment(e.iperf_tcp_dw_RA)
     e.run_experiment(e.netperf_tcp_dw_RA)
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf RS"
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf RS " +str(e.experiment_counter)
     #e.run_experiment(e.iperf_tcp_up_RS)
     e.run_experiment(e.netperf_tcp_up_RS)
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf SR"
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf SR " +str(e.experiment_counter)
     #e.run_experiment(e.iperf_tcp_dw_SR)
     e.run_experiment(e.netperf_tcp_dw_SR)
     #time.sleep(time_wait)
@@ -53,8 +53,8 @@ def experiment_suit(e):
     #e.run_experiment(e.probe_udp_RS)
     #time.sleep(time_wait)
     e.increment_experiment_counter()
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 60 sec before next run"
-    time.sleep(60)                          # 60 s wait before next suit
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 10 sec before next run"
+    time.sleep(10)                          # 10 s wait before next suit
 
     return
 
@@ -99,6 +99,10 @@ def real_measurements(calibrate=True):
 
     measurement_folder_name = raw_input('Enter measurement name: ')
     tot_runs = int(raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 50 with laptop in the same location. '))
+
+    if tot_runs == '':
+        tot_runs = 1
+        print "Running "+tot_runs+" measurements."
 
     e = Experiment(measurement_folder_name)
     e.collect_calibrate = calibrate
