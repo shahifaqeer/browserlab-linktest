@@ -284,7 +284,7 @@ class Experiment:
     def tcpdump_radiotapdump(self, state, timeout):
         # weird bug with R.command(tcpdump) -> doesn't work with &
         # also seems like timeout only kills the bash/sh -c process but not tcpdump itself - no wonder it doesn't work!
-        self.S.command({'CMD':'tcpdump -s 101 -i '+const.SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
+        self.S.command({'CMD':'tcpdump -s 100 -i '+const.SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
         # dump at both incoming wireless and outgoing eth1 for complete picture
         self.R.command({'CMD':'tcpdump -s 100 -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+' eth1 -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
         self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
