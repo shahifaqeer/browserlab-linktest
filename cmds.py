@@ -295,11 +295,12 @@ class Experiment:
 
     def ping_all(self):
         timeout = 2 * const.EXPERIMENT_TIMEOUT      # 20 sec
-        self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_S.log', 'TIMEOUT': timeout})
-        self.S.command({'CMD':'fping '+self.A.ip+' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_S2.log', 'TIMEOUT': timeout})
+        # ALWAYS pass fping with & not to thread - thread seems to be blocking
+        self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
+        self.S.command({'CMD':'fping '+self.A.ip+' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
         #self.R.command({'CMD':'fping '+const.CLIENT_ADDRESS+' '+ const.SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
-        self.R.command({'CMD':'fping '+self.A.ip+' '+ const.SERVER_ADDRESS +' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_R.log &', 'TIMEOUT': timeout})
-        self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &', 'TIMEOUT': timeout})
+        self.R.command({'CMD':'fping '+self.A.ip+' '+ const.SERVER_ADDRESS +' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
+        self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
         return
 
     def start_netperf_servers(self):
