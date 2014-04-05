@@ -205,6 +205,7 @@ class Experiment:
         self.run_number = 0
         self.collect_calibrate = False
         self.experiment_counter = 0
+        self.experiment_name = 'default'
         if measurement_name is not None:
             self.unique_id = self.get_mac_address() + '_' + measurement_name
         else:
@@ -286,7 +287,11 @@ class Experiment:
         # also seems like timeout only kills the bash/sh -c process but not tcpdump itself - no wonder it doesn't work!
         self.S.command({'CMD':'tcpdump -s 101 -i '+const.SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
         # dump at both incoming wireless and outgoing eth1 for complete picture
-        self.R.command({'CMD':'tcpdump -s 100 -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+' eth1 -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
+        if self.experiment_name[:2] == 'RS' or self.experiment_name[:2] == 'SR':
+            router_interface_name = 'eth1'
+        else:
+            router_interface_name = const.ROUTER_WIRELESS_INTERFACE_NAME
+        self.R.command({'CMD':'tcpdump -s 100 -i '+router_interface_name+' -w /tmpi/browserlab/tcpdump_R'+state+'.pcap'})
         self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
         #self.A.command({'CMD':'tcpdump -s 100 -i '+const.CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap', 'TIMEOUT': timeout})
         self.A.command({'CMD':'tcpdump -s 100 -i '+self.iface+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap &'})
@@ -416,6 +421,7 @@ class Experiment:
         state = 'during'
         print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()
+        self.experiment_name = comment
         print '\nDEBUG: Sleep for ' + str(2 * const.EXPERIMENT_TIMEOUT) + ' seconds as ' + comment + ' runs\n'
         time.sleep(2 * const.EXPERIMENT_TIMEOUT)
 
