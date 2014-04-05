@@ -485,6 +485,7 @@ class Experiment:
     def netperf_tcp_up_AS(self):
         # reverse tcp stream AS
         self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' >> /tmp/browserlab/netperf_AS_A.log &'})
+        return 'AS_tcp'
 
     def netperf_tcp_dw_RA(self):
         # v2.4.5; default port 12865; tcp stream RA
