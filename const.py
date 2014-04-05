@@ -3,10 +3,10 @@ SERVER_ADDRESS = '130.207.97.240'
 SERVER_INTERFACE_NAME = 'eth0'
 CONTROL_PORT = 12345
 MSG_SIZE = 1024
-experiment_timeout = 10
-passive_timeout = 5
+EXPERIMENT_TIMEOUT = 10
+PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
-calibrate_timeout = 120
+CALIBRATE_TIMEOUT = 120
 
 # UPDATE THE FOLLOWING VALUES
 ROUTER_ADDRESS_LOCAL = '192.168.1.1'
