@@ -104,7 +104,7 @@ def real_measurements(calibrate=True):
         tot_runs = int(tot_runs)
     except Exception:
         tot_runs = 1
-        print "Error. Running "+tot_runs+" measurement."
+        print "Error. Running "+str(tot_runs)+" measurement."
 
     e = Experiment(measurement_folder_name)
     e.collect_calibrate = calibrate
