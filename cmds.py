@@ -210,6 +210,10 @@ class Experiment:
         else:
             self.unique_id = self.get_mac_address()
         self.create_monitor_interface()
+
+        self.kill_all(1)  #kill tcpdump, iperf, netperf, fping on all
+        self.clear_all(0) #clear /tmp/browserlab/* but don't close the connection to R
+
         self.start_netperf_servers()
 
     def increment_experiment_counter(self):
@@ -325,19 +329,25 @@ class Experiment:
         #iw dev (radiotap info) for wireless
         #self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
         #self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
-        self.R.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/ifconfig_'+self.R.name+'.log;'})
+        self.R.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/iwdev_'+self.R.name+'.log;'})
         self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log'})
-        self.A.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/ifconfig_'+self.A.name+'.log;'})
+        self.A.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/iwdev_'+self.A.name+'.log;'})
         self.A.command({'CMD':'iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log'})
         return
 
-    def kill_all(self):
+    def kill_all(self, all_proc = 0):
         self.S.command({'CMD': 'killall tcpdump'})
         self.A.command({'CMD': 'killall tcpdump'})
         self.R.command({'CMD': 'killall tcpdump'})
+
+        if all_proc:
+            for node in [self.A, self.R, self.S]:
+                node.command({'CMD': 'killall iperf'})
+                node.command({'CMD': 'killall netperf'})
+                node.command({'CMD': 'killall tcpdump'})
         return
 
-    def clear_all(self, close_R=1):
+    def clear_all(self, close_R=0):
         self.S.command({'CMD': 'rm -rf /tmp/browserlab/*'})
         self.R.command({'CMD': 'rm -rf /tmp/browserlab/*'})
         self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.log'})

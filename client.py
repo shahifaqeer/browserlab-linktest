@@ -24,17 +24,20 @@ def experiment_suit(e):
     e.run_experiment(e.no_traffic)          # 12 + 15 = 27 s
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AS"
     # tcp bw and latency under load         # 12 * 6 + 15 * 6 = 172 s
-    e.run_experiment(e.iperf_tcp_up_AS)
+    #e.run_experiment(e.iperf_tcp_up_AS)
+    e.run_experiment(e.netperf_tcp_up_AS)
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf SA"
     #e.run_experiment(e.iperf_tcp_dw_SA)
     e.run_experiment(e.netperf_tcp_dw_SA)
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AR"
-    e.run_experiment(e.iperf_tcp_up_AR)
+    #e.run_experiment(e.iperf_tcp_up_AR)
+    e.run_experiment(e.netperf_tcp_up_AR)
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf RA"
     #e.run_experiment(e.iperf_tcp_dw_RA)
     e.run_experiment(e.netperf_tcp_dw_RA)
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf RS"
-    e.run_experiment(e.iperf_tcp_up_RS)
+    #e.run_experiment(e.iperf_tcp_up_RS)
+    e.run_experiment(e.netperf_tcp_up_RS)
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf SR"
     #e.run_experiment(e.iperf_tcp_dw_SR)
     e.run_experiment(e.netperf_tcp_dw_SR)
