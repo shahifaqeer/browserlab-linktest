@@ -98,11 +98,13 @@ def test_measurements(tot_runs, rate):
 def real_measurements(calibrate=True):
 
     measurement_folder_name = raw_input('Enter measurement name: ')
-    tot_runs = int(raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 50 with laptop in the same location. '))
+    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 50 with laptop in the same location. ')
 
-    if tot_runs == '':
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
         tot_runs = 1
-        print "Running "+tot_runs+" measurements."
+        print "Error. Running "+tot_runs+" measurement."
 
     e = Experiment(measurement_folder_name)
     e.collect_calibrate = calibrate
