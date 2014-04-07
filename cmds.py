@@ -13,6 +13,8 @@ import subprocess
 #import shlex
 import struct
 import fcntl
+import sys
+import traceback
 
 import const
 
@@ -163,15 +165,37 @@ class Server:
     def command(self, cmd):
         if type(cmd) is dict:
             msg = str(cmd)  # remember to eval and check for flags on other end (START, TIMEOUT, CMD, SUDO(?))
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((const.SERVER_ADDRESS, const.CONTROL_PORT))
-        s.send(msg)
-        response = s.recv(const.MSG_SIZE)
-        print 'RECEIVED ', response
-        s.close()
-        res, run_num, pid = response.split(',')
-        logcmd(msg, self.name)
-        return res, run_num, pid
+
+        num_retries = 0
+        while num_retries<10:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect((const.SERVER_ADDRESS, const.CONTROL_PORT))
+                s.send(msg)
+                response = s.recv(const.MSG_SIZE)
+                print 'RECEIVED ', response
+                res, run_num, pid = response.split(',')
+                while res == 1:
+                    print 'Server is busy. Try again later.'
+                s.close()
+                if num_retries > 0:
+                    run_num = "x"+run_num
+                    msg = 'SCREWED ' + msg
+                logcmd(msg, self.name)
+                return res, run_num, pid
+            except Exception, error:
+                print "DEBUG: Can't connect to "+str(const.SERVER_ADDRESS)+":"+str(const.CONTROL_PORT)+". This measurement is screwed "+ str(error) +". \nRETRY "+str(num_retries+1)+" in 2 seconds."
+                traceback.print_exc()
+                num_retries += 1
+                time.sleep(2)
+                continue
+            break
+        raw_input("Server unresponsive. Press any key to exit. ")
+        sys.exit()
+        return
+
+    def __del__(self):
+        print "Close connection to server"
 
 
 def test_cmd(dev, cmd):
@@ -297,7 +321,7 @@ class Experiment:
         timeout = 2 * const.EXPERIMENT_TIMEOUT      # 20 sec
         # ALWAYS pass fping with & not to thread - thread seems to be blocking
         self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
-        self.S.command({'CMD':'fping '+self.A.ip+' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
+        #self.S.command({'CMD':'fping '+self.A.ip+' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
         #self.R.command({'CMD':'fping '+const.CLIENT_ADDRESS+' '+ const.SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
         self.R.command({'CMD':'fping '+self.A.ip+' '+ const.SERVER_ADDRESS +' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
         self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
