@@ -311,6 +311,7 @@ class Experiment:
         # also seems like timeout only kills the bash/sh -c process but not tcpdump itself - no wonder it doesn't work!
         self.S.command({'CMD':'tcpdump -s 100 -i '+const.SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
         # dump at both incoming wireless and outgoing eth1 for complete picture
+
         if self.experiment_name[:2] == 'RS' or self.experiment_name[:2] == 'SR':
             router_interface_name = 'eth1'
         else:
@@ -424,7 +425,9 @@ class Experiment:
         self.kill_all()
         return
 
-    def run_experiment(self, exp):
+    def run_experiment(self, exp, exp_name):
+        self.experiment_name = exp_name #same as comment
+
         self.get_folder_name_from_server()
 
         #self.passive('before', const.PASSIVE_TIMEOUT)
@@ -446,7 +449,6 @@ class Experiment:
         state = 'during'
         print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()
-        self.experiment_name = comment
         print '\nDEBUG: Sleep for ' + str(2 * const.EXPERIMENT_TIMEOUT) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
         time.sleep(2 * const.EXPERIMENT_TIMEOUT)
 

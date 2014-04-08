@@ -21,36 +21,36 @@ def experiment_suit(e):
     # latency without load
     # Total ~ 430 s ~ 7:10 mins
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run No Traffic "+str(e.experiment_counter)
-    e.run_experiment(e.no_traffic)          # 12 + 15 = 27 s
+    e.run_experiment(e.no_traffic, 'no_tra')          # 12 + 15 = 27 s
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AS " +str(e.experiment_counter)
     # tcp bw and latency under load         # 12 * 6 + 15 * 6 = 172 s
-    #e.run_experiment(e.iperf_tcp_up_AS)
-    e.run_experiment(e.netperf_tcp_up_AS)
+    #e.run_experiment(e.iperf_tcp_up_AS, 'AS_tcp')
+    e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf SA " +str(e.experiment_counter)
-    #e.run_experiment(e.iperf_tcp_dw_SA)
-    e.run_experiment(e.netperf_tcp_dw_SA)
+    #e.run_experiment(e.iperf_tcp_dw_SA, 'SA_tcp')
+    e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AR " +str(e.experiment_counter)
-    #e.run_experiment(e.iperf_tcp_up_AR)
-    e.run_experiment(e.netperf_tcp_up_AR)
+    #e.run_experiment(e.iperf_tcp_up_AR, 'AR_tcp')
+    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf RA " +str(e.experiment_counter)
-    #e.run_experiment(e.iperf_tcp_dw_RA)
-    e.run_experiment(e.netperf_tcp_dw_RA)
+    #e.run_experiment(e.iperf_tcp_dw_RA, 'RA_tcp')
+    e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf RS " +str(e.experiment_counter)
-    #e.run_experiment(e.iperf_tcp_up_RS)
-    e.run_experiment(e.netperf_tcp_up_RS)
+    #e.run_experiment(e.iperf_tcp_up_RS, 'RS_tcp')
+    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf SR " +str(e.experiment_counter)
-    #e.run_experiment(e.iperf_tcp_dw_SR)
-    e.run_experiment(e.netperf_tcp_dw_SR)
+    #e.run_experiment(e.iperf_tcp_dw_SR, 'SR_tcp')
+    e.run_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
     #time.sleep(time_wait)
     # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AR"
-    #e.run_experiment(e.probe_udp_AR)
+    #e.run_experiment(e.probe_udp_AR, 'AR_udp')
     #time.sleep(time_wait)
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AS"
-    #e.run_experiment(e.probe_udp_AS)
+    #e.run_experiment(e.probe_udp_AS, 'AS_udp')
     #time.sleep(time_wait)
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe RS"
-    #e.run_experiment(e.probe_udp_RS)
+    #e.run_experiment(e.probe_udp_RS, 'RS_udp')
     #time.sleep(time_wait)
     e.increment_experiment_counter()
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 10 sec before next run"
@@ -62,11 +62,11 @@ def experiment_suit_no_router(e):
 
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf no tra " +str(e.experiment_counter)
-    e.run_experiment(e.no_traffic)          # 12 + 15 = 27 s
+    e.run_experiment(e.no_traffic, 'no_tra')          # 12 + 15 = 27 s
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_AS)
+    e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SA " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_dw_SA)
+    e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
     e.increment_experiment_counter()
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 10 sec before next run"
     time.sleep(10)                          # 10 s wait before next suit
@@ -77,7 +77,7 @@ def try_job():
     tot_runs = int(raw_input('how many runs?'))
     e = Experiment(measurement_folder_name)
     print 'Try experiment '
-    e.run_experiment(e.iperf_tcp_dw_RA)
+    e.run_experiment(e.iperf_tcp_dw_RA, 'RA_tcp')
     print 'DONE!'
     return
 
