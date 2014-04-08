@@ -418,7 +418,7 @@ class Experiment:
         self.tcpdump_radiotapdump(comment, timeout)
         #self.radiotap_dump(comment, timeout)
 
-        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as '+comment+' runs\n'
+        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as '+comment+' runs ' +str(self.experiment_counter) + '\n'
         time.sleep(timeout)
 
         self.kill_all()
@@ -437,7 +437,7 @@ class Experiment:
         state = 'before'
         print "DEBUG: "+str(time.time())+" state = " + state
         time.sleep(const.EXPERIMENT_TIMEOUT)
-        print '\nDEBUG: Sleep for ' + str(const.EXPERIMENT_TIMEOUT) + ' seconds as dump runs\n'
+        print '\nDEBUG: Sleep for ' + str(const.EXPERIMENT_TIMEOUT) + ' seconds as dump runs '+ str(self.experiment_counter) +'\n'
 
         self.ping_all()
         self.process_log(state)
@@ -447,7 +447,7 @@ class Experiment:
         print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()
         self.experiment_name = comment
-        print '\nDEBUG: Sleep for ' + str(2 * const.EXPERIMENT_TIMEOUT) + ' seconds as ' + comment + ' runs\n'
+        print '\nDEBUG: Sleep for ' + str(2 * const.EXPERIMENT_TIMEOUT) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
         time.sleep(2 * const.EXPERIMENT_TIMEOUT)
 
         state = 'after'
