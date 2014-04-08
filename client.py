@@ -58,6 +58,19 @@ def experiment_suit(e):
 
     return
 
+def experiment_suit_no_router(e):
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf no tra " +str(e.experiment_counter)
+    e.run_experiment(e.no_traffic)          # 12 + 15 = 27 s
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AS)
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SA " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_SA)
+    e.increment_experiment_counter()
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 10 sec before next run"
+    time.sleep(10)                          # 10 s wait before next suit
+    return
 
 def try_job():
     measurement_folder_name = raw_input('Enter measurement name: ')
@@ -111,7 +124,8 @@ def real_measurements(calibrate=True):
 
     for nruns in range(tot_runs):
         print "\t\t\n RUN : " + str(nruns) + "\n"
-        experiment_suit(e)
+        #experiment_suit(e)
+        experiment_suit_no_router(e)
         time.sleep(1)
 
     e.kill_all()
