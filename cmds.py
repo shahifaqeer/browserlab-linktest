@@ -258,11 +258,7 @@ class Experiment:
                 response = s.recv(const.MSG_SIZE)
                 print 'RECEIVED ', response
                 res, run_num, pid = response.split(',')
-                while res == 1:
-                    print 'Server is busy. Try again.'
                 s.close()
-                if num_retries > 0:
-                    run_num = "x"+run_num
                 logcmd(msg, self.name)
                 print "DEBUG: connection successful to "+const.SERVER_ADDRESS + ":" + str(port)
                 const.CONTROL_PORT = port
