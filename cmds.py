@@ -223,7 +223,7 @@ class Experiment:
         self.A = Client(const.CLIENT_ADDRESS)
         self.R = Router(const.ROUTER_ADDRESS_LOCAL, const.ROUTER_USER, const.ROUTER_PASS)
         self.S = Server(const.SERVER_ADDRESS)
-        self.S.check_connection()
+        self.check_connection()
         self.iface = self.get_default_interface()
         self.A.ip = self.get_ip_address(self.iface)
         self.device_list = [self.A, self.R, self.S]
