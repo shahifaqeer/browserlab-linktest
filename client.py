@@ -155,8 +155,8 @@ def real_measurements(calibrate=True):
 
     for nruns in range(tot_runs):
         print "\t\t\n RUN : " + str(nruns) + "\n"
-        experiment_suit(e)
-        #experiment_suit_no_router(e)
+        #experiment_suit(e)
+        experiment_suit_non_coop(e)
         time.sleep(1)
 
     e.kill_all()

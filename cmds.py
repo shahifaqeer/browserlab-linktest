@@ -294,8 +294,6 @@ class Experiment:
     def create_monitor_interface(self):
         self.A.command({'CMD': 'iw dev '+ self.iface +'mon del'})
         self.R.command({'CMD': 'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon del'})
-        self.A.command({'CMD': 'iw dev mon0 del'})
-        self.R.command({'CMD': 'iw dev mon0 del'})
         self.A.command({'CMD': 'iw dev '+self.iface+' interface add '+self.iface+'mon type monitor flags none'})
         self.R.command({'CMD': 'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' interface add '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon type monitor flags none'})
         self.ifup_monitor_interface()
