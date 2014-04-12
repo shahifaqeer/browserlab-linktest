@@ -523,64 +523,64 @@ class Experiment:
         return 'no_tra'
 
     def iperf_tcp_up_AR(self):
-        self.R.command({'CMD': 'iperf -s -y C >> /tmp/browserlab/iperf_AR_R.log &'})
-        self.A.command({'CMD': 'iperf -c ' + const.ROUTER_ADDRESS_LOCAL + ' -y C -i 0.5 >> /tmp/browserlab/iperf_AR_A.log &'})
+        self.R.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_AR_R.log &'})
+        self.A.command({'CMD': 'iperf -c ' + const.ROUTER_ADDRESS_LOCAL + ' -y C -i 0.5 > /tmp/browserlab/iperf_AR_A.log &'})
         return 'AR_tcp'
 
     def iperf_tcp_dw_RA(self):
-        self.A.command({'CMD': 'iperf -s -y C >> /tmp/browserlab/iperf_RA_A.log &'})
-        self.R.command({'CMD': 'iperf -c ' + self.A.ip + ' -y C -i 0.5 >> /tmp/browserlab/iperf_RA_R.log &'})
+        self.A.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_RA_A.log &'})
+        self.R.command({'CMD': 'iperf -c ' + self.A.ip + ' -y C -i 0.5 > /tmp/browserlab/iperf_RA_R.log &'})
         return 'RA_tcp'
 
     def iperf_tcp_up_RS(self):
-        self.S.command({'CMD': 'iperf -s -y C >> /tmp/browserlab/iperf_RS_S.log &'})
-        self.R.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C -i 0.5 >> /tmp/browserlab/iperf_RS_R.log &'})
+        self.S.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_RS_S.log &'})
+        self.R.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C -i 0.5 > /tmp/browserlab/iperf_RS_R.log &'})
         return 'RS_tcp'
 
     def iperf_tcp_dw_SR(self):
-        self.R.command({'CMD': 'iperf -s -y C >> /tmp/browserlab/iperf_SR_R.log &'})
-        self.S.command({'CMD': 'iperf -c ' + const.ROUTER_ADDRESS_GLOBAL + ' -y C -i 0.5 >> /tmp/browserlab/iperf_SR_S.log &'})
+        self.R.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_SR_R.log &'})
+        self.S.command({'CMD': 'iperf -c ' + const.ROUTER_ADDRESS_GLOBAL + ' -y C -i 0.5 > /tmp/browserlab/iperf_SR_S.log &'})
         return 'SR_tcp'
 
     def iperf_tcp_up_AS(self):
         self.S.command({'CMD': 'iperf -s -y C >> /tmp/browserlab/iperf_AS_S.log &'})
-        self.A.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C -i 0.5 >> /tmp/browserlab/iperf_AS_A.log &'})
+        self.A.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C -i 0.5 > /tmp/browserlab/iperf_AS_A.log &'})
         return 'AS_tcp'
 
     def iperf_tcp_dw_SA(self):
         #NOTE this requires iperf reverse installed on client and server
-        self.S.command({'CMD': 'iperf -s -y C -i 0.5 -t 10 --reverse >> /tmp/browserlab/iperf_SA_S.log &'})
-        self.A.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C --reverse >> /tmp/browserlab/iperf_SA_A.log &'})
+        self.S.command({'CMD': 'iperf -s -y C -i 0.5 -t 10 --reverse > /tmp/browserlab/iperf_SA_S.log &'})
+        self.A.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C --reverse > /tmp/browserlab/iperf_SA_A.log &'})
         return 'SA_tcp'
 
     def netperf_tcp_up_AR(self):
         # v2.4.5; default port 12865; reverse tcp stream RA
-        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + self.A.ip + ' >> /tmp/browserlab/netperf_AR_R.log &'})
+        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + self.A.ip + ' > /tmp/browserlab/netperf_AR_R.log &'})
         return 'AR_tcp'
 
     def netperf_tcp_up_RS(self):
         # reverse tcp stream RS
-        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' >> /tmp/browserlab/netperf_RS_R.log &'})
+        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' > /tmp/browserlab/netperf_RS_R.log &'})
         return 'RS_tcp'
 
     def netperf_tcp_up_AS(self):
         # reverse tcp stream AS
-        self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' >> /tmp/browserlab/netperf_AS_A.log &'})
+        self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' > /tmp/browserlab/netperf_AS_A.log &'})
         return 'AS_tcp'
 
     def netperf_tcp_dw_RA(self):
         # v2.4.5; default port 12865; tcp stream RA
-        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip  + ' >> /tmp/browserlab/netperf_RA_R.log &'})
+        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip  + ' > /tmp/browserlab/netperf_RA_R.log &'})
         return 'RA_tcp'
 
     def netperf_tcp_dw_SR(self):
         # reverse tcp stream RS
-        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' >> /tmp/browserlab/netperf_SR_R.log &'})
+        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' > /tmp/browserlab/netperf_SR_R.log &'})
         return 'SR_tcp'
 
     def netperf_tcp_dw_SA(self):
         # reverse tcp stream AS
-        self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' >> /tmp/browserlab/netperf_SA_A.log &'})
+        self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' > /tmp/browserlab/netperf_SA_A.log &'})
         return 'SA_tcp'
 
     # udpprobe gives both up and dw
@@ -600,7 +600,7 @@ class Experiment:
         return 'AS_udp'
 
     def fabprobe_SR(self):
-        self.S.command({'CMD': 'fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + ' >> /tmp/browserlab/fabprobe_SR.log'})
+        self.S.command({'CMD': 'time fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + ' > /tmp/browserlab/fabprobe_SR.log'})
         return 'SR_fab'
 
     def iperf_udp(self):
