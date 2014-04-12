@@ -105,6 +105,7 @@ while (port<12350):
     #try ports 12345 to 12349
     try:
         s.bind(('', port))
+        print "Open server at port " + str(port)
         break;
     except Exception:
         port += 1
