@@ -19,6 +19,9 @@ import traceback
 import const
 
 
+CONTROL_PORT = const.CONTROL_PORT
+
+
 def logcmd(cmd, name):
     if not os.path.exists('/tmp/browserlab/'):
         os.mkdir('/tmp/browserlab/')
@@ -160,6 +163,7 @@ class Server:
     def __init__(self, ip):
         self.name = 'S'
         self.ip = ip
+        self.port = const.CONTROL_PORT
         #self.logfile = initialize_logfile()
 
     def command(self, cmd):
@@ -170,7 +174,7 @@ class Server:
         while num_retries<10:
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect((const.SERVER_ADDRESS, const.CONTROL_PORT))
+                s.connect((self.ip, self.port))
                 s.send(msg)
                 response = s.recv(const.MSG_SIZE)
                 print 'RECEIVED ', response
@@ -184,7 +188,7 @@ class Server:
                 logcmd(msg, self.name)
                 return res, run_num, pid
             except Exception, error:
-                print "DEBUG: Can't connect to "+str(const.SERVER_ADDRESS)+":"+str(const.CONTROL_PORT)+". This measurement is screwed "+ str(error) +". \nRETRY "+str(num_retries+1)+" in 2 seconds."
+                print "DEBUG: Can't connect to "+str(self.ip)+":"+str(self.port)+". This measurement is screwed "+ str(error) +". \nRETRY "+str(num_retries+1)+" in 2 seconds."
                 traceback.print_exc()
                 num_retries += 1
                 time.sleep(2)
@@ -261,7 +265,8 @@ class Experiment:
                 s.close()
                 logcmd(msg, self.name)
                 print "DEBUG: connection successful to "+const.SERVER_ADDRESS + ":" + str(port)
-                const.CONTROL_PORT = port
+                CONTROL_PORT = port
+                self.S.port = port
                 return res, run_num, pid
             except Exception, error:
                 print "DEBUG: Can't connect to "+str(const.SERVER_ADDRESS)+":"+str(port)+". \nRETRY "+str(num_retries+1)+" in 2 seconds."
