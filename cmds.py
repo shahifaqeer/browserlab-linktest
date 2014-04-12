@@ -263,7 +263,6 @@ class Experiment:
                 print 'RECEIVED ', response
                 res, run_num, pid = response.split(',')
                 s.close()
-                logcmd(msg, self.name)
                 print "DEBUG: connection successful to "+const.SERVER_ADDRESS + ":" + str(port)
                 CONTROL_PORT = port
                 self.S.port = port
