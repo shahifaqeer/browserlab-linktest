@@ -432,9 +432,8 @@ class Experiment:
 
         #self.passive('before', const.PASSIVE_TIMEOUT)
 
-        timeout = 3 * const.EXPERIMENT_TIMEOUT      # 30 sec
 
-        self.tcpdump_radiotapdump('', const.EXPERIMENT_TIMEOUT)
+        self.tcpdump_radiotapdump('', 3 * const.EXPERIMENT_TIMEOUT)
         #self.radiotap_dump('', const.EXPERIMENT_TIMEOUT)
 
         state = 'before'
@@ -446,11 +445,15 @@ class Experiment:
         self.process_log(state)
         self.interface_log(state)
 
+        timeout = 2 * const.EXPERIMENT_TIMEOUT        # 20 sec
+        if exp_name == 'SR_fab':
+            timeout = 4 * const.EXPERIMENT_TIMEOUT    # 40 sec
+
         state = 'during'
         print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()
-        print '\nDEBUG: Sleep for ' + str(2 * const.EXPERIMENT_TIMEOUT) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
-        time.sleep(2 * const.EXPERIMENT_TIMEOUT)
+        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
+        time.sleep(timeout)
 
         state = 'after'
         print "DEBUG: "+str(time.time())+" state = " + state
@@ -551,9 +554,9 @@ class Experiment:
         self.A.command({'CMD': 'udpprober -s ' + const.SERVER_ADDRESS + ' >> /tmp/browserlab/probe_AS_A.log &'})
         return 'AS_udp'
 
-    def ABWprobe(self):
-        #TODO
-        return
+    def fabprobe_SR(self):
+        self.S.command({'CMD': 'fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + '>> /tmp/browserlab/fabprobe_SR.log'})
+        return 'SR_fab'
 
     def iperf_udp(self):
         #TODO

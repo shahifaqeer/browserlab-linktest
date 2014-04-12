@@ -72,6 +72,37 @@ def experiment_suit_no_router(e):
     time.sleep(10)                          # 10 s wait before next suit
     return
 
+def experiment_suit_non_coop(e):
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+    # Total ~ 430 s ~ 7:10 mins
+    if e.collect_calibrate:
+        e.run_calibrate()                       # 120 + 20 = 140 s
+    else:
+        print "not doing calibrate"
+    # latency without load
+    # Total ~ 430 s ~ 7:10 mins
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SA " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf BS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_RS, 'BS_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SB " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_SR, 'SB_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AB " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AR, 'AB_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf BA " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_RA, 'BA_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run fabprobe SR " +str(e.experiment_counter)
+    e.run_experiment(e.fabprobe_SR, 'SR_fab')
+    e.increment_experiment_counter()
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 10 sec before next run"
+    time.sleep(10)                          # 10 s wait before next suit
+
+    return
+
+
 def try_job():
     measurement_folder_name = raw_input('Enter measurement name: ')
     tot_runs = int(raw_input('how many runs?'))
