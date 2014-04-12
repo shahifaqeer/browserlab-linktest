@@ -600,7 +600,7 @@ class Experiment:
         return 'AS_udp'
 
     def fabprobe_SR(self):
-        self.S.command({'CMD': 'fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + '>> /tmp/browserlab/fabprobe_SR.log'})
+        self.S.command({'CMD': 'fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + ' >> /tmp/browserlab/fabprobe_SR.log'})
         return 'SR_fab'
 
     def iperf_udp(self):
