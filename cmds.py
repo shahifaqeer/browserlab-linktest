@@ -223,6 +223,7 @@ class Experiment:
         self.A = Client(const.CLIENT_ADDRESS)
         self.R = Router(const.ROUTER_ADDRESS_LOCAL, const.ROUTER_USER, const.ROUTER_PASS)
         self.S = Server(const.SERVER_ADDRESS)
+        self.S.check_connection()
         self.iface = self.get_default_interface()
         self.A.ip = self.get_ip_address(self.iface)
         self.device_list = [self.A, self.R, self.S]
@@ -240,6 +241,42 @@ class Experiment:
         self.clear_all(0) #clear /tmp/browserlab/* but don't close the connection to R
 
         self.start_netperf_servers()
+
+    def check_connection(self):
+        cmd = {'CMD': 'echo "check port"'}
+        if type(cmd) is dict:
+            msg = str(cmd)  # remember to eval and check for flags on other end (START, TIMEOUT, CMD, SUDO(?))
+
+        num_retries = 0
+        port = const.CONTROL_PORT + num_retries % 5
+
+        while num_retries<10:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect((const.SERVER_ADDRESS, port))
+                s.send(msg)
+                response = s.recv(const.MSG_SIZE)
+                print 'RECEIVED ', response
+                res, run_num, pid = response.split(',')
+                while res == 1:
+                    print 'Server is busy. Try again later.'
+                s.close()
+                if num_retries > 0:
+                    run_num = "x"+run_num
+                logcmd(msg, self.name)
+                return res, run_num, pid
+            except Exception, error:
+                print "DEBUG: Can't connect to "+str(const.SERVER_ADDRESS)+":"+str(port)v+". \nRETRY "+str(num_retries+1)+" in 2 seconds."
+                traceback.print_exc()
+                num_retries += 1
+                port = const.CONTROL_PORT + num_retries % 5    #try ports 12345 to 12349 twice each
+                time.sleep(2)
+                continue
+            break
+        raw_input("Server unresponsive. Press any key to exit. ")
+        sys.exit()
+        return
+
 
     def increment_experiment_counter(self):
         self.experiment_counter += 1
