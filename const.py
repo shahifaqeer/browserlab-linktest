@@ -7,6 +7,7 @@ EXPERIMENT_TIMEOUT = 10
 PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
 CALIBRATE_TIMEOUT = 120
+CONGESTION_TRAFFIC = 1
 
 # UPDATE THE FOLLOWING VALUES
 ROUTER_USER = 'root'

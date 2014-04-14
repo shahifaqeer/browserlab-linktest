@@ -312,15 +312,17 @@ class Experiment:
         self.S.command({'CMD':'tcpdump -s 100 -i '+const.SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
         # dump at both incoming wireless and outgoing eth1 for complete picture
 
+        # using TIMEOUT for A actually makes system wait for 10 sec which is weird and defeats the purpose ...
+        self.A.command({'CMD':'tcpdump -s 100 -i '+self.iface+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap &'})
+        self.A.command({'CMD':'tcpdump -i '+self.iface+'mon -s 150 -p -U -w /tmp/browserlab/radio_A'+state+'.pcap &'})
+
         if self.experiment_name[:2] == 'RS' or self.experiment_name[:2] == 'SR':
             router_interface_name = 'eth1'
         else:
             router_interface_name = const.ROUTER_WIRELESS_INTERFACE_NAME
         self.R.command({'CMD':'tcpdump -s 100 -i '+router_interface_name+' -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
-        self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
-        #self.A.command({'CMD':'tcpdump -s 100 -i '+const.CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap', 'TIMEOUT': timeout})
-        self.A.command({'CMD':'tcpdump -s 100 -i '+self.iface+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap &'})
-        self.A.command({'CMD':'tcpdump -i '+self.iface+'mon -s 0 -p -U -w /tmp/browserlab/radio_A'+state+'.pcap &'})
+        self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 150 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
+
         return
 
     def ping_all(self):
@@ -392,11 +394,13 @@ class Experiment:
         self.S.command({'CMD':'cp /tmp/browserlab/*.log /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
         self.S.command({'CMD':'cp /tmp/browserlab/*.pcap /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
 
-        self.A.command({'CMD': 'mkdir -p /tmp/browserlab/'+run_number+'_'+comment}) # instead of time use blocking resource to sync properly
-        self.A.command({'CMD':'cp /tmp/browserlab/*.log /tmp/browserlab/'+run_number+'_'+comment+'/'})
-        self.A.command({'CMD':'cp /tmp/browserlab/*.pcap /tmp/browserlab/'+run_number+'_'+comment+'/'})
+        self.A.command({'CMD': 'mkdir -p /tmp/browserlab/' +self.unique_id+ '/' + run_number+'_'+comment}) # instead of time use blocking resource to sync properly
+        self.A.command({'CMD':'cp /tmp/browserlab/*.log /tmp/browserlab/'+self.unique_id+'/'+run_number+'_'+comment+'/'})
+        self.A.command({'CMD':'cp /tmp/browserlab/*.pcap /tmp/browserlab/'+self.unique_id+'/'+run_number+'_'+comment+'/'})
 
-        self.A.command({'CMD':'sshpass -p '+ const.ROUTER_PASS +' scp -o StrictHostKeyChecking=no '+ const.ROUTER_USER + '@' + const.ROUTER_ADDRESS_LOCAL + ':/tmp/browserlab/* /tmp/browserlab/'+run_number+'_'+comment+'/'})
+        self.A.command({'CMD':'sshpass -p '+ const.ROUTER_PASS +' scp -o StrictHostKeyChecking=no '+ \
+                        const.ROUTER_USER + '@' + const.ROUTER_ADDRESS_LOCAL + ':/tmp/browserlab/* \
+                        /tmp/browserlab/'+self.unique_id+'/'+run_number+'_'+comment+'/'})
 
         self.R.command({'CMD':'rm -rf /tmp/browserlab/*.pcap'})
         self.R.command({'CMD':'rm -rf /tmp/browserlab/*.log'})
@@ -407,9 +411,14 @@ class Experiment:
 
         self.S.command({'CMD': 'chown -R browserlab.browserlab /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
         self.S.command({'CMD': 'chmod -R 777 /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
-        self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/'+run_number+'_'+comment+' browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
+        # Use a final transfer once everything is over
+        #self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/'+run_number+'_'+comment+' browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
 
         return
+
+    def final_transfer(self):
+        self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/'+self.unique_id+'/* \
+                        browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id+'/'})
 
     def passive(self, comment, timeout):
         '''
@@ -425,6 +434,11 @@ class Experiment:
         self.kill_all()
         return
 
+    def start_congestion(self, timeout, cong_serv_ip):
+        # make sure iperf udp server is running
+        subprocess.Popen("iperf -c " + cong_serv_ip + " -t " +str( timeout ) + " -i 1 -u -b 150m -y C >> /tmp/browserlab/A_udp_cong.log", shell=True)
+        return
+
     def run_experiment(self, exp, exp_name):
         self.experiment_name = exp_name #same as comment
 
@@ -433,6 +447,10 @@ class Experiment:
         #self.passive('before', const.PASSIVE_TIMEOUT)
 
         timeout = 3 * const.EXPERIMENT_TIMEOUT      # 30 sec
+
+        if (const.CONGESTION_TRAFFIC == 1):
+            EXTERN_IP = '192.168.1.153'
+            self.start_congestion(timeout, EXTERN_IP)
 
         self.tcpdump_radiotapdump('', const.EXPERIMENT_TIMEOUT)
         #self.radiotap_dump('', const.EXPERIMENT_TIMEOUT)
@@ -457,7 +475,7 @@ class Experiment:
         self.process_log(state)
         self.interface_log(state)
 
-        self.kill_all()
+        self.kill_all(1)
         #self.passive('after', const.PASSIVE_TIMEOUT)
         self.transfer_logs(self.run_number, comment)
         return

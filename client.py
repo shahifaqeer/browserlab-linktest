@@ -20,8 +20,8 @@ def experiment_suit(e):
         print "not doing calibrate"
     # latency without load
     # Total ~ 430 s ~ 7:10 mins
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run No Traffic "+str(e.experiment_counter)
-    e.run_experiment(e.no_traffic, 'no_tra')          # 12 + 15 = 27 s
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run No Traffic "+str(e.experiment_counter)
+    #e.run_experiment(e.no_traffic, 'no_tra')          # 12 + 15 = 27 s
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AS " +str(e.experiment_counter)
     # tcp bw and latency under load         # 12 * 6 + 15 * 6 = 172 s
     #e.run_experiment(e.iperf_tcp_up_AS, 'AS_tcp')
@@ -61,8 +61,8 @@ def experiment_suit(e):
 def experiment_suit_no_router(e):
 
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf no tra " +str(e.experiment_counter)
-    e.run_experiment(e.no_traffic, 'no_tra')          # 12 + 15 = 27 s
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf no tra " +str(e.experiment_counter)
+    #e.run_experiment(e.no_traffic, 'no_tra')          # 12 + 15 = 27 s
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SA " +str(e.experiment_counter)
@@ -77,7 +77,7 @@ def try_job():
     tot_runs = int(raw_input('how many runs?'))
     e = Experiment(measurement_folder_name)
     print 'Try experiment '
-    e.run_experiment(e.iperf_tcp_dw_RA, 'RA_tcp')
+    e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
     print 'DONE!'
     return
 
@@ -130,12 +130,18 @@ def real_measurements(calibrate=True):
 
     e.kill_all()
     e.clear_all()
-    return
+    return e
 
 
 if __name__ == "__main__":
 
-    real_measurements(False)
+    e = real_measurements(False)
+
+    next_step = raw_input("kill iperf and call e.final_transfer() [y/*] ")
+
+    if next_step == 'y':
+        e.kill_all(1)
+        e.final_transfer()
 
 
     #for rate in [1,2,3,4,6,8,12,16,20,0]:
