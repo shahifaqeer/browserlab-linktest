@@ -9,6 +9,7 @@ import subprocess
 import threading
 import os
 import time
+import traceback
 
 CLIENT_ADDRESS = 'localhost'
 #SERVER_ADDRESS = '130.207.97.240'
@@ -100,7 +101,14 @@ def execute_command(msg):
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind(('', port))
+while (port<12350):
+    try:
+        s.bind(('', port))
+        break;
+    except Exception:
+        port += 1
+        traceback.print_exc()
+
 s.listen(backlog)
 global BUSY
 BUSY = 0
