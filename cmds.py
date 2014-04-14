@@ -309,18 +309,26 @@ class Experiment:
     def tcpdump_radiotapdump(self, state, timeout):
         # weird bug with R.command(tcpdump) -> doesn't work with &
         # also seems like timeout only kills the bash/sh -c process but not tcpdump itself - no wonder it doesn't work!
-        self.S.command({'CMD':'tcpdump -s 100 -i '+const.SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
+        self.S.command({'CMD':'tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
         # dump at both incoming wireless and outgoing eth1 for complete picture
 
         if self.experiment_name[:2] == 'RS' or self.experiment_name[:2] == 'SR':
             router_interface_name = 'eth1'
         else:
             router_interface_name = const.ROUTER_WIRELESS_INTERFACE_NAME
-        self.R.command({'CMD':'tcpdump -s 100 -i '+router_interface_name+' -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
-        self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 0 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
-        #self.A.command({'CMD':'tcpdump -s 100 -i '+const.CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap', 'TIMEOUT': timeout})
-        self.A.command({'CMD':'tcpdump -s 100 -i '+self.iface+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap &'})
-        self.A.command({'CMD':'tcpdump -i '+self.iface+'mon -s 0 -p -U -w /tmp/browserlab/radio_A'+state+'.pcap &'})
+
+        if router_interface_name[:4] == const.GENERIC_WIRELESS_INTERFACE_NAME:    #wlan
+            # take only radiotap
+            self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 200 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
+        else:
+            self.R.command({'CMD':'tcpdump -s 200 -i '+router_interface_name+' -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
+
+        if self.iface[:4] == const.GENERIC_WIRELESS_INTERFACE_NAME:
+            # take only radiotap
+            self.A.command({'CMD':'tcpdump -i '+self.iface+'mon -s 200 -p -U -w /tmp/browserlab/radio_A'+state+'.pcap &'})
+        else:
+            #self.A.command({'CMD':'tcpdump -s 100 -i '+const.CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap', 'TIMEOUT': timeout})
+            self.A.command({'CMD':'tcpdump -s 200 -i '+self.iface+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap &'})
         return
 
     def ping_all(self):
