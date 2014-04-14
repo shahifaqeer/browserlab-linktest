@@ -101,7 +101,7 @@ def execute_command(msg):
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-while (port<12350):
+while (port<12351):
     try:
         s.bind(('', port))
         break;
