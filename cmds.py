@@ -381,6 +381,7 @@ class Experiment:
     def start_netperf_servers(self):
         self.S.command({'CMD': 'netserver'})
         self.A.command({'CMD': 'netserver'})
+        self.R.command({'CMD': 'netserver'})
         return
 
     def process_log(self, comment):
@@ -582,6 +583,25 @@ class Experiment:
         # reverse tcp stream AS
         self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' -- -P 5001 > /tmp/browserlab/netperf_SA_A.log &'})
         return 'SA_tcp'
+
+    # udpprobe gives both up and dw
+
+    def netperf_udp_dw_SA(self):
+        # reverse tcp stream AS
+        self.S.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip + ' -- -P 5001 > /tmp/browserlab/netperf_SA_S.log &'})
+        return 'SA_udp'
+
+    def netperf_udp_dw_SR(self):
+        # reverse tcp stream RS
+        self.S.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.R.ip + ' -- -P 5001 > /tmp/browserlab/netperf_SR_S.log &'})
+        return 'SR_udp'
+
+    def netperf_udp_dw_RA(self):
+        # v2.4.5; default port 12865; tcp stream RA
+        self.R.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip  + ' -- -P 5001 > /tmp/browserlab/netperf_RA_R.log &'})
+        return 'RA_udp'
+
+
 
     # udpprobe gives both up and dw
     def probe_udp_AR(self):
