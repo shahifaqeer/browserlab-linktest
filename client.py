@@ -125,12 +125,12 @@ def experiment_suit_testbed(e):
     e.run_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
 
     # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SA"
-    e.run_experiment(e.netperf_udp_SA, 'SA_udp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RA"
-    e.run_experiment(e.netperf_udp_RA, 'RA_udp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SR"
-    e.run_experiment(e.netperf_udp_SR, 'SR_udp')
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SA"
+    #e.run_experiment(e.netperf_udp_SA, 'SA_udp')
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RA"
+    #e.run_experiment(e.netperf_udp_RA, 'RA_udp')
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SR"
+    #e.run_experiment(e.netperf_udp_SR, 'SR_udp')
 
     e.increment_experiment_counter()
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 10 sec before next run"
