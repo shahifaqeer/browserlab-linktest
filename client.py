@@ -127,8 +127,12 @@ def experiment_suit_testbed(e):
     # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SA"
     #e.run_experiment(e.netperf_udp_SA, 'SA_udp')
-    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RA"
-    #e.run_experiment(e.netperf_udp_RA, 'RA_udp')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RA"
+    e.run_experiment(e.netperf_udp_RA, 'RA_udp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AR"
+    e.run_experiment(e.netperf_udp_AR, 'AR_udp')
+
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SR"
     #e.run_experiment(e.netperf_udp_SR, 'SR_udp')
 
