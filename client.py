@@ -129,9 +129,9 @@ def experiment_suit_testbed(e):
     #e.run_experiment(e.netperf_udp_SA, 'SA_udp')
 
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RA"
-    e.run_experiment(e.netperf_udp_RA, 'RA_udp')
+    e.run_experiment(e.netperf_udp_dw_RA, 'RA_udp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AR"
-    e.run_experiment(e.netperf_udp_AR, 'AR_udp')
+    e.run_experiment(e.netperf_udp_up_AR, 'AR_udp')
 
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SR"
     #e.run_experiment(e.netperf_udp_SR, 'SR_udp')

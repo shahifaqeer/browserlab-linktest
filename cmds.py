@@ -602,7 +602,7 @@ class Experiment:
         return 'RA_udp'
 
     # udpprobe gives both up and dw
-    def netperf_udp_dw_AR(self):
+    def netperf_udp_up_AR(self):
         # v2.4.5; default port 12865; tcp stream RA
         self.A.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.R.ip  + ' -- -P 5001 > /tmp/browserlab/netperf_RA_R.log &'})
         return 'AR_udp'
