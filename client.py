@@ -127,7 +127,8 @@ def test_measurements(tot_runs, rate):
 
     Q.host.close()
 
-    e = Experiment('hnl1_'+rate+'MBps')
+    e = Experiment('testbed_hnl1_'+rate+'MBps')
+    e.collect_calibrate = False
 
     for nruns in range(tot_runs):
         print "\t\t\n RUN : " + str(nruns) + "\n"
@@ -155,8 +156,8 @@ def real_measurements(calibrate=True):
 
     for nruns in range(tot_runs):
         print "\t\t\n RUN : " + str(nruns) + "\n"
-        experiment_suit_non_coop(e)
-        #experiment_suit(e)
+        #experiment_suit_non_coop(e)
+        experiment_suit(e)
         #experiment_suit_no_router(e)
         time.sleep(1)
 
@@ -167,12 +168,12 @@ def real_measurements(calibrate=True):
 
 if __name__ == "__main__":
 
-    real_measurements(False)
+    #real_measurements(False)
 
 
-    #for rate in [1,2,3,4,6,8,12,16,20,0]:
-        #tot_runs = 50
-        #measure_link(tot_runs, rate)
+    for rate in [1,2,3,4,6,8,12,16,20,0]:
+        tot_runs = int(raw_input("how many runs for each tc setting? "))
+        test_measurements(tot_runs, rate)
 
 
     #measure_link(30, 0)
