@@ -20,10 +20,10 @@ def experiment_suit(e):
         print "not doing calibrate"
     # latency without load
     # Total ~ 430 s ~ 7:10 mins
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run No Traffic "+str(e.experiment_counter)
-    e.run_experiment(e.no_traffic, 'no_tra')          # 12 + 15 = 27 s
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AS " +str(e.experiment_counter)
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run No Traffic "+str(e.experiment_counter)
+    #e.run_experiment(e.no_traffic, 'no_tra')          # 12 + 15 = 27 s
     # tcp bw and latency under load         # 12 * 6 + 15 * 6 = 172 s
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AS " +str(e.experiment_counter)
     #e.run_experiment(e.iperf_tcp_up_AS, 'AS_tcp')
     e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf SA " +str(e.experiment_counter)
@@ -155,19 +155,23 @@ def real_measurements(calibrate=True):
 
     for nruns in range(tot_runs):
         print "\t\t\n RUN : " + str(nruns) + "\n"
-        experiment_suit_non_coop(e)
-        #experiment_suit(e)
+        #experiment_suit_non_coop(e)
+        experiment_suit(e)
         #experiment_suit_no_router(e)
         time.sleep(1)
 
+    #trans = raw_input("transfer now?[Y] ")
+    #if trans == 'Y' or trans == 'y':
+    e.transfer_all_later()
+
     e.kill_all()
     e.clear_all()
-    return
+    return e
 
 
 if __name__ == "__main__":
 
-    real_measurements(False)
+    e = real_measurements(False)
 
 
     #for rate in [1,2,3,4,6,8,12,16,20,0]:

@@ -433,7 +433,7 @@ class Experiment:
         return
 
     def transfer_logs(self, run_number, comment):
-        self.S.command({'CMD': 'mkdir -p /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
+        self.S.command({'CMD':'mkdir -p /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
         self.S.command({'CMD':'cp /tmp/browserlab/*.log /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
         self.S.command({'CMD':'cp /tmp/browserlab/*.pcap /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
 
@@ -450,10 +450,14 @@ class Experiment:
         self.S.command({'CMD':'rm -rf /tmp/browserlab/*.pcap'})
         self.S.command({'CMD':'rm -rf /tmp/browserlab/*.log'})
 
-        self.S.command({'CMD': 'chown -R browserlab.browserlab /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
+        self.S.command({'CMD': 'chown -R browserlab:browserlab /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
         self.S.command({'CMD': 'chmod -R 777 /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
-        self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/'+run_number+'_'+comment+' browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
+        #self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/'+run_number+'_'+comment+' browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
 
+        return
+
+    def transfer_all_later(self):
+        self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/* browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
         return
 
     def passive(self, comment, timeout):
