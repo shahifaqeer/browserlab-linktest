@@ -180,14 +180,20 @@ def wired_simulation():
         print "Error. Running "+str(tot_runs)+" measurement."
 
 
-    for delay in [0, 1, 5, 10]:
+    for delay in [0, 1, 2.5, 5, 7.5, 10]:
         Q = Router('192.168.1.1', 'root', 'passw0rd')
+        try:
+            subprocess.check_output('tc qdisc del dev eth1 root', shell=True)
+        except Exception:
+            print subprocess.check_output('tc qdisc show dev eth1', shell=True)
+        try:
+            Q.remoteCommand('tc qdisc del dev eth0 root')
+        except Exception:
+            Q.remoteCommand('tc qdisc show dev eth0')
+
         if delay != 0:
             subprocess.check_output('tc qdisc add dev eth1 root netem delay ' +str(delay)+ 'ms', shell=True)
             Q.remoteCommand('tc qdisc add dev eth0 root netem delay ' +str(delay)+ 'ms')
-        else:
-            subprocess.check_output('tc qdisc del dev eth1 root', shell=True)
-            Q.remoteCommand('tc qdisc del dev eth0 root')
         Q.host.close()
 
         measurement_folder_name = 'wired_delay_'+str(2*delay)
