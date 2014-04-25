@@ -168,7 +168,7 @@ def test_measurements(tot_runs, rate):
 
     Q.host.close()
 
-    e = Experiment('testbed_hnl1_'+rate+'MBps')
+    e = Experiment('hnl1_AccessLink_'+rate+'MBps')
     e.collect_calibrate = False
 
     for nruns in range(tot_runs):
