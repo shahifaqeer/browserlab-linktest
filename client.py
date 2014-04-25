@@ -176,6 +176,12 @@ def test_measurements(tot_runs, rate):
         experiment_suit_testbed(e)
         time.sleep(1)
 
+    Q = Router('192.168.1.1', 'root', 'passw0rd')
+    Q.remoteCommand('tc qdisc del dev eth0 root')
+    Q.remoteCommand('tc qdisc del dev eth1 root')
+    Q.host.close()
+    e.transfer_all_later()
+
     e.kill_all()
     e.clear_all()
 
