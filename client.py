@@ -169,6 +169,18 @@ def real_measurements(calibrate=True):
     e.clear_all()
     return e
 
+def remove_tc_shaping(client_int='eth1', router_int='eth0'):
+    Q = Router('192.168.1.1', 'root', 'passw0rd')
+    try:
+        subprocess.check_output('tc qdisc del dev ' +client_int+ ' root', shell=True)
+    except Exception:
+        print subprocess.check_output('tc qdisc show dev ' +client_int, shell=True)
+    try:
+        Q.remoteCommand('tc qdisc del dev ' +router_int+ ' root')
+    except Exception:
+        Q.remoteCommand('tc qdisc show dev ' +router_int)
+    return Q
+
 
 def wired_simulation():
 
@@ -181,15 +193,7 @@ def wired_simulation():
 
 
     for delay in [0, 1, 2.5, 5, 7.5, 10]:
-        Q = Router('192.168.1.1', 'root', 'passw0rd')
-        try:
-            subprocess.check_output('tc qdisc del dev eth1 root', shell=True)
-        except Exception:
-            print subprocess.check_output('tc qdisc show dev eth1', shell=True)
-        try:
-            Q.remoteCommand('tc qdisc del dev eth0 root')
-        except Exception:
-            Q.remoteCommand('tc qdisc show dev eth0')
+        Q = remove_tc_shaping('eth1', 'eth0')
 
         if delay != 0:
             subprocess.check_output('tc qdisc add dev eth1 root netem delay ' +str(delay)+ 'ms', shell=True)
@@ -205,6 +209,10 @@ def wired_simulation():
             print "\n\t\t RUN : " + str(nruns) + " DELAY : " + str(delay) + "\n"
             experiment_suit(e)
             time.sleep(1)
+
+        # transfer all with no delay
+        Q = remove_tc_shaping('eth1', 'eth0')
+        Q.host.close()
 
         e.transfer_all_later()
 

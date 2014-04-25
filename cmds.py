@@ -382,6 +382,7 @@ class Experiment:
 
     def start_netperf_servers(self):
         self.S.command({'CMD': 'netserver'})
+        self.R.command({'CMD': 'netserver'})
         self.A.command({'CMD': 'netserver'})
         return
 
@@ -460,7 +461,7 @@ class Experiment:
 
     def transfer_all_later(self):
         self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/* browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
-        self.A.command({'CMD': 'rm -rf /tmp/browserlab/*})
+        self.A.command({'CMD': 'rm -rf /tmp/browserlab/*'})
         return
 
     def passive(self, comment, timeout):
