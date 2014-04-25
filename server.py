@@ -9,11 +9,12 @@ import subprocess
 import threading
 import os
 import time
+import traceback
 
 CLIENT_ADDRESS = 'localhost'
-#SERVER_ADDRESS = '130.207.97.240'
+#SERVER_ADDRESS = '192.168.20.1'
 SERVER_ADDRESS = 'localhost'
-ROUTER_ADDRESS = '192.168.10.1'
+ROUTER_ADDRESS = '192.168.1.2'
 port = 12345
 backlog = 5
 size = 1024
@@ -100,7 +101,16 @@ def execute_command(msg):
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind(('', port))
+while (port<12350):
+    #try ports 12345 to 12349
+    try:
+        s.bind(('', port))
+        print "Open server at port " + str(port)
+        break;
+    except Exception:
+        port += 1
+        traceback.print_exc()
+
 s.listen(backlog)
 global BUSY
 BUSY = 0
