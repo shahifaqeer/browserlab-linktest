@@ -169,6 +169,43 @@ def real_measurements(calibrate=True):
     return e
 
 
+def wired_simulation():
+
+    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 50 with laptop in the same location. ')
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
+        tot_runs = 1
+        print "Error. Running "+str(tot_runs)+" measurement."
+
+
+    for delay in [0, 1, 5, 10]:
+        Q = Router('192.168.1.1', 'root', 'passw0rd')
+        if delay != 0:
+            subprocess.check_output('tc qdisc add dev eth1 root netem delay ' +str(delay)+ 'ms', shell=True)
+            Q.remoteCommand('tc qdisc add dev eth0 root netem delay ' +str(delay)+ 'ms')
+        else:
+            subprocess.check_output('tc qdisc del dev eth1 root', shell=True)
+            Q.remoteCommand('tc qdisc del dev eth0 root')
+        Q.host.close()
+
+        measurement_folder_name = 'wired_delay_'+str(2*delay)
+
+        e = Experiment(measurement_folder_name)
+        e.collect_calibrate = False
+
+        for nruns in range(tot_runs):
+            print "\n\t\t RUN : " + str(nruns) + " DELAY : " + str(delay) + "\n"
+            experiment_suit(e)
+            time.sleep(1)
+
+        e.transfer_all_later()
+
+        e.kill_all()
+        e.clear_all()
+
+    return e
+
 if __name__ == "__main__":
 
     e = real_measurements(False)
