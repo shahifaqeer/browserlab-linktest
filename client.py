@@ -268,7 +268,7 @@ if __name__ == "__main__":
 
     tot_runs = int(raw_input("how many runs for each tc setting? "))
 
-    for rate in [1,2,3,4,6,8,12,16,20,0]:
+    for rate in [2,4,8,10,12,16,20,0]:
         test_measurements(tot_runs, rate)
 
 
