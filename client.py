@@ -112,15 +112,15 @@ def experiment_suit_testbed(e):
 
     # tcp bandwidth
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
-    #e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
+    e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SA " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AR " +str(e.experiment_counter)
-    #e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RA " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RS " +str(e.experiment_counter)
-    #e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
+    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SR " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
 
@@ -158,7 +158,7 @@ def test_measurements(tot_runs, rate):
     rate = str(rate)
     Q = Router('192.168.1.1', 'root', 'passw0rd')
 
-    if rate != 0:
+    if rate != 0 and rate != '0':
         Q.remoteCommand('sh ratelimit3.sh eth0 '+rate)
         Q.remoteCommand('sh ratelimit3.sh eth1 '+rate)
     else:
@@ -171,7 +171,7 @@ def test_measurements(tot_runs, rate):
     e.collect_calibrate = False
 
     for nruns in range(tot_runs):
-        print "\t\t\n RUN : " + str(nruns) + "\n"
+        print "\n\t\t RUN : " + str(nruns) + " rate : " + rate + "\n"
         experiment_suit_testbed(e)
         time.sleep(1)
 
@@ -210,9 +210,9 @@ if __name__ == "__main__":
 
     #real_measurements(False)
 
+    tot_runs = int(raw_input("how many runs for each tc setting? "))
 
     for rate in [1,2,3,4,6,8,12,16,20,0]:
-        tot_runs = int(raw_input("how many runs for each tc setting? "))
         test_measurements(tot_runs, rate)
 
 
