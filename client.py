@@ -5,6 +5,7 @@ from __future__ import division
 from cmds import Experiment, Router
 
 import time
+import subprocess
 #import schedule
 
 #time_wait = 20 # wait 20 sec before each experiment
@@ -20,10 +21,10 @@ def experiment_suit(e):
         print "not doing calibrate"
     # latency without load
     # Total ~ 430 s ~ 7:10 mins
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run No Traffic "+str(e.experiment_counter)
-    e.run_experiment(e.no_traffic, 'no_tra')          # 12 + 15 = 27 s
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AS " +str(e.experiment_counter)
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run No Traffic "+str(e.experiment_counter)
+    #e.run_experiment(e.no_traffic, 'no_tra')          # 12 + 15 = 27 s
     # tcp bw and latency under load         # 12 * 6 + 15 * 6 = 172 s
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AS " +str(e.experiment_counter)
     #e.run_experiment(e.iperf_tcp_up_AS, 'AS_tcp')
     e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf SA " +str(e.experiment_counter)
@@ -201,10 +202,65 @@ def real_measurements(calibrate=True):
         #experiment_suit_no_router(e)
         time.sleep(1)
 
+    #trans = raw_input("transfer now?[Y] ")
+    #if trans == 'Y' or trans == 'y':
+    e.transfer_all_later()
+
     e.kill_all()
     e.clear_all()
-    return
+    return e
 
+def remove_tc_shaping(client_int='eth1', router_int='eth0'):
+    Q = Router('192.168.1.1', 'root', 'passw0rd')
+    try:
+        subprocess.check_output('tc qdisc del dev ' +client_int+ ' root', shell=True)
+    except Exception:
+        print subprocess.check_output('tc qdisc show dev ' +client_int, shell=True)
+    try:
+        Q.remoteCommand('tc qdisc del dev ' +router_int+ ' root')
+    except Exception:
+        Q.remoteCommand('tc qdisc show dev ' +router_int)
+    return Q
+
+
+def wired_simulation():
+
+    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 50 with laptop in the same location. ')
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
+        tot_runs = 1
+        print "Error. Running "+str(tot_runs)+" measurement."
+
+
+    for delay in [0, 1, 2.5, 5, 7.5, 10]:
+        Q = remove_tc_shaping('eth1', 'eth0')
+
+        if delay != 0:
+            subprocess.check_output('tc qdisc add dev eth1 root netem delay ' +str(delay)+ 'ms', shell=True)
+            Q.remoteCommand('tc qdisc add dev eth0 root netem delay ' +str(delay)+ 'ms')
+        Q.host.close()
+
+        measurement_folder_name = 'wired_delay_'+str(2*delay)
+
+        e = Experiment(measurement_folder_name)
+        e.collect_calibrate = False
+
+        for nruns in range(tot_runs):
+            print "\n\t\t RUN : " + str(nruns) + " DELAY : " + str(delay) + "\n"
+            experiment_suit(e)
+            time.sleep(1)
+
+        # transfer all with no delay
+        Q = remove_tc_shaping('eth1', 'eth0')
+        Q.host.close()
+
+        e.transfer_all_later()
+
+        e.kill_all()
+        e.clear_all()
+
+    return e
 
 if __name__ == "__main__":
 
