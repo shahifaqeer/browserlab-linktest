@@ -8,6 +8,7 @@ PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
 CALIBRATE_TIMEOUT = 120
 PING_SIZE = '1400'
+PERF_PORT = '5002'
 
 # UPDATE THE FOLLOWING VALUES
 ROUTER_USER = 'root'
