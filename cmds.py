@@ -456,12 +456,13 @@ class Experiment:
         self.S.command({'CMD': 'chown -R browserlab:browserlab /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
         self.S.command({'CMD': 'chmod -R 777 /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
         #self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/'+run_number+'_'+comment+' browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
+        self.A.command({'CMD': 'mkdir -p /tmp/data/' + self.unique_id})
+        self.A.command({'CMD': 'mv -f /tmp/browserlab/* /tmp/data/' + self.unique_id + '/'})
 
         return
 
     def transfer_all_later(self):
-        self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/* browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
-        self.A.command({'CMD': 'rm -rf /tmp/browserlab/*'})
+        self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/data/' +self.unique_id+ ' browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
         return
 
     def passive(self, comment, timeout):
