@@ -216,8 +216,8 @@ def real_measurements(calibrate=True):
     e.clear_all()
     return e
 
-def remove_tc_shaping(client_int='eth1', router_int='eth0'):
-    Q = Router('192.168.1.1', 'root', 'passw0rd')
+def remove_tc_shaping(client_int='eth0', router_int='eth0'):
+    Q = Router('192.168.10.1', 'root', 'passw0rd')
     try:
         subprocess.check_output('tc qdisc del dev ' +client_int+ ' root', shell=True)
     except Exception:
@@ -229,8 +229,61 @@ def remove_tc_shaping(client_int='eth1', router_int='eth0'):
     return Q
 
 
-def wired_simulation():
+def wired_simulation_testbed(rates, delays, tot_runs):
 
+    client_int = 'eth0'
+    router_int = 'eth0'
+
+    for rate in rates:
+        for delay in delays:
+            Q = Router('192.168.1.1', 'root', 'passw0rd')
+            if rate != 0:
+                Q.remoteCommand('sh ratelimit3.sh eth0 '+str(rate))
+                Q.remoteCommand('sh ratelimit3.sh eth1 '+str(rate))
+            else:
+                Q.remoteCommand('tc qdisc del dev eth0 root')
+                Q.remoteCommand('tc qdisc del dev eth1 root')
+            Q.host.close()
+
+            R = remove_tc_shaping(client_int, router_int)
+            if delay != 0:
+                subprocess.check_output('tc qdisc add dev '+client_int+' root netem delay ' +str(delay)+ 'ms', shell=True)
+                R.remoteCommand('tc qdisc add dev '+router_int+' root netem delay ' +str(delay)+ 'ms')
+            R.host.close()
+
+            measurement_folder_name = 'wired_delay_'+str(int(2*delay))+'_access_'+str(rate)
+            print "\n\t\t START " + measurement_folder_name + "\n"
+            time.sleep(5)
+
+            e = Experiment(measurement_folder_name)
+            e.collect_calibrate = False
+
+            for nruns in range(tot_runs):
+                print "\n\t\t RUN : " + str(nruns) + " DELAY : " + str(delay) + " ACCESS LINK RATE : " + str(rate) + "\n"
+                experiment_suit(e)
+                time.sleep(1)
+
+            # transfer all with no delay and no shaping
+            R = remove_tc_shaping(client_int, router_int)
+            R.host.close()
+            Q = Router('192.168.1.1', 'root', 'passw0rd')
+            Q.remoteCommand('tc qdisc del dev eth0 root')
+            Q.remoteCommand('tc qdisc del dev eth1 root')
+            Q.host.close()
+
+            e.kill_all()
+            e.clear_all()
+            e.transfer_all_later()
+
+            print "\n\t\t DONE " + measurement_folder_name + "\n"
+
+    return e
+
+
+if __name__ == "__main__":
+
+    rates = [2, 5, 10, 15, 20] #MBps
+    delays = [1, 2.5, 5, 7.5, 10] #ms
     tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 50 with laptop in the same location. ')
     try:
         tot_runs = int(tot_runs)
@@ -238,45 +291,14 @@ def wired_simulation():
         tot_runs = 1
         print "Error. Running "+str(tot_runs)+" measurement."
 
-
-    for delay in [0, 1, 2.5, 5, 7.5, 10]:
-        Q = remove_tc_shaping('eth1', 'eth0')
-
-        if delay != 0:
-            subprocess.check_output('tc qdisc add dev eth1 root netem delay ' +str(delay)+ 'ms', shell=True)
-            Q.remoteCommand('tc qdisc add dev eth0 root netem delay ' +str(delay)+ 'ms')
-        Q.host.close()
-
-        measurement_folder_name = 'wired_delay_'+str(2*delay)
-
-        e = Experiment(measurement_folder_name)
-        e.collect_calibrate = False
-
-        for nruns in range(tot_runs):
-            print "\n\t\t RUN : " + str(nruns) + " DELAY : " + str(delay) + "\n"
-            experiment_suit(e)
-            time.sleep(1)
-
-        # transfer all with no delay
-        Q = remove_tc_shaping('eth1', 'eth0')
-        Q.host.close()
-
-        e.transfer_all_later()
-
-        e.kill_all()
-        e.clear_all()
-
-    return e
-
-if __name__ == "__main__":
+    wired_simulation_testbed(rates, delays, tot_runs)
 
     #real_measurements(False)
 
-    tot_runs = int(raw_input("how many runs for each tc setting? "))
+    #tot_runs = int(raw_input("how many runs for each tc setting? "))
 
-    for rate in [2,4,8,10,12,16,20,0]:
-        test_measurements(tot_runs, rate)
-
+    #for rate in [2,4,8,10,12,16,20,0]:
+    #    test_measurements(tot_runs, rate)
 
     #measure_link(30, 0)
     #measure_link(30, 1)
