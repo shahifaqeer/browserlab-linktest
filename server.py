@@ -12,7 +12,7 @@ import time
 import traceback
 
 CLIENT_ADDRESS = 'localhost'
-#SERVER_ADDRESS = '130.207.97.240'
+#SERVER_ADDRESS = '192.168.20.1'
 SERVER_ADDRESS = 'localhost'
 ROUTER_ADDRESS = '192.168.1.2'
 port = 12345
