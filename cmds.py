@@ -389,36 +389,45 @@ class Experiment:
 
     def process_log(self, comment):
         # comment can be like a timestamp
-        poll_freq = 1
-        ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
+        poll_freq = 0.1
+        #ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
+        ctr_len = 10
 
         for dev in [self.S, self.R, self.A]:
             #dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
             dev.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/top_'+dev.name+'.log;'})
-            dev.command({'CMD':'top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log;'})
+            #dev.command({'CMD':'top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log;'})
+            dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
         return
 
     def interface_log(self, comment):
         # comment can be like a timestamp
-        poll_freq = 1
-        ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
+        poll_freq = 0.1   #100 ms
+        #ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
+        ctr_len = 10
 
         #ifconfig (byte counters) for S
         #self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        #self.S.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/ifconfig_'+self.S.name+'.log;'})
+        #self.S.command({'CMD':'ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log'})
+
         self.S.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/ifconfig_'+self.S.name+'.log;'})
-        self.S.command({'CMD':'ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log'})
+        self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
 
         #iw dev (radiotap info) for wireless
         #self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
         #self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
         self.R.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/iwdev_'+self.R.name+'.log;'})
-        self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log'})
+        self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        #self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log'})
         self.A.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/iwdev_'+self.A.name+'.log;'})
-        self.A.command({'CMD':'iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log'})
+        self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        #self.A.command({'CMD':'iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log'})
 
         # iw survey dump
         self.R.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log;'})
-        self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log'})
+        self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        #self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log'})
         return
 
     def kill_all(self, all_proc = 0):
@@ -512,6 +521,10 @@ class Experiment:
 
         state = 'during'
         print "DEBUG: "+str(time.time())+" state = " + state
+
+        self.process_log(state)
+        self.interface_log(state)
+
         comment = exp()
         print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
         time.sleep(timeout)
