@@ -597,24 +597,35 @@ class Experiment:
 
     def netperf_udp_dw_SA(self):
         # reverse tcp stream AS
-        self.S.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SA_S.log &'})
+        self.S.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -C -l 1 -H ' + self.A.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/udpperf_SA_S.log &'})
         return 'SA_udp'
 
     def netperf_udp_dw_SR(self):
         # reverse tcp stream RS
-        self.S.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + const.ROUTER_ADDRESS_GLOBAL + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SR_S.log &'})
+        self.S.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -C -l 1 -H ' + const.ROUTER_ADDRESS_GLOBAL + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/udpperf_SR_S.log &'})
         return 'SR_udp'
 
     def netperf_udp_dw_RA(self):
         # v2.4.5; default port 12865; tcp stream RA
-        self.R.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log &'})
+        self.R.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -C -l 1 -H ' + self.A.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/udpperf_RA_R.log &'})
         return 'RA_udp'
 
     # udpprobe gives both up and dw
     def netperf_udp_up_AR(self):
         # v2.4.5; default port 12865; tcp stream RA
-        self.A.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.R.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log &'})
+        self.A.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -C -l 1 -H ' + self.R.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/udpperf_AR_A.log &'})
         return 'AR_udp'
+
+    def netperf_udp_up_RS(self):
+        # reverse tcp stream AS
+        self.R.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -C -l 1 -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/udpperf_RS_R.log &'})
+        return 'RS_udp'
+
+    def netperf_udp_up_AS(self):
+        # reverse tcp stream RS
+        self.A.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -C -l 1 -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/udpperf_AS_A.log &'})
+        return 'SR_udp'
+
 
     # udpprobe gives both up and dw
     def probe_udp_AR(self):
