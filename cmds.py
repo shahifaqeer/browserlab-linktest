@@ -388,6 +388,7 @@ class Experiment:
         return
 
     def process_log(self, comment):
+        # comment can be like a timestamp
         poll_freq = 1
         ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
 
@@ -398,21 +399,26 @@ class Experiment:
         return
 
     def interface_log(self, comment):
+        # comment can be like a timestamp
         poll_freq = 1
         ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
 
         #ifconfig (byte counters) for S
         #self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
-        self.S.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/ifconfig_'+self.S.name+'.log;'})
+        self.S.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/ifconfig_'+self.S.name+'.log;'})
         self.S.command({'CMD':'ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log'})
 
         #iw dev (radiotap info) for wireless
         #self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
         #self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
-        self.R.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/iwdev_'+self.R.name+'.log;'})
+        self.R.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/iwdev_'+self.R.name+'.log;'})
         self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log'})
-        self.A.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/iwdev_'+self.A.name+'.log;'})
+        self.A.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/iwdev_'+self.A.name+'.log;'})
         self.A.command({'CMD':'iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log'})
+
+        # iw survey dump
+        self.R.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log;'})
+        self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log'})
         return
 
     def kill_all(self, all_proc = 0):
