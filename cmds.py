@@ -245,6 +245,7 @@ class Experiment:
         self.clear_all(0) #clear /tmp/browserlab/* but don't close the connection to R
 
         self.start_netperf_servers()
+        self.start_udp_servers()
 
     def check_connection(self):
         cmd = {'CMD': 'echo "check port"'}
@@ -387,11 +388,16 @@ class Experiment:
         self.R.command({'CMD': 'netserver'})
         return
 
-    def process_log(self, comment, test=''):
+    def start_udp_servers(self):
+        for node in [self.S, self.R, self.A]:
+            node.command({'CMD': 'iperf -s -u -f k -y C > /tmp/browserlab/iperf_udp_server_'+node.name+'.log &'})
+        return
+
+    def process_log(self, comment='during', test=''):
         # comment can be like a timestamp
         poll_freq = 0.1
         #ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
-        ctr_len = 10
+        ctr_len = '10'
 
         for dev in [self.S, self.R, self.A]:
             #dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
@@ -402,11 +408,11 @@ class Experiment:
                 dev.command({'CMD':'top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log;'})
         return
 
-    def interface_log(self, comment, test=''):
+    def interface_log(self, comment='during', test=''):
         # comment can be like a timestamp
         poll_freq = 0.1   #100 ms
         #ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
-        ctr_len = 10
+        ctr_len = '10'
 
         #ifconfig (byte counters) for S
         #self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
@@ -542,26 +548,29 @@ class Experiment:
         self.transfer_logs(self.run_number, comment)
         return
 
-    def udp_experiment(self):
-        self.node_dict = {'R': self.R,
-                          'S': self.S,
-                          'A': self.A}
-
+    def udp_experiment(self, nruns, timeout=1):
+        node_dict = {'R': self.R,
+                    'S': self.S,
+                    'A': self.A}
+        state = 'during'
         #TODO add complexity and automation
         #TODO but for now - keep it simple
         #self.S.command('EXP':'UDP')
         #self.R.command('EXP':'UDP')
         #self.A.command('EXP':'UDP')
 
-        for node_pairs in ['AR', 'RS', 'AS', 'RA', 'SR', 'SA']:
-            tx = node_dict[node_pairs[0]]
-            rx = node_dict[node_pairs[1]]
+        #TODO passive ping baseline and logging here for 10 sec
 
-            #each of these run for 1 sec each
-            self.process_log(state, node_pairs)
-            self.interface_log(state, node_pairs)
+        #TODO active ping ul and logging here for nruns * 1.2 * 6 sec in background?
 
-            self.iperf_udp(tx, rx)
+        for run_ctr in range(nruns):
+            print "DEBUG: Run number ", run_ctr
+            for node_pairs in ['AR', 'RS', 'AS', 'RA', 'SR', 'SA']:
+                tx = node_dict[node_pairs[0]]
+                rx = node_dict[node_pairs[1]]
+
+                #each of these run for timeout sec each
+                self.iperf_udp(tx, rx, timeout)
 
         return 'udp'
 
@@ -576,19 +585,27 @@ class Experiment:
     def no_traffic(self):
         return 'no_tra'
 
-    def iperf_udp(self, tx, rx):
-        rx.command({'CMD': 'iperf -s -u -f k -y C > /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+rx.name+'.log &'})
+    def iperf_udp(self, tx, rx, timeout):
+        #rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+rx.name+'.log &'})
         state = 'during'
-        self.process_log(state)
-        self.interface_log(state)
+        #self.process_log(state)
+        #self.interface_log(state)
+
         #TODO for real test rx.ip of router will be local or global
         #TODO check will the following command be blocking for one second?
+
         print str(time.time()) + " UDP DEBUG: start "+tx.name + rx.name
-        tx.command({'CMD': 'iperf -c ' + rx.ip + ' -u -b 100m -f k -y C -t 1 > /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log'})
+
+        recv_ip = rx.ip
+        if tx.name == 'S' and rx.name == 'R':
+            recv_ip = const.ROUTER_ADDRESS_GLOBAL
+
+        tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b 100m -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
+        time.sleep(timeout+0.1)
         print str(time.time()) + " UDP DEBUG: stop "+tx.name + rx.name
         # make sure it waits one sec
-        rx.command({'CMD': 'killall iperf'})
-        print str(time.time()) + " UDP DEBUG: killed rx "+tx.name + rx.name
+        #rx.command({'CMD': 'killall iperf'})
+        #print str(time.time()) + " UDP DEBUG: killed rx "+tx.name + rx.name
 
         return tx.name+rx.name + '_udp'
 
