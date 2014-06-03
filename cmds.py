@@ -558,7 +558,6 @@ class Experiment:
         node_dict = {'R': self.R,
                     'S': self.S,
                     'A': self.A}
-        state = 'during'
         #TODO add complexity and automation
         #TODO but for now - keep it simple
         #self.S.command('EXP':'UDP')
@@ -567,17 +566,23 @@ class Experiment:
 
 
         #TODO passive ping baseline and logging here for 10 sec
-        ping_timeout = int(experiment_timeout - 4)
-        print "DEBUG: Begin pinging 100 ms for 10 sec passive; total for " + str(ping_timeout) + " sec"
-        self.ping_all(ping_timeout)
+        #ping_timeout = int(experiment_timeout - 4)
+        #print "DEBUG: Begin pinging 100 ms for 10 sec passive; total for " + str(ping_timeout) + " sec"
+        #self.ping_all(ping_timeout)
         state = 'before'
         print "DEBUG: "+str(time.time())+" state = " + state
-        self.process_log(state)
+        #self.process_log(state)
+        #self.interface_log(state)
         time.sleep(10)
 
         # START MONITOR
         self.tcpdump_radiotapdump('', experiment_timeout)
         #TODO active ping ul and logging here for nruns * 1.2 * 6 sec in background?
+
+        state = 'during'
+        print "DEBUG: "+str(time.time())+" state = " + state
+        #self.process_log(state)
+        #self.interface_log(state)
 
         for run_ctr in range(nruns):
             print "DEBUG: Run number ", run_ctr
@@ -588,6 +593,7 @@ class Experiment:
                 #each of these run for timeout sec each
                 self.iperf_udp(tx, rx, timeout)
 
+        self.kill_all()
         self.transfer_logs(self.run_number, 'XY_udp')
 
         return
