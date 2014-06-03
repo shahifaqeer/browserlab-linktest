@@ -245,7 +245,6 @@ class Experiment:
         self.clear_all(0) #clear /tmp/browserlab/* but don't close the connection to R
 
         self.start_netperf_servers()
-        self.start_udp_servers()
 
     def check_connection(self):
         cmd = {'CMD': 'echo "check port"'}
@@ -371,15 +370,20 @@ class Experiment:
             self.A.command({'CMD':'tcpdump -s 100 -i '+self.iface+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap &'})
         return
 
-    def ping_all(self, timeout=0):
+    def ping_all(self, timeout = 2 * const.EXPERIMENT_TIMEOUT):
         if timeout == 0:
-            timeout = 2 * const.EXPERIMENT_TIMEOUT      # 20 sec
-        # ALWAYS pass fping with & not to thread - thread seems to be blocking
-        self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
-        self.S.command({'CMD':'fping '+self.A.ip+' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
-        #self.R.command({'CMD':'fping '+const.CLIENT_ADDRESS+' '+ const.SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
-        self.R.command({'CMD':'fping '+self.A.ip+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
-        self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
+            self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -l -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
+            self.S.command({'CMD':'fping '+self.A.ip+' -p 100 -c -l -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
+            #self.R.command({'CMD':'fping '+const.CLIENT_ADDRESS+' '+ const.SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
+            self.R.command({'CMD':'fping '+self.A.ip+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -l -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
+            self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -l -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
+        else:
+            # ALWAYS pass fping with & not to thread - thread seems to be blocking
+            self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
+            self.S.command({'CMD':'fping '+self.A.ip+' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
+            #self.R.command({'CMD':'fping '+const.CLIENT_ADDRESS+' '+ const.SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
+            self.R.command({'CMD':'fping '+self.A.ip+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
+            self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
         return
 
     def start_netperf_servers(self):
@@ -391,7 +395,7 @@ class Experiment:
 
     def start_udp_servers(self):
         for node in [self.S, self.R, self.A]:
-            node.command({'CMD': 'iperf -s -u -f k -y C > /tmp/browserlab/iperf_udp_server_'+node.name+'.log &'})
+            node.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_server_'+node.name+'.log &'})
         return
 
     def process_log(self, comment='during', test='', total_time = const.EXPERIMENT_TIMEOUT):
@@ -453,6 +457,7 @@ class Experiment:
                 node.command({'CMD': 'killall iperf'})
                 node.command({'CMD': 'killall netperf'})
                 node.command({'CMD': 'killall tcpdump'})
+                node.command({'CMD': 'killall fping'})
         return
 
     def clear_all(self, close_R=0):
@@ -553,6 +558,8 @@ class Experiment:
 
         self.experiment_name = 'udp'
         self.get_folder_name_from_server()
+        print "DEBUG: start UDP servers on all"
+        self.start_udp_servers()
         experiment_timeout = nruns * 1.2 * 6 + 10 + 5
 
         node_dict = {'R': self.R,
@@ -564,11 +571,9 @@ class Experiment:
         #self.R.command('EXP':'UDP')
         #self.A.command('EXP':'UDP')
 
-
         #TODO passive ping baseline and logging here for 10 sec
-        #ping_timeout = int(experiment_timeout - 4)
-        #print "DEBUG: Begin pinging 100 ms for 10 sec passive; total for " + str(ping_timeout) + " sec"
-        #self.ping_all(ping_timeout)
+        print "DEBUG: Begin pinging 100 ms for 10 sec passive; total for " + str(ping_timeout) + " sec"
+        self.ping_all(0)
         state = 'before'
         print "DEBUG: "+str(time.time())+" state = " + state
         #self.process_log(state)
