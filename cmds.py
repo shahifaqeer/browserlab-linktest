@@ -371,8 +371,9 @@ class Experiment:
             self.A.command({'CMD':'tcpdump -s 100 -i '+self.iface+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap &'})
         return
 
-    def ping_all(self):
-        timeout = 2 * const.EXPERIMENT_TIMEOUT      # 20 sec
+    def ping_all(self, timeout=0):
+        if timeout == 0:
+            timeout = 2 * const.EXPERIMENT_TIMEOUT      # 20 sec
         # ALWAYS pass fping with & not to thread - thread seems to be blocking
         self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
         self.S.command({'CMD':'fping '+self.A.ip+' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
@@ -393,10 +394,10 @@ class Experiment:
             node.command({'CMD': 'iperf -s -u -f k -y C > /tmp/browserlab/iperf_udp_server_'+node.name+'.log &'})
         return
 
-    def process_log(self, comment='during', test=''):
+    def process_log(self, comment='during', test='', total_time = const.EXPERIMENT_TIMEOUT):
         # comment can be like a timestamp
         poll_freq = 0.1
-        #ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
+        ctr_len = str(int(total_time/poll_freq))
         ctr_len = '10'
 
         for dev in [self.S, self.R, self.A]:
@@ -549,6 +550,11 @@ class Experiment:
         return
 
     def udp_experiment(self, nruns, timeout=1):
+
+        self.experiment_name = 'udp'
+        self.get_folder_name_from_server()
+        experiment_timeout = nruns * 1.2 * 6 + 10 + 5
+
         node_dict = {'R': self.R,
                     'S': self.S,
                     'A': self.A}
@@ -559,8 +565,18 @@ class Experiment:
         #self.R.command('EXP':'UDP')
         #self.A.command('EXP':'UDP')
 
-        #TODO passive ping baseline and logging here for 10 sec
 
+        #TODO passive ping baseline and logging here for 10 sec
+        ping_timeout = int(experiment_timeout - 4)
+        print "DEBUG: Begin pinging 100 ms for 10 sec passive; total for " + str(ping_timeout) + " sec"
+        self.ping_all(ping_timeout)
+        state = 'before'
+        print "DEBUG: "+str(time.time())+" state = " + state
+        self.process_log(state)
+        time.sleep(10)
+
+        # START MONITOR
+        self.tcpdump_radiotapdump('', experiment_timeout)
         #TODO active ping ul and logging here for nruns * 1.2 * 6 sec in background?
 
         for run_ctr in range(nruns):
@@ -572,7 +588,9 @@ class Experiment:
                 #each of these run for timeout sec each
                 self.iperf_udp(tx, rx, timeout)
 
-        return 'udp'
+        self.transfer_logs(self.run_number, 'XY_udp')
+
+        return
 
     def run_calibrate(self):
         self.get_folder_name_from_server()
