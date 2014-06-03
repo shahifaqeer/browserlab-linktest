@@ -387,7 +387,7 @@ class Experiment:
         self.R.command({'CMD': 'netserver'})
         return
 
-    def process_log(self, comment):
+    def process_log(self, comment, test=''):
         # comment can be like a timestamp
         poll_freq = 0.1
         #ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
@@ -395,14 +395,14 @@ class Experiment:
 
         for dev in [self.S, self.R, self.A]:
             #dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
-            dev.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/top_'+dev.name+'.log;'})
+            dev.command({'CMD':'echo "\n$(date): ' + test + ' ' + comment + '\n" >> /tmp/browserlab/top_'+dev.name+'.log;'})
             if comment == 'during':
                 dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
             else:
                 dev.command({'CMD':'top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log;'})
         return
 
-    def interface_log(self, comment):
+    def interface_log(self, comment, test=''):
         # comment can be like a timestamp
         poll_freq = 0.1   #100 ms
         #ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
@@ -416,12 +416,14 @@ class Experiment:
         #self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
         #self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
 
-        self.S.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/ifconfig_'+self.S.name+'.log;'})
-        self.R.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/iwdev_'+self.R.name+'.log;'})
-        self.A.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/iwdev_'+self.A.name+'.log;'})
-        self.R.command({'CMD':'echo "\n$(date): ' + comment + '\n" >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log;'})
+        self.S.command({'CMD':'echo "\n$(date): ' + test + ' ' + comment + '\n" >> /tmp/browserlab/ifconfig_'+self.S.name+'.log;'})
+        self.R.command({'CMD':'echo "\n$(date): ' + test + ' ' + comment + '\n" >> /tmp/browserlab/iwdev_'+self.R.name+'.log;'})
+        self.A.command({'CMD':'echo "\n$(date): ' + test + ' ' + comment + '\n" >> /tmp/browserlab/iwdev_'+self.A.name+'.log;'})
+        self.R.command({'CMD':'echo "\n$(date): ' + test + ' ' + comment + '\n" >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log;'})
         if comment == 'during':
+            #ifconfig S
             self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
+            #iw station dump
             self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
             self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
             # iw survey dump
@@ -506,32 +508,29 @@ class Experiment:
 
         #self.passive('before', const.PASSIVE_TIMEOUT)
 
-
         self.tcpdump_radiotapdump('', 3 * const.EXPERIMENT_TIMEOUT)
         #self.radiotap_dump('', const.EXPERIMENT_TIMEOUT)
 
         state = 'before'
         print "DEBUG: "+str(time.time())+" state = " + state
-        time.sleep(const.EXPERIMENT_TIMEOUT)
-        print '\nDEBUG: Sleep for ' + str(const.EXPERIMENT_TIMEOUT) + ' seconds as dump runs '+ str(self.experiment_counter) +'\n'
-
-        self.ping_all()
+        #self.ping_all()
+        #time.sleep(const.EXPERIMENT_TIMEOUT)
+        #print '\nDEBUG: Sleep for ' + str(const.EXPERIMENT_TIMEOUT) + ' seconds as dump runs '+ str(self.experiment_counter) +'\n'
         self.process_log(state)
         self.interface_log(state)
 
-        timeout = 2 * const.EXPERIMENT_TIMEOUT        # 20 sec
-        if exp_name == 'SR_fab':
-            timeout = 4 * const.EXPERIMENT_TIMEOUT    # 40 sec
+        #timeout = 2 * const.EXPERIMENT_TIMEOUT        # 20 sec
+        #if exp_name == 'SR_fab':
+        #    timeout = 4 * const.EXPERIMENT_TIMEOUT    # 40 sec
 
         state = 'during'
         print "DEBUG: "+str(time.time())+" state = " + state
-
-        self.process_log(state)
-        self.interface_log(state)
-
+        print "DEBUG: UDP should be a six second test"
         comment = exp()
-        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
-        time.sleep(timeout)
+
+        #print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
+        #time.sleep(timeout)
+        print '\nDEBUG: DONE with 6 sec UDP test '+ str(self.experiment_counter) +'\n'
 
         state = 'after'
         print "DEBUG: "+str(time.time())+" state = " + state
@@ -543,17 +542,55 @@ class Experiment:
         self.transfer_logs(self.run_number, comment)
         return
 
+    def udp_experiment(self):
+        self.node_dict = {'R': self.R,
+                          'S': self.S,
+                          'A': self.A}
+
+        #TODO add complexity and automation
+        #TODO but for now - keep it simple
+        #self.S.command('EXP':'UDP')
+        #self.R.command('EXP':'UDP')
+        #self.A.command('EXP':'UDP')
+
+        for node_pairs in ['AR', 'RS', 'AS', 'RA', 'SR', 'SA']:
+            tx = node_dict[node_pairs[0]]
+            rx = node_dict[node_pairs[1]]
+
+            #each of these run for 1 sec each
+            self.process_log(state, node_pairs)
+            self.interface_log(state, node_pairs)
+
+            self.iperf_udp(tx, rx)
+
+        return 'udp'
+
     def run_calibrate(self):
         self.get_folder_name_from_server()
         self.passive('calibrate', const.CALIBRATE_TIMEOUT)
         self.transfer_logs(self.run_number, 'calibrate')
         return
 
-
     # EXPERIMENTS
     # passed as args into run_experiment()
     def no_traffic(self):
         return 'no_tra'
+
+    def iperf_udp(self, tx, rx):
+        rx.command({'CMD': 'iperf -s -u -f k -y C > /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+rx.name+'.log &'})
+        state = 'during'
+        self.process_log(state)
+        self.interface_log(state)
+        #TODO for real test rx.ip of router will be local or global
+        #TODO check will the following command be blocking for one second?
+        print str(time.time()) + " UDP DEBUG: start "+tx.name + rx.name
+        tx.command({'CMD': 'iperf -c ' + rx.ip + ' -u -b 100m -f k -y C -t 1 > /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log'})
+        print str(time.time()) + " UDP DEBUG: stop "+tx.name + rx.name
+        # make sure it waits one sec
+        rx.command({'CMD': 'killall iperf'})
+        print str(time.time()) + " UDP DEBUG: killed rx "+tx.name + rx.name
+
+        return tx.name+rx.name + '_udp'
 
     def iperf_tcp_up_AR(self):
         self.R.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_AR_R.log &'})
@@ -669,7 +706,3 @@ class Experiment:
     def fabprobe_SR(self):
         self.S.command({'CMD': 'time fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + ' > /tmp/browserlab/fabprobe_SR.log'})
         return 'SR_fab'
-
-    def iperf_udp(self):
-        #TODO
-        return
