@@ -572,7 +572,7 @@ class Experiment:
         #self.A.command('EXP':'UDP')
 
         #TODO passive ping baseline and logging here for 10 sec
-        print "DEBUG: Begin pinging 100 ms for 10 sec passive; total for " + str(ping_timeout) + " sec"
+        print "DEBUG: Begin pinging 100 ms for 10 sec passive"
         self.ping_all(0)
         state = 'before'
         print "DEBUG: "+str(time.time())+" state = " + state

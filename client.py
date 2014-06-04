@@ -341,7 +341,7 @@ if __name__ == "__main__":
     for rate in [2,4,8,10,12,16,20,0]:
         udp_test_measurements(tot_runs, rate)
 
-    print "\n\t\t DONE " + measurement_folder_name + "\n"
+    print "\n\t\t DONE "
     #measure_link(30, 0)
     #measure_link(30, 1)
     #measure_link(30, 12)
