@@ -338,7 +338,7 @@ if __name__ == "__main__":
         tot_runs = 1
         print "Error. Running "+str(tot_runs)+" measurement."
 
-    for rate in [2,4,8,10,12,16,20,0]:
+    for rate in [2,4,6,8,10,12,20,0]:
         udp_test_measurements(tot_runs, rate)
 
     print "\n\t\t DONE "
