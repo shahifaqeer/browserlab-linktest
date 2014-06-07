@@ -387,26 +387,24 @@ class Experiment:
         self.R.command({'CMD': 'netserver'})
         return
 
-    def process_log(self, comment, test=''):
+    def process_log(self, comment, test='', test_time=10):
         # comment can be like a timestamp
-        poll_freq = 0.1
-        #ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
-        ctr_len = 10
+        poll_freq = 0.5
+        ctr_len = str(int(test_time/poll_freq))
 
         for dev in [self.S, self.R, self.A]:
             #dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
-            dev.command({'CMD':'echo "\n$(date): ' + test + ' ' + comment + '\n" >> /tmp/browserlab/top_'+dev.name+'.log;'})
+            dev.command({'CMD':'echo "' + test + ' ' + comment + '\n" >> /tmp/browserlab/top_'+dev.name+'.log; &'})
             if comment == 'during':
                 dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
             else:
-                dev.command({'CMD':'top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log;'})
+                dev.command({'CMD':'top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; &'})
         return
 
-    def interface_log(self, comment, test=''):
+    def interface_log(self, comment, test='', test_time=10):
         # comment can be like a timestamp
-        poll_freq = 0.1   #100 ms
-        #ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
-        ctr_len = 10
+        poll_freq = 0.5   #100 ms
+        ctr_len = str(int(test_time/poll_freq))
 
         #ifconfig (byte counters) for S
         #self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
@@ -416,10 +414,10 @@ class Experiment:
         #self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
         #self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
 
-        self.S.command({'CMD':'echo "\n$(date): ' + test + ' ' + comment + '\n" >> /tmp/browserlab/ifconfig_'+self.S.name+'.log;'})
-        self.R.command({'CMD':'echo "\n$(date): ' + test + ' ' + comment + '\n" >> /tmp/browserlab/iwdev_'+self.R.name+'.log;'})
-        self.A.command({'CMD':'echo "\n$(date): ' + test + ' ' + comment + '\n" >> /tmp/browserlab/iwdev_'+self.A.name+'.log;'})
-        self.R.command({'CMD':'echo "\n$(date): ' + test + ' ' + comment + '\n" >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log;'})
+        self.S.command({'CMD':'echo "' + test + ' ' + comment + '\n" >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; &'})
+        self.R.command({'CMD':'echo "' + test + ' ' + comment + '\n" >> /tmp/browserlab/iwdev_'+self.R.name+'.log; &'})
+        self.A.command({'CMD':'echo "' + test + ' ' + comment + '\n" >> /tmp/browserlab/iwdev_'+self.A.name+'.log; &'})
+        self.R.command({'CMD':'echo "' + test + ' ' + comment + '\n" >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log; &'})
         if comment == 'during':
             #ifconfig S
             self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
@@ -429,10 +427,10 @@ class Experiment:
             # iw survey dump
             self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
         else:
-            self.S.command({'CMD':'ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log'})
-            self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log'})
-            self.A.command({'CMD':'iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log'})
-            self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log'})
+            self.S.command({'CMD':'ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log &'})
+            self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log &'})
+            self.A.command({'CMD':'iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log &'})
+            self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log &'})
 
         return
 
@@ -558,9 +556,9 @@ class Experiment:
             rx = node_dict[node_pairs[1]]
 
             #each of these run for 1 sec each
-            self.process_log(state, node_pairs)
-            self.interface_log(state, node_pairs)
-
+            state = 'during'
+            self.process_log(state, node_pairs, 1)
+            self.interface_log(state, node_pairs, 1)
             self.iperf_udp(tx, rx)
 
         return 'udp'
@@ -578,9 +576,6 @@ class Experiment:
 
     def iperf_udp(self, tx, rx):
         rx.command({'CMD': 'iperf -s -u -f k -y C > /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+rx.name+'.log &'})
-        state = 'during'
-        self.process_log(state)
-        self.interface_log(state)
         #TODO for real test rx.ip of router will be local or global
         #TODO check will the following command be blocking for one second?
         print str(time.time()) + " UDP DEBUG: start "+tx.name + rx.name
