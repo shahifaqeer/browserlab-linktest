@@ -144,6 +144,21 @@ def experiment_suit_testbed(e):
     return
 
 
+def udp_experiment_suit(e):
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+    if e.collect_calibrate:
+        e.run_calibrate()                       # 120 + 20 = 140 s
+    else:
+        print "not doing calibrate"
+
+    e.udp_experiment(10, 5)
+    e.increment_experiment_counter()
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 2 sec before next run"
+    time.sleep(2)                          # 10 s wait before next suit
+    return
+
+
+
 def try_job():
     measurement_folder_name = raw_input('Enter measurement name: ')
     tot_runs = int(raw_input('how many runs?'))
@@ -174,7 +189,6 @@ def test_measurements(tot_runs, rate):
     for nruns in range(tot_runs):
         print "\n\t\t RUN : " + str(nruns) + " rate : " + rate + "\n"
         experiment_suit_testbed(e)
-        time.sleep(1)
 
     Q = Router('192.168.1.1', 'root', 'passw0rd')
     Q.remoteCommand('tc qdisc del dev eth0 root')
@@ -186,6 +200,41 @@ def test_measurements(tot_runs, rate):
     e.clear_all()
 
     return
+
+def udp_test_measurements(tot_runs, rate):
+
+    rate_bit = str(rate * 8)
+    rate = str(rate)
+    Q = Router('192.168.1.1', 'root', 'passw0rd')
+
+    if rate != 0 and rate != '0':
+        Q.remoteCommand('sh ratelimit3.sh eth0 '+rate)
+        Q.remoteCommand('sh ratelimit3.sh eth1 '+rate)
+    else:
+        Q.remoteCommand('tc qdisc del dev eth0 root')
+        Q.remoteCommand('tc qdisc del dev eth1 root')
+
+    Q.host.close()
+
+    e = Experiment('hnl1_udp_access_'+rate_bit+'Mbps')
+    e.collect_calibrate = False
+
+    for nruns in range(tot_runs):
+        print "\n\t\t RUN : " + str(nruns) + " rate : " + rate + "\n"
+        udp_experiment_suit(e)
+
+    Q = Router('192.168.1.1', 'root', 'passw0rd')
+    Q.remoteCommand('tc qdisc del dev eth0 root')
+    Q.remoteCommand('tc qdisc del dev eth1 root')
+    Q.remoteCommand('tc qdisc show dev eth0; tc qdisc show dev eth1')
+    Q.host.close()
+    e.transfer_all_later()
+
+    e.kill_all()
+    e.clear_all()
+
+    return e
+
 
 def real_measurements(calibrate=True):
 
@@ -282,8 +331,6 @@ def wired_simulation_testbed(rates, delays, tot_runs):
 
 if __name__ == "__main__":
 
-    rates = [2, 5, 10, 15, 20] #MBps
-    delays = [1, 2.5, 5, 7.5, 10] #ms
     tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 50 with laptop in the same location. ')
     try:
         tot_runs = int(tot_runs)
@@ -291,15 +338,10 @@ if __name__ == "__main__":
         tot_runs = 1
         print "Error. Running "+str(tot_runs)+" measurement."
 
-    wired_simulation_testbed(rates, delays, tot_runs)
+    for rate in [2,4,6,8,10,12,20,0]:
+        udp_test_measurements(tot_runs, rate)
 
-    #real_measurements(False)
-
-    #tot_runs = int(raw_input("how many runs for each tc setting? "))
-
-    #for rate in [2,4,8,10,12,16,20,0]:
-    #    test_measurements(tot_runs, rate)
-
+    print "\n\t\t DONE "
     #measure_link(30, 0)
     #measure_link(30, 1)
     #measure_link(30, 12)
