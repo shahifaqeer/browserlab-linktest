@@ -151,7 +151,7 @@ def udp_experiment_suit(e):
     else:
         print "not doing calibrate"
 
-    e.udp_experiment(10)
+    e.udp_experiment(10, 5)
     e.increment_experiment_counter()
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 2 sec before next run"
     time.sleep(2)                          # 10 s wait before next suit
