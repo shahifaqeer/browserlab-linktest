@@ -420,7 +420,7 @@ class Experiment:
         poll_freq = 1
         ctr_len = str(int(self.timeout/poll_freq))
         if comment == 'during':
-            self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
+            self.R.command({'CMD':'for i in (seq 1 1 '+ctr_len+'); do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
         return
 
     def kill_all(self, all_proc = 0):
@@ -514,7 +514,7 @@ class Experiment:
 
         state = 'during'
         print "DEBUG: "+str(time.time())+" state = " + state
-        self.airtime_util_log(comment)
+        self.airtime_util_log(state)
         comment = exp()
         print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
         time.sleep(timeout)
