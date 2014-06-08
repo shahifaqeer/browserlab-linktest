@@ -663,34 +663,34 @@ class Experiment:
         self.A.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C --reverse > /tmp/browserlab/iperf_SA_A.log &'})
         return 'SA_tcp'
 
-    def netperf_tcp_up_AR(self):
+    def netperf_tcp_up_AR(self, timeout='10'):
         # v2.4.5; default port 12865; reverse tcp stream RA
-        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + self.A.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AR_R.log &'})
+        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l '+timeout+' -H ' + self.A.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AR_R.log &'})
         return 'AR_tcp'
 
-    def netperf_tcp_up_RS(self):
+    def netperf_tcp_up_RS(self, timeout='10'):
         # reverse tcp stream RS
-        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RS_R.log &'})
+        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l '+timeout+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RS_R.log &'})
         return 'RS_tcp'
 
-    def netperf_tcp_up_AS(self):
+    def netperf_tcp_up_AS(self, timeout='10'):
         # reverse tcp stream AS
-        self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AS_A.log &'})
+        self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l '+timeout+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AS_A.log &'})
         return 'AS_tcp'
 
-    def netperf_tcp_dw_RA(self):
+    def netperf_tcp_dw_RA(self, timeout='10'):
         # v2.4.5; default port 12865; tcp stream RA
-        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log &'})
+        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l '+timeout+' -H ' + self.A.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log &'})
         return 'RA_tcp'
 
-    def netperf_tcp_dw_SR(self):
+    def netperf_tcp_dw_SR(self, timeout='10'):
         # reverse tcp stream RS
-        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SR_R.log &'})
+        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l '+timeout+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SR_R.log &'})
         return 'SR_tcp'
 
-    def netperf_tcp_dw_SA(self):
+    def netperf_tcp_dw_SA(self, timeout='10'):
         # reverse tcp stream AS
-        self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SA_A.log &'})
+        self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l '+timeout+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SA_A.log &'})
         return 'SA_tcp'
 
     # udpprobe gives both up and dw
