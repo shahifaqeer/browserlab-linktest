@@ -407,7 +407,7 @@ class Experiment:
             #dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
             dev.command({'CMD':'echo "' + test + ' ' + comment + '\n" >> /tmp/browserlab/top_'+dev.name+'.log; &'})
             if comment == 'during':
-                dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
+                dev.command({'CMD':'for i in $(seq 1 1 '+ctr_len+'); do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
             else:
                 dev.command({'CMD':'top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; &'})
         return
@@ -430,12 +430,12 @@ class Experiment:
         self.R.command({'CMD':'echo "' + test + ' ' + comment + '\n" >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log; &'})
         if comment == 'during':
             #ifconfig S
-            self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
+            self.S.command({'CMD':'for i in $(seq 1 1 '+ctr_len+'); do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
             #iw station dump
-            self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
-            self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
+            self.R.command({'CMD':'for i in  $(seq 1 1 '+ctr_len+'); do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
+            self.A.command({'CMD':'for i in  $(seq 1 1 '+ctr_len+'); do iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
             # iw survey dump
-            self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
+            self.R.command({'CMD':'for i in  $(seq 1 1 '+ctr_len+'); do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
         else:
             self.S.command({'CMD':'ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log &'})
             self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log &'})
