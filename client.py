@@ -55,7 +55,7 @@ def experiment_suit(e):
     #time.sleep(time_wait)
     e.increment_experiment_counter()
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 10 sec before next run"
-    time.sleep(10)                          # 10 s wait before next suit
+    time.sleep(e.timeout)                          # 10 s wait before next suit
 
     return
 
@@ -112,16 +112,16 @@ def experiment_suit_testbed(e):
         print "not doing calibrate"
 
     # tcp bandwidth
-    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AR " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SA " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
-    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AR " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RA " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
-    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RS " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SR " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
 
@@ -129,10 +129,10 @@ def experiment_suit_testbed(e):
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SA"
     #e.run_experiment(e.netperf_udp_SA, 'SA_udp')
 
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RA"
-    e.run_experiment(e.netperf_udp_dw_RA, 'RA_udp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AR"
-    e.run_experiment(e.netperf_udp_up_AR, 'AR_udp')
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RA"
+    #e.run_experiment(e.netperf_udp_dw_RA, 'RA_udp')
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AR"
+    #e.run_experiment(e.netperf_udp_up_AR, 'AR_udp')
 
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SR"
     #e.run_experiment(e.netperf_udp_SR, 'SR_udp')
@@ -156,6 +156,7 @@ def try_job():
 
 def test_measurements(tot_runs, rate):
 
+    rate_bit = str(rate * 8)
     rate = str(rate)
     Q = Router('192.168.1.1', 'root', 'passw0rd')
 
@@ -168,11 +169,12 @@ def test_measurements(tot_runs, rate):
 
     Q.host.close()
 
-    e = Experiment('hnl1_AccessLink_'+rate+'MBps')
+    e = Experiment('hnl1_tcp_access_'+rate_bit+'Mbps')
     e.collect_calibrate = False
+    e.timeout = 5
 
     for nruns in range(tot_runs):
-        print "\n\t\t RUN : " + str(nruns) + " rate : " + rate + "\n"
+        print "\n\t\t RUN : " + str(nruns) + " rate : " + rate_bit + "Mbps\n"
         experiment_suit_testbed(e)
         time.sleep(1)
 
@@ -291,14 +293,14 @@ if __name__ == "__main__":
         tot_runs = 1
         print "Error. Running "+str(tot_runs)+" measurement."
 
-    wired_simulation_testbed(rates, delays, tot_runs)
+    #wired_simulation_testbed(rates, delays, tot_runs)
 
     #real_measurements(False)
 
     #tot_runs = int(raw_input("how many runs for each tc setting? "))
 
-    #for rate in [2,4,8,10,12,16,20,0]:
-    #    test_measurements(tot_runs, rate)
+    for rate in [2,4,6,8,10,12,20]:
+        test_measurements(tot_runs, rate)
 
     #measure_link(30, 0)
     #measure_link(30, 1)

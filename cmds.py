@@ -131,8 +131,8 @@ class Client:
             y = ''
             for x in list_of_IPs:
                 y = y + x + ' '
-        self.command({'CMD':'fping '+ y +' -p 100 -c '+ str(const.EXPERIMENT_TIMEOUT * 10) + ' -r 1 -A >> /tmp/browserlab/fping_A.log',
-                   'TIMEOUT': const.EXPERIMENT_TIMEOUT})
+        self.command({'CMD':'fping '+ y +' -p 100 -c '+ str(self.timeout * 10) + ' -r 1 -A >> /tmp/browserlab/fping_A.log',
+                   'TIMEOUT': self.timeout})
         return
 
     def tcpdump(self):
@@ -216,7 +216,7 @@ def experiment(S,R,C, exp):
     experiment_comment = exp()
 
     print 'wait for 12 sec for completion else send kill'
-    time.sleep(const.EXPERIMENT_TIMEOUT+2)
+    time.sleep(self.timeout+2)
     kill_and_transfer(S,R,C, run_number, experiment_comment)
     return 0
 """
@@ -240,6 +240,7 @@ class Experiment:
         else:
             self.unique_id = self.get_mac_address()
         self.create_monitor_interface()
+        self.timeout = const.EXPERIMENT_TIMEOUT
 
         self.kill_all(1)  #kill tcpdump, iperf, netperf, fping on all
         self.clear_all(0) #clear /tmp/browserlab/* but don't close the connection to R
@@ -371,10 +372,10 @@ class Experiment:
         return
 
     def ping_all(self):
-        timeout = 2 * const.EXPERIMENT_TIMEOUT      # 20 sec
+        timeout = 2 * self.timeout      # 20 sec
         # ALWAYS pass fping with & not to thread - thread seems to be blocking
         self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
-        self.S.command({'CMD':'fping '+self.A.ip+' -p 100 -c '+ str(2 * const.EXPERIMENT_TIMEOUT * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
+        self.S.command({'CMD':'fping '+self.A.ip+' -p 100 -c '+ str(2 * self.timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
         #self.R.command({'CMD':'fping '+const.CLIENT_ADDRESS+' '+ const.SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
         self.R.command({'CMD':'fping '+self.A.ip+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
         self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
@@ -389,7 +390,7 @@ class Experiment:
 
     def process_log(self, comment):
         poll_freq = 1
-        ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
+        ctr_len = str(int(self.timeout/poll_freq))
 
         for dev in [self.S, self.R, self.A]:
             #dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
@@ -399,7 +400,7 @@ class Experiment:
 
     def interface_log(self, comment):
         poll_freq = 1
-        ctr_len = str(int(const.EXPERIMENT_TIMEOUT/poll_freq))
+        ctr_len = str(int(self.timeout/poll_freq))
 
         #ifconfig (byte counters) for S
         #self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
@@ -408,11 +409,18 @@ class Experiment:
 
         #iw dev (radiotap info) for wireless
         #self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
-        #self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        #self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
         self.R.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/iwdev_'+self.R.name+'.log;'})
         self.R.command({'CMD':'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log'})
         self.A.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/iwdev_'+self.A.name+'.log;'})
         self.A.command({'CMD':'iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log'})
+        return
+
+    def airtime_util_log(self, comment):
+        poll_freq = 1
+        ctr_len = str(int(self.timeout/poll_freq))
+        if comment == 'during':
+            self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
         return
 
     def kill_all(self, all_proc = 0):
@@ -469,7 +477,7 @@ class Experiment:
     def passive(self, comment, timeout):
         '''
         comment = 'before', 'during', 'after', 'calibrate'
-        sleep_timeout = const.EXPERIMENT_TIMEOUT, const.PASSIVE_TIMEOUT, const.CALIBRATE_TIMEOUT
+        sleep_timeout = self.timeout, const.PASSIVE_TIMEOUT, const.CALIBRATE_TIMEOUT
         '''
         self.tcpdump_radiotapdump(comment, timeout)
         #self.radiotap_dump(comment, timeout)
@@ -488,24 +496,25 @@ class Experiment:
         #self.passive('before', const.PASSIVE_TIMEOUT)
 
 
-        self.tcpdump_radiotapdump('', 3 * const.EXPERIMENT_TIMEOUT)
-        #self.radiotap_dump('', const.EXPERIMENT_TIMEOUT)
+        self.tcpdump_radiotapdump('', 3 * self.timeout)
+        #self.radiotap_dump('', self.timeout)
 
         state = 'before'
         print "DEBUG: "+str(time.time())+" state = " + state
-        time.sleep(const.EXPERIMENT_TIMEOUT)
-        print '\nDEBUG: Sleep for ' + str(const.EXPERIMENT_TIMEOUT) + ' seconds as dump runs '+ str(self.experiment_counter) +'\n'
+        time.sleep(self.timeout)
+        print '\nDEBUG: Sleep for ' + str(self.timeout) + ' seconds as dump runs '+ str(self.experiment_counter) +'\n'
 
         self.ping_all()
         self.process_log(state)
         self.interface_log(state)
 
-        timeout = 2 * const.EXPERIMENT_TIMEOUT        # 20 sec
+        timeout = 2 * self.timeout        # 20 sec
         if exp_name == 'SR_fab':
-            timeout = 4 * const.EXPERIMENT_TIMEOUT    # 40 sec
+            timeout = 4 * self.timeout    # 40 sec
 
         state = 'during'
         print "DEBUG: "+str(time.time())+" state = " + state
+        self.airtime_util_log(comment)
         comment = exp()
         print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
         time.sleep(timeout)
@@ -565,33 +574,47 @@ class Experiment:
 
     def netperf_tcp_up_AR(self):
         # v2.4.5; default port 12865; reverse tcp stream RA
-        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + self.A.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AR_R.log &'})
+        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.A.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AR_R.log &'})
         return 'AR_tcp'
 
     def netperf_tcp_up_RS(self):
         # reverse tcp stream RS
-        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RS_R.log &'})
+        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RS_R.log &'})
         return 'RS_tcp'
 
     def netperf_tcp_up_AS(self):
         # reverse tcp stream AS
-        self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AS_A.log &'})
+        self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AS_A.log &'})
         return 'AS_tcp'
 
     def netperf_tcp_dw_RA(self):
         # v2.4.5; default port 12865; tcp stream RA
-        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log &'})
+        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.A.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log &'})
         return 'RA_tcp'
 
     def netperf_tcp_dw_SR(self):
         # reverse tcp stream RS
-        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SR_R.log &'})
+        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SR_R.log &'})
         return 'SR_tcp'
 
     def netperf_tcp_dw_SA(self):
         # reverse tcp stream AS
-        self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -l 10 -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SA_A.log &'})
+        self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SA_A.log &'})
         return 'SA_tcp'
+
+    def netperf_tcp(self, tx, rx, rev=0):
+        if tx.name == 'S' and rx.name == 'R':
+            recv_ip = const.ROUTER_ADDRESS_GLOBAL
+        else:
+            recv_ip = rx.ip
+
+        if rev:
+            rx.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + tx.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_'+tx.name+rx.name+'_'+rx.name+'.log &'})
+        else:
+            tx.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + recv_ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_'+tx.name+rx.name+'_'+tx.name+'.log &'})
+
+        return tx.name + rx.name + '_tcp'
+
 
     # udpprobe gives both up and dw
 
