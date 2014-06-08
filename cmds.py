@@ -573,8 +573,8 @@ class Experiment:
         self.ping_all(0)
         state = 'before'
         print "DEBUG: "+str(time.time())+" state = " + state
-        #self.process_log(state)
-        #self.interface_log(state)
+        self.process_log(state)
+        self.interface_log(state)
         time.sleep(10)
 
         # START MONITOR
@@ -588,12 +588,56 @@ class Experiment:
                 rx = node_dict[node_pairs[1]]
                 #each of these run for 1 sec each
                 state = 'during'
-                self.process_log(state, node_pairs, 1)
-                self.interface_log(state, node_pairs, 1)
-                self.iperf_udp(tx, rx)
+                self.process_log(state, node_pairs, timeout)
+                self.interface_log(state, node_pairs, timeout)
+                self.iperf_tcp(tx, rx, timeout)
 
         self.kill_all()
         self.transfer_logs(self.run_number, 'XY_udp')
+
+        return
+
+    def tcp_experiment(self, nruns, timeout=10):
+
+        self.experiment_name = 'tcp'
+        self.get_folder_name_from_server()
+        print "DEBUG: start TCP netperf servers on all"
+        self.start_netperf_servers()
+        node_dict = {'R': self.R,
+                    'S': self.S,
+                    'A': self.A}
+        #TODO add complexity and automation
+        #TODO but for now - keep it simple
+        #self.S.command('EXP':'TCP')
+        #self.R.command('EXP':'TCP')
+        #self.A.command('EXP':'TCP')
+
+        #TODO passive ping baseline and logging here for 10 sec
+        print "DEBUG: Begin pinging 100 ms for 10 sec passive"
+        self.ping_all(0)
+        state = 'before'
+        print "DEBUG: "+str(time.time())+" state = " + state
+        self.process_log(state)
+        self.interface_log(state)
+        time.sleep(10)
+
+        # START MONITOR
+        self.tcpdump_radiotapdump('', experiment_timeout)
+        #TODO active ping ul and logging here for nruns * 1.2 * 6 sec in background?
+
+        for run_ctr in range(nruns):
+            print "DEBUG: Run number ", run_ctr
+            for node_pairs in ['AR', 'RS', 'AS', 'RA', 'SR', 'SA']:
+                tx = node_dict[node_pairs[0]]
+                rx = node_dict[node_pairs[1]]
+                #each of these run for 1 sec each
+                state = 'during'
+                self.process_log(state, node_pairs, timeout)
+                self.interface_log(state, node_pairs, timeout)
+                self.netperf_tcp(tx, rx, timeout)
+
+        self.kill_all()
+        self.transfer_logs(self.run_number, 'XY_tcp')
 
         return
 
@@ -631,6 +675,30 @@ class Experiment:
         #print str(time.time()) + " UDP DEBUG: killed rx "+tx.name + rx.name
 
         return tx.name+rx.name + '_udp'
+
+    def netperf_tcp(self, tx, rx, timeout):
+        #rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+rx.name+'.log &'})
+
+        #TODO for real test rx.ip of router will be local or global
+        #TODO check will the following command be blocking for one second?
+
+        print str(time.time()) + " TCP DEBUG: start "+tx.name + rx.name
+
+        recv_ip = rx.ip
+        if tx.name == 'S' and rx.name == 'R':
+            recv_ip = const.ROUTER_ADDRESS_GLOBAL
+
+        #tx.command({'CMD': 'iperf -c ' + recv_ip + ' -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
+        tx.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l '+timeout+' -H ' + recv_ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_'+tx.name+rx.name+'_'+tx.name+'.log &'})
+        return 'RS_tcp'
+        time.sleep(timeout+0.1)
+        print str(time.time()) + " TCP DEBUG: stop "+tx.name + rx.name
+        # make sure it waits one sec
+        #rx.command({'CMD': 'killall iperf'})
+        #print str(time.time()) + " UDP DEBUG: killed rx "+tx.name + rx.name
+
+        return tx.name+rx.name + '_tcp'
+
 
     def iperf_tcp_up_AR(self):
         self.R.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_AR_R.log &'})

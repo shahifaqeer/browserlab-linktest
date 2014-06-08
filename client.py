@@ -112,16 +112,16 @@ def experiment_suit_testbed(e):
         print "not doing calibrate"
 
     # tcp bandwidth
-    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AR " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SA " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
-    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AR " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RA " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
-    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RS " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SR " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
 
@@ -129,10 +129,10 @@ def experiment_suit_testbed(e):
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SA"
     #e.run_experiment(e.netperf_udp_SA, 'SA_udp')
 
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RA"
-    e.run_experiment(e.netperf_udp_dw_RA, 'RA_udp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AR"
-    e.run_experiment(e.netperf_udp_up_AR, 'AR_udp')
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RA"
+    #e.run_experiment(e.netperf_udp_dw_RA, 'RA_udp')
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AR"
+    #e.run_experiment(e.netperf_udp_up_AR, 'AR_udp')
 
     #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SR"
     #e.run_experiment(e.netperf_udp_SR, 'SR_udp')
@@ -158,6 +158,20 @@ def udp_experiment_suit(e):
     return
 
 
+def tcp_experiment_suit(e):
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+    if e.collect_calibrate:
+        e.run_calibrate()                       # 120 + 20 = 140 s
+    else:
+        print "not doing calibrate"
+
+    e.tcp_experiment(10, 5)
+    e.increment_experiment_counter()
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 2 sec before next run"
+    time.sleep(2)                          # 10 s wait before next suit
+    return
+
+
 
 def try_job():
     measurement_folder_name = raw_input('Enter measurement name: ')
@@ -169,8 +183,9 @@ def try_job():
     return
 
 
-def test_measurements(tot_runs, rate):
+def tcp_test_measurements(tot_runs, rate):
 
+    rate_bit = str(rate * 8)
     rate = str(rate)
     Q = Router('192.168.1.1', 'root', 'passw0rd')
 
@@ -183,12 +198,12 @@ def test_measurements(tot_runs, rate):
 
     Q.host.close()
 
-    e = Experiment('hnl1_AccessLink_'+rate+'MBps')
+    e = Experiment('hnl1_tcp_access_'+rate_bit+'Mbps')
     e.collect_calibrate = False
 
     for nruns in range(tot_runs):
         print "\n\t\t RUN : " + str(nruns) + " rate : " + rate + "\n"
-        experiment_suit_testbed(e)
+        tcp_experiment_suit(e)
 
     Q = Router('192.168.1.1', 'root', 'passw0rd')
     Q.remoteCommand('tc qdisc del dev eth0 root')
@@ -339,7 +354,8 @@ if __name__ == "__main__":
         print "Error. Running "+str(tot_runs)+" measurement."
 
     for rate in [2,4,6,8,10,12,20,0]:
-        udp_test_measurements(tot_runs, rate)
+        #udp_test_measurements(tot_runs, rate)
+        tcp_test_measurements(tot_runs, rate)
 
     print "\n\t\t DONE "
     #measure_link(30, 0)
