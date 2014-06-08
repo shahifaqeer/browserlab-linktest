@@ -622,6 +622,7 @@ class Experiment:
         time.sleep(10)
 
         # START MONITOR
+        experiment_timeout = nruns * 1.2 * 6 + 10 + 5
         self.tcpdump_radiotapdump('', experiment_timeout)
         #TODO active ping ul and logging here for nruns * 1.2 * 6 sec in background?
 
