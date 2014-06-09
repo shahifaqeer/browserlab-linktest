@@ -240,7 +240,8 @@ class Experiment:
         else:
             self.unique_id = self.get_mac_address()
         self.create_monitor_interface()
-        self.timeout = const.EXPERIMENT_TIMEOUT
+
+        self.set_test_timeout(const.EXPERIMENT_TIMEOUT)
 
         self.kill_all(1)  #kill tcpdump, iperf, netperf, fping on all
         self.clear_all(0) #clear /tmp/browserlab/* but don't close the connection to R
@@ -577,6 +578,11 @@ class Experiment:
         self.rate_access = str(rate_access)
         self.rate_home = str(rate_home)
         return
+
+    def set_test_timeout(self, timeout=const.EXPERIMENT_TIMEOUT):
+        self.timeout = timeout
+        return
+
 
     def iperf_tcp_up_AR(self):
         self.R.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_AR_R.log &'})
