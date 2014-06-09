@@ -501,8 +501,9 @@ class Experiment:
 
         state = 'before'
         print "DEBUG: "+str(time.time())+" state = " + state
-        time.sleep(self.timeout)
-        print '\nDEBUG: Sleep for ' + str(self.timeout) + ' seconds as dump runs '+ str(self.experiment_counter) +'\n'
+        timeout=2
+        time.sleep(timeout)
+        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as dump runs '+ str(self.experiment_counter) +'\n'
 
         self.ping_all()
         self.process_log(state)
