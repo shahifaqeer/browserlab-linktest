@@ -246,6 +246,8 @@ class Experiment:
         self.clear_all(0) #clear /tmp/browserlab/* but don't close the connection to R
 
         self.start_netperf_servers()
+        self.start_iperf_udp_servers()
+        self.set_udp_rate_mbit(100,100)
 
     def check_connection(self):
         cmd = {'CMD': 'echo "check port"'}
@@ -347,7 +349,10 @@ class Experiment:
     def tcpdump_radiotapdump(self, state, timeout):
         # weird bug with R.command(tcpdump) -> doesn't work with &
         # also seems like timeout only kills the bash/sh -c process but not tcpdump itself - no wonder it doesn't work!
-        self.S.command({'CMD':'tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
+        if timeout:
+            self.S.command({'CMD':'tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
+        else:
+            self.S.command({'CMD':'tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap &'})
         # dump at both incoming wireless and outgoing eth1 for complete picture
 
         if self.experiment_name[:2] == 'RS' or self.experiment_name[:2] == 'SR':
@@ -360,6 +365,8 @@ class Experiment:
             self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 200 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
             # need this for WTF
             self.R.command({'CMD':'tcpdump -s 100 -i br-lan -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
+            # need this for buffer timing check
+            self.R.command({'CMD':'tcpdump -s 100 -i eth1 -w /tmp/browserlab/tcpdump_eth1_R'+state+'.pcap'})
         else:
             self.R.command({'CMD':'tcpdump -s 100 -i '+router_interface_name+' -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
 
@@ -385,7 +392,34 @@ class Experiment:
         self.S.command({'CMD': 'netserver'})
         self.R.command({'CMD': 'netserver'})
         self.A.command({'CMD': 'netserver'})
-        self.R.command({'CMD': 'netserver'})
+        return
+
+    def start_iperf_udp_servers(self):
+        for rx in [self.S, self.R, self.A]:
+            rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
+        return
+
+    def active_logs(self, nrepeats):
+        nrepeats = str(nrepeats)
+        self.S.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_S.log 1 ' + nrepeats + ' >/dev/null 2>&1 &'})
+        self.R.command({'CMD': 'sar -o /tmp/browserlab/sar_R.log 1 ' + nrepeats + ' >/dev/null 2>&1 &'})
+        self.A.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_A.log 1 ' + nrepeats + ' >/dev/null 2>&1 &'})
+
+        self.S.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
+        echo "$i: $(date)" >> /tmp/browserlab/ifconfig_S.log;\
+        ifconfig  >> /tmp/browserlab/ifconfig_S.log;\
+        sleep 1; done &'})
+
+        self.R.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
+        echo "$i: $(date)" >> /tmp/browserlab/iw_R.log;\
+        iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iw_R.log;\
+        iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iw_R.log;\
+        sleep 1; done &'})
+
+        self.A.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
+        echo "$i: $(date)" >> /tmp/browserlab/iw_A.log;\
+        iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iw_A.log;\
+        sleep 1; done &'})
         return
 
     def process_log(self, comment):
@@ -487,16 +521,16 @@ class Experiment:
         self.kill_all()
         return
 
+
     def run_experiment(self, exp, exp_name):
         self.experiment_name = exp_name #same as comment
 
         self.get_folder_name_from_server()
 
-        #self.passive('before', const.PASSIVE_TIMEOUT)
+        self.tcpdump_radiotapdump('', 0)
 
-
-        self.tcpdump_radiotapdump('', 3 * self.timeout)
-        #self.radiotap_dump('', self.timeout)
+        nrepeats = 2 + int(self.timeout) + 2
+        self.active_logs(nrepeats)
 
         state = 'before'
         print "DEBUG: "+str(time.time())+" state = " + state
@@ -505,8 +539,6 @@ class Experiment:
         print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as dump runs '+ str(self.experiment_counter) +'\n'
 
         self.ping_all()
-        self.process_log(state)
-        self.interface_log(state)
 
         timeout = 2 * self.timeout        # 20 sec
         if exp_name == 'SR_fab':
@@ -514,19 +546,19 @@ class Experiment:
 
         state = 'during'
         print "DEBUG: "+str(time.time())+" state = " + state
-        self.airtime_util_log(state)
         comment = exp()
         print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
         time.sleep(timeout)
 
         state = 'after'
         print "DEBUG: "+str(time.time())+" state = " + state
-        self.process_log(state)
-        self.interface_log(state)
 
         self.kill_all(1)
-        #self.passive('after', const.PASSIVE_TIMEOUT)
         self.transfer_logs(self.run_number, comment)
+
+        #hack to start udp servers for next round
+        self.start_iperf_udp_servers()
+
         return
 
     def run_calibrate(self):
@@ -540,6 +572,11 @@ class Experiment:
     # passed as args into run_experiment()
     def no_traffic(self):
         return 'no_tra'
+
+    def set_udp_rate_mbit(self, rate_access, rate_home=100):
+        self.rate_access = str(rate_access)
+        self.rate_home = str(rate_home)
+        return
 
     def iperf_tcp_up_AR(self):
         self.R.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_AR_R.log &'})
@@ -659,12 +696,9 @@ class Experiment:
         self.S.command({'CMD': 'time fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + ' > /tmp/browserlab/fabprobe_SR.log'})
         return 'SR_fab'
 
-    def iperf_udp(self, tx, rx, timeout):
-        rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+rx.name+'.log &'})
-        #state = 'during'
-        #self.process_log(state)
-        #self.interface_log(state)
-
+    def iperf_udp(self, tx, rx, timeout, rate_mbit):
+        #USE 100 mbit for wireless and limit for anything else
+        #rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+rx.name+'.log &'})
         #TODO for real test rx.ip of router will be local or global
         #TODO check will the following command be blocking for one second?
 
@@ -674,18 +708,13 @@ class Experiment:
         if tx.name == 'S' and rx.name == 'R':
             recv_ip = const.ROUTER_ADDRESS_GLOBAL
 
-        tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b 100m -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
+        tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
         time.sleep(timeout+0.1)
         print str(time.time()) + " UDP DEBUG: stop "+tx.name + rx.name
-        # make sure it waits one sec
-        #rx.command({'CMD': 'killall iperf'})
-        #print str(time.time()) + " UDP DEBUG: killed rx "+tx.name + rx.name
 
         return tx.name+rx.name + '_udp'
 
     def netperf_tcp(self, tx, rx, timeout):
-        #rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+rx.name+'.log &'})
-
         #TODO for real test rx.ip of router will be local or global
         #TODO check will the following command be blocking for one second?
 
@@ -695,7 +724,6 @@ class Experiment:
         if tx.name == 'S' and rx.name == 'R':
             recv_ip = const.ROUTER_ADDRESS_GLOBAL
 
-        #tx.command({'CMD': 'iperf -c ' + recv_ip + ' -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
         tx.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l '+timeout+' -H ' + recv_ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_'+tx.name+rx.name+'_'+tx.name+'.log &'})
         return 'RS_tcp'
         time.sleep(timeout+0.1)
@@ -707,27 +735,37 @@ class Experiment:
         return tx.name+rx.name + '_tcp'
 
     def iperf_udp_up_AR(self):
-        self.iperf_udp(self.A, self.R, self.timeout)
+        self.iperf_udp(self.A, self.R, self.timeout, self.rate_home)
         return 'AR_udp'
 
     def iperf_udp_dw_RA(self):
-        self.iperf_udp(self.R, self.A, self.timeout)
+        self.iperf_udp(self.R, self.A, self.timeout, self.rate_home)
         return 'RA_udp'
 
     def iperf_udp_up_RS(self):
-        self.iperf_udp(self.R, self.S, self.timeout)
+        self.iperf_udp(self.R, self.S, self.timeout, self.rate_access)
         return 'RS_udp'
 
     def iperf_udp_dw_SR(self):
-        self.iperf_udp(self.S, self.R, self.timeout)
+        self.iperf_udp(self.S, self.R, self.timeout, self.rate_access)
         return 'SR_udp'
 
     def iperf_udp_up_AS(self):
-        self.iperf_udp(self.A, self.S, self.timeout)
+        #cap e2e to 100mbit or home
+        if float(self.rate_access) > float(self.rate_home):
+            rate_mbit = self.rate_home
+        else:
+            rate_mbit = self.rate_access
+        self.iperf_udp(self.A, self.S, self.timeout, rate_mbit)
         return 'AS_udp'
 
     def iperf_udp_dw_SA(self):
-        self.iperf_udp(self.S, self.A, self.timeout)
+        #cap e2e to 100mbit or home
+        if float(self.rate_access) > float(self.rate_home):
+            rate_mbit = self.rate_home
+        else:
+            rate_mbit = self.rate_access
+        self.iperf_udp(self.S, self.A, self.timeout, rate_mbit)
         return 'SA_udp'
 
 

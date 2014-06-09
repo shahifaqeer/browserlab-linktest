@@ -179,7 +179,7 @@ def experiment_suit_testbed_udp(e):
 
     e.increment_experiment_counter()
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 10 sec before next run"
-    time.sleep(10)                          # 10 s wait before next suit
+    time.sleep(1)                          # 1 s wait before next suit
 
     return
 
@@ -209,7 +209,7 @@ def test_measurements(tot_runs, rate):
 
     Q.host.close()
 
-    e = Experiment('hnl1_tcp_access_'+rate_bit+'Mbps')
+    e = Experiment('hnl1_access_'+rate_bit+'Mbps')
     e.collect_calibrate = False
     e.timeout = 5
 
@@ -217,11 +217,13 @@ def test_measurements(tot_runs, rate):
         print "\n\t\t RUN : " + str(nruns) + " rate : " + rate_bit + "Mbps\n"
         experiment_suit_testbed_udp(e)
         time.sleep(1)
+        experiment_suit_testbed(e)
 
     Q = Router('192.168.1.1', 'root', 'passw0rd')
     Q.remoteCommand('tc qdisc del dev eth0 root')
     Q.remoteCommand('tc qdisc del dev eth1 root')
     Q.host.close()
+
     e.transfer_all_later()
 
     e.kill_all()
