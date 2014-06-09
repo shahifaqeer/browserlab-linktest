@@ -432,7 +432,6 @@ class Experiment:
             for node in [self.A, self.R, self.S]:
                 node.command({'CMD': 'killall iperf'})
                 node.command({'CMD': 'killall netperf'})
-                node.command({'CMD': 'killall tcpdump'})
         return
 
     def clear_all(self, close_R=0):
@@ -525,7 +524,7 @@ class Experiment:
         self.process_log(state)
         self.interface_log(state)
 
-        self.kill_all()
+        self.kill_all(1)
         #self.passive('after', const.PASSIVE_TIMEOUT)
         self.transfer_logs(self.run_number, comment)
         return
@@ -660,6 +659,75 @@ class Experiment:
         self.S.command({'CMD': 'time fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + ' > /tmp/browserlab/fabprobe_SR.log'})
         return 'SR_fab'
 
-    def iperf_udp(self):
-        #TODO
-        return
+    def iperf_udp(self, tx, rx, timeout):
+        rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+rx.name+'.log &'})
+        #state = 'during'
+        #self.process_log(state)
+        #self.interface_log(state)
+
+        #TODO for real test rx.ip of router will be local or global
+        #TODO check will the following command be blocking for one second?
+
+        print str(time.time()) + " UDP DEBUG: start "+tx.name + rx.name
+
+        recv_ip = rx.ip
+        if tx.name == 'S' and rx.name == 'R':
+            recv_ip = const.ROUTER_ADDRESS_GLOBAL
+
+        tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b 100m -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
+        time.sleep(timeout+0.1)
+        print str(time.time()) + " UDP DEBUG: stop "+tx.name + rx.name
+        # make sure it waits one sec
+        #rx.command({'CMD': 'killall iperf'})
+        #print str(time.time()) + " UDP DEBUG: killed rx "+tx.name + rx.name
+
+        return tx.name+rx.name + '_udp'
+
+    def netperf_tcp(self, tx, rx, timeout):
+        #rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+rx.name+'.log &'})
+
+        #TODO for real test rx.ip of router will be local or global
+        #TODO check will the following command be blocking for one second?
+
+        print str(time.time()) + " TCP DEBUG: start "+tx.name + rx.name
+
+        recv_ip = rx.ip
+        if tx.name == 'S' and rx.name == 'R':
+            recv_ip = const.ROUTER_ADDRESS_GLOBAL
+
+        #tx.command({'CMD': 'iperf -c ' + recv_ip + ' -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
+        tx.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l '+timeout+' -H ' + recv_ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_'+tx.name+rx.name+'_'+tx.name+'.log &'})
+        return 'RS_tcp'
+        time.sleep(timeout+0.1)
+        print str(time.time()) + " TCP DEBUG: stop "+tx.name + rx.name
+        # make sure it waits one sec
+        #rx.command({'CMD': 'killall iperf'})
+        #print str(time.time()) + " UDP DEBUG: killed rx "+tx.name + rx.name
+
+        return tx.name+rx.name + '_tcp'
+
+    def iperf_udp_up_AR(self):
+        self.iperf_udp(self.A, self.R, self.timeout)
+        return 'AR_udp'
+
+    def iperf_udp_dw_RA(self):
+        self.iperf_udp(self.R, self.A, self.timeout)
+        return 'RA_udp'
+
+    def iperf_udp_up_RS(self):
+        self.iperf_udp(self.R, self.S, self.timeout)
+        return 'RS_udp'
+
+    def iperf_udp_dw_SR(self):
+        self.iperf_udp(self.S, self.R, self.timeout)
+        return 'SR_udp'
+
+    def iperf_udp_up_AS(self):
+        self.iperf_udp(self.A, self.S, self.timeout)
+        return 'AS_udp'
+
+    def iperf_udp_dw_SA(self):
+        self.iperf_udp(self.S, self.A, self.timeout)
+        return 'SA_udp'
+
+

@@ -143,6 +143,46 @@ def experiment_suit_testbed(e):
 
     return
 
+def experiment_suit_testbed_udp(e):
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+    if e.collect_calibrate:
+        e.run_calibrate()                       # 120 + 20 = 140 s
+    else:
+        print "not doing calibrate"
+
+    # tcp bandwidth
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_up_AS, 'AS_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AR " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_up_AR, 'AR_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RS " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_up_RS, 'RS_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SA " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_dw_SA, 'SA_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RA " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_dw_RA, 'RA_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SR " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_dw_SR, 'SR_tcp')
+
+    # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SA"
+    #e.run_experiment(e.netperf_udp_SA, 'SA_udp')
+
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RA"
+    #e.run_experiment(e.netperf_udp_dw_RA, 'RA_udp')
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AR"
+    #e.run_experiment(e.netperf_udp_up_AR, 'AR_udp')
+
+    #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SR"
+    #e.run_experiment(e.netperf_udp_SR, 'SR_udp')
+
+    e.increment_experiment_counter()
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 10 sec before next run"
+    time.sleep(10)                          # 10 s wait before next suit
+
+    return
+
 
 def try_job():
     measurement_folder_name = raw_input('Enter measurement name: ')
