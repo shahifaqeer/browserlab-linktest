@@ -183,10 +183,7 @@ def experiment_suit_testbed_udp(e):
 
     return
 
-def experiment_suit_testbed_all(e, rate_access, test_timeout):
-
-    e.set_udp_rate_mbit(rate_access)
-    e.set_timeout(test_timeout)
+def experiment_suit_testbed_all(e):
 
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
     if e.collect_calibrate:
@@ -244,12 +241,12 @@ def test_measurements(tot_runs, rate, timeout):
 
     rate_bit = str(rate * 8)
     timeout_sec = str(timeout)
-    rate = str(rate)
+    rate_byte = str(rate)
     Q = Router('192.168.1.1', 'root', 'passw0rd')
 
-    if rate != 0 and rate != '0':
-        Q.remoteCommand('sh ratelimit3.sh eth0 '+rate)
-        Q.remoteCommand('sh ratelimit3.sh eth1 '+rate)
+    if rate != 0 and rate_byte != '0':
+        Q.remoteCommand('sh ratelimit3.sh eth0 '+rate_byte)
+        Q.remoteCommand('sh ratelimit3.sh eth1 '+rate_byte)
     else:
         Q.remoteCommand('tc qdisc del dev eth0 root')
         Q.remoteCommand('tc qdisc del dev eth1 root')
@@ -258,6 +255,8 @@ def test_measurements(tot_runs, rate, timeout):
 
     e = Experiment('hnl1_access_'+rate_bit+'Mbps_timeout_'+timeout_sec)
     e.collect_calibrate = False
+    e.set_udp_rate_mbit(rate)
+    e.set_test_timeout(timeout)
 
     for nruns in range(tot_runs):
         print "\n\t\t RUN : " + str(nruns) + " rate : " + rate_bit + "Mbps\n"
