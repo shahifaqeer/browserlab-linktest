@@ -215,7 +215,7 @@ def test_measurements(tot_runs, rate):
 
     for nruns in range(tot_runs):
         print "\n\t\t RUN : " + str(nruns) + " rate : " + rate_bit + "Mbps\n"
-        experiment_suit_testbed(e)
+        experiment_suit_testbed_udp(e)
         time.sleep(1)
 
     Q = Router('192.168.1.1', 'root', 'passw0rd')
