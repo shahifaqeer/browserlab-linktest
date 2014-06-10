@@ -246,16 +246,16 @@ class Experiment:
         self.kill_all(1)  #kill tcpdump, iperf, netperf, fping on all
         self.clear_all(0) #clear /tmp/browserlab/* but don't close the connection to R
 
-        self.tcp = 1
-        self.udp = 1
-        self.tcpdump = 0
+        self.tcp = const.COLLECT_tcp
+        self.udp = const.COLLECT_udp
+        self.tcpdump = const.COLLECT_tcpdump
 
         if self.tcp == 1:
             self.start_netperf_servers()
         if self.udp == 1:
             self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
-        self.set_udp_rate_mbit(100,100)
+        self.set_udp_rate_mbit(const.INIT_ACCESS_RATE, const.INIT_HOME_RATE)
 
     def check_connection(self):
         cmd = {'CMD': 'echo "check port"'}
@@ -390,7 +390,7 @@ class Experiment:
         timeout = 2 * self.timeout      # 20 sec
         # ALWAYS pass fping with & not to thread - thread seems to be blocking
         self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
-        self.S.command({'CMD':'fping '+self.A.ip+' -p 100 -c '+ str(2 * self.timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
+        #self.S.command({'CMD':'fping '+self.A.ip+' -p 100 -c '+ str(2 * self.timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S2.log &'})
         #self.R.command({'CMD':'fping '+const.CLIENT_ADDRESS+' '+ const.SERVER_ADDRESS +' -p 100 -l -r 1 -A >> /tmp/browserlab/fping_R.log &'})
         self.R.command({'CMD':'fping '+self.A.ip+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
         self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
@@ -417,27 +417,29 @@ class Experiment:
             dev.command({'CMD':'sar -f /tmp/browserlab/sar_' + dev.name + '.out > /tmp/browserlab/sar_' + dev.name + '.log;rm -rf /tmp/browserlab/sar_' + dev.name + '.out'})
         return
 
-    def active_logs(self, nrepeats):
+    def active_logs(self, nrepeats, delta_time=1):
         nrepeats = str(nrepeats)
-        self.S.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_S.out 1 ' + nrepeats + ' >/dev/null 2>&1 &'})
-        self.R.command({'CMD': 'sar -o /tmp/browserlab/sar_R.out 1 ' + nrepeats + ' >/dev/null 2>&1 &'})
-        self.A.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_A.out 1 ' + nrepeats + ' >/dev/null 2>&1 &'})
+        delta_time = str(delta_time)
+        self.S.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_S.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
+        self.R.command({'CMD': 'sar -o /tmp/browserlab/sar_R.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
+        self.A.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_A.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
 
         self.S.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
         echo "$i: $(date)" >> /tmp/browserlab/ifconfig_S.log;\
         ifconfig  >> /tmp/browserlab/ifconfig_S.log;\
-        sleep 1; done &'})
+        sleep ' + delta_time + '; done &'})
 
         self.R.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
         echo "$i: $(date)" >> /tmp/browserlab/iw_R.log;\
         iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iw_R.log;\
         iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iw_R.log;\
-        sleep 1; done &'})
+        sleep ' + delta_time + '; done &'})
 
         self.A.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
         echo "$i: $(date)" >> /tmp/browserlab/iw_A.log;\
         iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iw_A.log;\
-        sleep 1; done &'})
+        sleep ' + delta_time + '; done &'})
+
         return
 
     def process_log(self, comment):
@@ -684,9 +686,6 @@ class Experiment:
 
         return tx.name + rx.name + '_tcp'
 
-
-    # udpprobe gives both up and dw
-
     def netperf_udp_dw_SA(self):
         # reverse tcp stream AS
         self.S.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SA_S.log &'})
@@ -702,7 +701,6 @@ class Experiment:
         self.R.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log &'})
         return 'RA_udp'
 
-    # udpprobe gives both up and dw
     def netperf_udp_up_AR(self):
         # v2.4.5; default port 12865; tcp stream RA
         self.A.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.R.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log &'})
@@ -736,7 +734,6 @@ class Experiment:
         recv_ip = rx.ip
         if tx.name == 'S' and rx.name == 'R':
             recv_ip = const.ROUTER_ADDRESS_GLOBAL
-
         tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
         time.sleep(timeout+0.1)
         print str(time.time()) + " UDP DEBUG: stop "+tx.name + rx.name

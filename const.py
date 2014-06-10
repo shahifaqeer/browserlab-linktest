@@ -3,12 +3,19 @@ SERVER_ADDRESS = '192.168.20.1'
 SERVER_INTERFACE_NAME = 'eth1'
 CONTROL_PORT = 12345
 MSG_SIZE = 1024
-EXPERIMENT_TIMEOUT = 10
 PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
 CALIBRATE_TIMEOUT = 120
 PING_SIZE = '1400'
 PERF_PORT = '5001'
+
+# Configuration and measurement options
+EXPERIMENT_TIMEOUT = 10     # test time for tcp and udp tests
+COLLECT_tcp = 1
+COLLECT_udp = 1
+COLLECT_tcpdump = 0         # tcpdump is messing things up so don't collect at the moment
+INIT_HOME_RATE = 100        # Mbps threshold for wireless iperf udp -b
+INIT_ACCESS_RATE = 100      # Mbps fore access link iperf udp -b
 
 # UPDATE THE FOLLOWING VALUES
 ROUTER_USER = 'root'
