@@ -191,19 +191,13 @@ def experiment_suit_testbed_all(e):
     else:
         print "not doing calibrate"
 
-    # tcp bandwidth
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AR " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RS " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SA " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RA " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SR " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
+   # shaperprobe
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AR " +str(e.experiment_counter)
+    e.run_udpprobe(e.probe_udp_AR, 'AR_pro')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe RS " +str(e.experiment_counter)
+    e.run_udpprobe(e.probe_udp_RS, 'RS_pro')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AS " +str(e.experiment_counter)
+    e.run_udpprobe(e.probe_udp_AS, 'AS_pro')
 
     # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
@@ -218,6 +212,21 @@ def experiment_suit_testbed_all(e):
     e.run_experiment(e.iperf_udp_dw_RA, 'RA_udp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SR " +str(e.experiment_counter)
     e.run_experiment(e.iperf_udp_dw_SR, 'SR_udp')
+
+    # tcp bandwidth
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AR " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SA " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RA " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SR " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
+
 
     e.increment_experiment_counter()
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 10 sec before next run"
@@ -237,7 +246,7 @@ def try_job():
     return
 
 
-def test_measurements(tot_runs, rate, timeout):
+def test_measurements(tot_runs, rate, timeout, comment=''):
 
     rate_bit = str(rate * 8)
     timeout_sec = str(timeout)
@@ -251,11 +260,15 @@ def test_measurements(tot_runs, rate, timeout):
     else:
         Q.remoteCommand('tc qdisc del dev eth0 root')
         Q.remoteCommand('tc qdisc del dev eth1 root')
-        Q.remoteCommand('tc qdisc del dev br-lan root')
+        #Q.remoteCommand('tc qdisc del dev br-lan root')
 
     Q.host.close()
 
-    e = Experiment('hnl1_access_'+rate_bit+'Mbps_timeout_'+timeout_sec)
+    if comment != '':
+        e = Experiment('hnl1_access_'+rate_bit+'Mbps_timeout_'+timeout_sec+'_'+comment)
+    else:
+        e = Experiment('hnl1_access_'+rate_bit+'Mbps_timeout_'+timeout_sec)
+
     e.collect_calibrate = False
     e.set_udp_rate_mbit(rate * 8)
     e.set_test_timeout(timeout)
@@ -268,6 +281,7 @@ def test_measurements(tot_runs, rate, timeout):
     Q = Router('192.168.1.1', 'root', 'passw0rd')
     Q.remoteCommand('tc qdisc del dev eth0 root')
     Q.remoteCommand('tc qdisc del dev eth1 root')
+    Q.remoteCommand('tc qdisc del dev br-lan root')
     Q.host.close()
 
     e.transfer_all_later()
@@ -275,7 +289,7 @@ def test_measurements(tot_runs, rate, timeout):
     e.kill_all()
     e.clear_all()
 
-    return
+    return e
 
 def real_measurements(calibrate=True):
 
@@ -391,11 +405,12 @@ if __name__ == "__main__":
     TO = [2, 5, 10]
     RAT = [2, 4, 6, 8, 10, 12, 20]
 
+    comment = 'probe'
     for timeout in [5]: #s
-        for rate in [4,12,20]:
+        for rate in [4,8, 12]:
     #for timeout in TO: #s
     #    for rate in RAT:
-            test_measurements(tot_runs, rate, timeout)
+            test_measurements(tot_runs, rate, timeout, comment)
 
     #measure_link(30, 0)
     #measure_link(30, 1)

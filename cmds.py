@@ -246,8 +246,15 @@ class Experiment:
         self.kill_all(1)  #kill tcpdump, iperf, netperf, fping on all
         self.clear_all(0) #clear /tmp/browserlab/* but don't close the connection to R
 
-        self.start_netperf_servers()
-        self.start_iperf_udp_servers()
+        self.tcp = 1
+        self.udp = 1
+        self.tcpdump = 0
+
+        if self.tcp == 1:
+            self.start_netperf_servers()
+        if self.udp == 1:
+            self.start_iperf_udp_servers()
+            self.start_shaperprobe_udp_servers()
         self.set_udp_rate_mbit(100,100)
 
     def check_connection(self):
@@ -365,9 +372,9 @@ class Experiment:
             # take only radiotap
             self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 200 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
             # need this for WTF
-            self.R.command({'CMD':'tcpdump -s 100 -i br-lan -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
+            #self.R.command({'CMD':'tcpdump -s 100 -i br-lan -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
             # need this for buffer timing check
-            self.R.command({'CMD':'tcpdump -s 100 -i eth1 -w /tmp/browserlab/tcpdump_eth1_R'+state+'.pcap'})
+            #self.R.command({'CMD':'tcpdump -s 100 -i eth1 -w /tmp/browserlab/tcpdump_eth1_R'+state+'.pcap'})
         else:
             self.R.command({'CMD':'tcpdump -s 100 -i '+router_interface_name+' -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
 
@@ -400,11 +407,21 @@ class Experiment:
             rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
         return
 
+    def start_shaperprobe_udp_servers(self):
+        for rx in [self.S, self.R, self.A]:
+            rx.command({'CMD': 'udpprobeserver >> /tmp/browserlab/probe_server_'+rx.name+'.log &'})
+        return
+
+    def convert_sar_to_log(self):
+        for dev in [self.S, self.R, self.A]:
+            dev.command({'CMD':'sar -f /tmp/browserlab/sar_' + dev.name + '.out > /tmp/browserlab/sar_' + dev.name + '.log;rm -rf /tmp/browserlab/sar_' + dev.name + '.out'})
+        return
+
     def active_logs(self, nrepeats):
         nrepeats = str(nrepeats)
-        self.S.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_S.log 1 ' + nrepeats + ' >/dev/null 2>&1 &'})
-        self.R.command({'CMD': 'sar -o /tmp/browserlab/sar_R.log 1 ' + nrepeats + ' >/dev/null 2>&1 &'})
-        self.A.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_A.log 1 ' + nrepeats + ' >/dev/null 2>&1 &'})
+        self.S.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_S.out 1 ' + nrepeats + ' >/dev/null 2>&1 &'})
+        self.R.command({'CMD': 'sar -o /tmp/browserlab/sar_R.out 1 ' + nrepeats + ' >/dev/null 2>&1 &'})
+        self.A.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_A.out 1 ' + nrepeats + ' >/dev/null 2>&1 &'})
 
         self.S.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
         echo "$i: $(date)" >> /tmp/browserlab/ifconfig_S.log;\
@@ -479,6 +496,8 @@ class Experiment:
         return
 
     def transfer_logs(self, run_number, comment):
+        self.convert_sar_to_log()
+
         self.S.command({'CMD':'mkdir -p /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
         self.S.command({'CMD':'cp /tmp/browserlab/*.log /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
         self.S.command({'CMD':'cp /tmp/browserlab/*.pcap /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
@@ -528,7 +547,8 @@ class Experiment:
 
         self.get_folder_name_from_server()
 
-        self.tcpdump_radiotapdump('', 0)
+        if self.tcpdump == 1:
+            self.tcpdump_radiotapdump('', 0)
 
         nrepeats = 2 + int(self.timeout) + 2
         self.active_logs(nrepeats)
@@ -558,7 +578,9 @@ class Experiment:
         self.transfer_logs(self.run_number, comment)
 
         #hack to start udp servers for next round
-        self.start_iperf_udp_servers()
+        if self.udp == 1:
+            self.start_iperf_udp_servers()
+            self.start_shaperprobe_udp_servers()
 
         return
 
@@ -617,12 +639,14 @@ class Experiment:
 
     def netperf_tcp_up_AR(self):
         # v2.4.5; default port 12865; reverse tcp stream RA
-        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.A.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AR_R.log &'})
+        #self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.A.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AR_R.log &'})
+        self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.R.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AR_A.log &'})
         return 'AR_tcp'
 
     def netperf_tcp_up_RS(self):
         # reverse tcp stream RS
-        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RS_R.log &'})
+        #self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RS_R.log &'})
+        self.S.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.ROUTER_ADDRESS_GLOBAL + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RS_S.log &'})
         return 'RS_tcp'
 
     def netperf_tcp_up_AS(self):
@@ -632,12 +656,14 @@ class Experiment:
 
     def netperf_tcp_dw_RA(self):
         # v2.4.5; default port 12865; tcp stream RA
-        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.A.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log &'})
+        #self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.A.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log &'})
+        self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.R.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_A.log &'})
         return 'RA_tcp'
 
     def netperf_tcp_dw_SR(self):
         # reverse tcp stream RS
-        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SR_R.log &'})
+        #self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SR_R.log &'})
+        self.S.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.ROUTER_ADDRESS_GLOBAL + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SR_S.log &'})
         return 'SR_tcp'
 
     def netperf_tcp_dw_SA(self):
@@ -684,19 +710,16 @@ class Experiment:
 
     # udpprobe gives both up and dw
     def probe_udp_AR(self):
-        self.R.command({'CMD': 'udpprobeserver >> /tmp/browserlab/probe_AR_R.log &'})
-        self.A.command({'CMD': 'udpprober -s ' + const.ROUTER_ADDRESS_LOCAL + ' >> /tmp/browserlab/probe_AR_A.log &'})
-        return 'AR_udp'
+        self.A.command({'CMD': 'udpprober -s ' + self.R.ip + ' >> /tmp/browserlab/probe_AR_A.log &'})
+        return 'AR_pro'
 
     def probe_udp_RS(self):
-        self.S.command({'CMD': 'udpprobeserver >> /tmp/browserlab/probe_RS_S.log &'})
-        self.R.command({'CMD': 'udpprober -s ' + const.SERVER_ADDRESS + ' >> /tmp/browserlab/probe_RS_R.log &'})
-        return 'RS_udp'
+        self.R.command({'CMD': 'udpprober -s ' + self.S.ip + ' >> /tmp/browserlab/probe_RS_R.log &'})
+        return 'RS_pro'
 
     def probe_udp_AS(self):
-        self.S.command({'CMD': 'udpprobeserver >> /tmp/browserlab/probe_AS_S.log &'})
-        self.A.command({'CMD': 'udpprober -s ' + const.SERVER_ADDRESS + ' >> /tmp/browserlab/probe_AS_A.log &'})
-        return 'AS_udp'
+        self.A.command({'CMD': 'udpprober -s ' + self.S.ip + ' >> /tmp/browserlab/probe_AS_A.log &'})
+        return 'AS_pro'
 
     def fabprobe_SR(self):
         self.S.command({'CMD': 'time fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + ' > /tmp/browserlab/fabprobe_SR.log'})
@@ -774,4 +797,44 @@ class Experiment:
         self.iperf_udp(self.S, self.A, self.timeout, rate_mbit)
         return 'SA_udp'
 
+    def iperf_udp_dw_SA(self):
+        #cap e2e to 100mbit or home
+        if float(self.rate_access) > float(self.rate_home):
+            rate_mbit = self.rate_home
+        else:
+            rate_mbit = self.rate_access
+        self.iperf_udp(self.S, self.A, self.timeout, rate_mbit)
+        return 'SA_udp'
 
+    def run_udpprobe(self, exp, exp_name):
+        self.exp_name = exp_name
+        self.get_folder_name_from_server()
+
+        nrepeats = 2 + int(self.timeout) + 2
+        self.active_logs(nrepeats)
+
+        state = 'before'
+        print "DEBUG: "+str(time.time())+" state = " + state
+        timeout=2
+        time.sleep(timeout)
+        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as dump runs '+ str(self.experiment_counter) +'\n'
+
+        state = 'during'
+        print "DEBUG: "+str(time.time())+" state = " + state
+        comment = exp()
+        time.sleep(20)
+
+        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
+
+        state = 'after'
+        print "DEBUG: "+str(time.time())+" state = " + state
+
+        self.kill_all(1)
+        self.transfer_logs(self.run_number, comment)
+
+        #hack to start udp servers for next round
+        if self.udp == 1:
+            self.start_iperf_udp_servers()
+            self.start_shaperprobe_udp_servers()
+
+        return
