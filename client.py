@@ -388,34 +388,4 @@ def wired_simulation_testbed(rates, delays, tot_runs):
 
 if __name__ == "__main__":
 
-    rates = [2, 5, 10, 15, 20] #MBps
-    delays = [1, 2.5, 5, 7.5, 10] #ms
-    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 50 with laptop in the same location. ')
-    try:
-        tot_runs = int(tot_runs)
-    except Exception:
-        tot_runs = 1
-        print "Error. Running "+str(tot_runs)+" measurement."
-
-    #wired_simulation_testbed(rates, delays, tot_runs)
-
-    #real_measurements(False)
-
-    #tot_runs = int(raw_input("how many runs for each tc setting? "))
-
-    TO = [2, 5, 10]
-    RAT = [2, 4, 6, 8, 10, 12, 20]
-
-    comment = 'probe'
-    for timeout in [5]: #s
-        for rate in [4,8, 12]:
-    #for timeout in TO: #s
-    #    for rate in RAT:
-            test_measurements(tot_runs, rate, timeout, comment)
-
-    #measure_link(30, 0)
-    #measure_link(30, 1)
-    #measure_link(30, 12)
-    #test_measurements(30, 0)
-    #test_measurements(30, 1)
-    #test_measurements(30, 12)
+    real_measurements(False)
