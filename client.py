@@ -247,9 +247,11 @@ def test_measurements(tot_runs, rate, timeout):
     if rate != 0 and rate_byte != '0':
         Q.remoteCommand('sh ratelimit3.sh eth0 '+rate_byte)
         Q.remoteCommand('sh ratelimit3.sh eth1 '+rate_byte)
+        Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 40ms;tc qdisc show dev br-lan')
     else:
         Q.remoteCommand('tc qdisc del dev eth0 root')
         Q.remoteCommand('tc qdisc del dev eth1 root')
+        Q.remoteCommand('tc qdisc del dev br-lan root')
 
     Q.host.close()
 
@@ -328,11 +330,10 @@ def wired_simulation_testbed(rates, delays, tot_runs):
             if rate != 0:
                 Q.remoteCommand('sh ratelimit3.sh eth0 '+str(rate))
                 Q.remoteCommand('sh ratelimit3.sh eth1 '+str(rate))
-                Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 40ms')
+                Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 50ms;tc qdisc show dev br-lan')
             else:
                 Q.remoteCommand('tc qdisc del dev eth0 root')
                 Q.remoteCommand('tc qdisc del dev eth1 root')
-                Q.remoteCommand('tc qdisc del dev br-lan root')
             Q.host.close()
 
             R = remove_tc_shaping(client_int, router_int)
