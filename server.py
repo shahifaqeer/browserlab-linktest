@@ -13,9 +13,9 @@ import traceback
 
 SERVER_NAME = 'S'
 CLIENT_ADDRESS = 'localhost'
-#SERVER_ADDRESS = '130.207.97.240'
+#SERVER_ADDRESS = '192.168.20.1'
 SERVER_ADDRESS = 'localhost'
-ROUTER_ADDRESS = '50.167.212.31'
+ROUTER_ADDRESS = '192.168.1.2'
 port = 12345
 backlog = 5
 size = 1024
