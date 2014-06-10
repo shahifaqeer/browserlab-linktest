@@ -255,7 +255,7 @@ def test_measurements(tot_runs, rate, timeout):
 
     e = Experiment('hnl1_access_'+rate_bit+'Mbps_timeout_'+timeout_sec)
     e.collect_calibrate = False
-    e.set_udp_rate_mbit(rate)
+    e.set_udp_rate_mbit(rate * 8)
     e.set_test_timeout(timeout)
 
     for nruns in range(tot_runs):
