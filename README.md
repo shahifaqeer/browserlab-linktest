@@ -15,7 +15,7 @@ Note: We refer to the wireless client device as A, gateway as R, and server as S
 
 			(home)	      (gateway)	     (Internet)	   (server @ GT)
 	(wireless device) A - - -- - - - - R ------------------------- S
-		    [Private address space] [Public IP]	        [130.207.97.240]
+	   [Private address space]      [Public IP]	        [130.207.97.240]
 
 				Inside	  v/s      Outside
 
@@ -41,24 +41,25 @@ Required Tools (Dependencies)
 -----------------------------
 
 ROUTER
-- udpprobe: opkg install http://riverside.noise.gatech.edu:8080/udpprobe_2014-03-08_ar71xx.ipk
+- udpprobe: opkg install http://riverside.noise.gatech.edu:8080/udpprobe_2014-03-09_ar71xx.ipk
+- sysstats: opkg install http://downloads.openwrt.org/attitude_adjustment/12.09/ar71xx/generic/packages/sysstat_9.0.6-1_ar71xx.ipk
 
 If the router is not bismark, you will also need
-- iperf: opkg install iperf
+- iperf: opkg install http://cmon.lip6.fr/~apietila/tma2014/router/iperf_2.0.5-1_ar71xx.ipk
 - fping: opkg install fping
 
 CLIENT
 - sshpass: sudo apt-get install sshpass
 - fping: https://github.com/shahifaqeer/fping (follow installation steps in README)
-- iperf reverse: https://github.com/shahifaqeer/iperf (replace normal iperf either by uninstalling first or using 'install' command)
+- iperf reverse (maybe): https://github.com/shahifaqeer/iperf (replace normal iperf either by uninstalling first or using 'install' command)
 - udpprobe: https://github.com/shahifaqeer/shaperprobe
 	- make shaperprobe/udpprobe/linux/ and shaperprobe/udpprobeserver/ (I haven't fixed the osx or windows version yet)
 	- in these folders run 
   		sudo install udpprober /usr/local/bin/
   		sudo install udpprobeserver /usr/local/bin/ 
 	- (or simply add these directory to your PATH)
-- schedule (python module): sudo pip install schedule
 - paramiko (python module): sudo pip install paramiko
+- schedule (python module): sudo pip install schedule [UPDATE: not needed]
 
 Update constants.py
 -------------------
@@ -73,5 +74,6 @@ Basically this includes IP addresses, router information, and interface names
 - CLIENT_ADDRESS = '192.168.1.153'
 - CLIENT_WIRELESS_INTERFACE_NAME = 'wlan0'  # on debian
 - ROUTER_WIRELESS_INTERFACE_NAME = 'wlan0'  # bismark 2.4 GHz interface name
+- INIT_ACCESS_RATE = 100 #Mbps by default
 
-Make sure that you enter the right interface name (wlan0/wlan1) based on the channel you're on.
+Make sure that you enter the right interface name (wlan0/wlan1) for both client and router based on the channel you're on.
