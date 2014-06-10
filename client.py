@@ -328,7 +328,7 @@ def wired_simulation_testbed(rates, delays, tot_runs):
             if rate != 0:
                 Q.remoteCommand('sh ratelimit3.sh eth0 '+str(rate))
                 Q.remoteCommand('sh ratelimit3.sh eth1 '+str(rate))
-                Q.remoteCommand('tc qdisc add dev br-lan root netem delay 40ms')
+                Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 40ms')
             else:
                 Q.remoteCommand('tc qdisc del dev eth0 root')
                 Q.remoteCommand('tc qdisc del dev eth1 root')
