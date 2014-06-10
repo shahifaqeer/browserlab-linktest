@@ -291,10 +291,10 @@ def test_measurements(tot_runs, rate, timeout, comment=''):
 
     return e
 
-def real_measurements(calibrate=True):
+def real_measurements(calibrate=False):
 
     measurement_folder_name = raw_input('Enter measurement name: ')
-    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 50 with laptop in the same location. ')
+    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
 
     try:
         tot_runs = int(tot_runs)
@@ -308,7 +308,8 @@ def real_measurements(calibrate=True):
     for nruns in range(tot_runs):
         print "\t\t\n RUN : " + str(nruns) + "\n"
         #experiment_suit_non_coop(e)
-        experiment_suit(e)
+        #experiment_suit(e)
+        experiment_suit_testbed_all(e)
         #experiment_suit_no_router(e)
         time.sleep(1)
 
