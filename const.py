@@ -13,6 +13,7 @@ PERF_PORT = '5001'
 EXPERIMENT_TIMEOUT = 5     # test time for tcp and udp tests
 COLLECT_tcp = 1
 COLLECT_udp = 1
+COLLECT_udp_blast = 0
 COLLECT_tcpdump = 0         # tcpdump is messing things up so don't collect at the moment
 INIT_HOME_RATE = 100        # Mbps threshold for wireless iperf udp -b
 INIT_ACCESS_RATE = 100      # Mbps fore access link iperf udp -b

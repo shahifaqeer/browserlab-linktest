@@ -248,6 +248,7 @@ class Experiment:
 
         self.tcp = const.COLLECT_tcp
         self.udp = const.COLLECT_udp
+        self.blast = const.COLLECT_udp_blast
         self.tcpdump = const.COLLECT_tcpdump
 
         if self.tcp == 1:
@@ -596,9 +597,10 @@ class Experiment:
     def no_traffic(self):
         return 'no_tra'
 
-    def set_udp_rate_mbit(self, rate_access, rate_home=100):
+    def set_udp_rate_mbit(self, rate_access, rate_home=100, rate_blast=100):
         self.rate_access = str(rate_access)
         self.rate_home = str(rate_home)
+        self.rate_blast = str(rate_blast)
         return
 
     def set_test_timeout(self, timeout=const.EXPERIMENT_TIMEOUT):
@@ -738,40 +740,32 @@ class Experiment:
 
         return tx.name+rx.name + '_udp'
 
-    def netperf_tcp(self, tx, rx, timeout):
-        #TODO for real test rx.ip of router will be local or global
-        #TODO check will the following command be blocking for one second?
-
-        print str(time.time()) + " TCP DEBUG: start "+tx.name + rx.name
-
-        recv_ip = rx.ip
-        if tx.name == 'S' and rx.name == 'R':
-            recv_ip = const.ROUTER_ADDRESS_GLOBAL
-
-        tx.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -l '+timeout+' -H ' + recv_ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_'+tx.name+rx.name+'_'+tx.name+'.log &'})
-        return 'RS_tcp'
-        time.sleep(timeout+0.1)
-        print str(time.time()) + " TCP DEBUG: stop "+tx.name + rx.name
-        # make sure it waits one sec
-        #rx.command({'CMD': 'killall iperf'})
-        #print str(time.time()) + " UDP DEBUG: killed rx "+tx.name + rx.name
-
-        return tx.name+rx.name + '_tcp'
-
     def iperf_udp_up_AR(self):
-        self.iperf_udp(self.A, self.R, self.timeout, self.rate_home)
+        if self.blast:
+            self.iperf_udp(self.A, self.R, self.timeout, self.rate_blast)
+        else:
+            self.iperf_udp(self.A, self.R, self.timeout, self.rate_home)
         return 'AR_udp'
 
     def iperf_udp_dw_RA(self):
-        self.iperf_udp(self.R, self.A, self.timeout, self.rate_home)
+        if self.blast:
+            self.iperf_udp(self.R, self.A, self.timeout, self.rate_blast)
+        else:
+            self.iperf_udp(self.R, self.A, self.timeout, self.rate_home)
         return 'RA_udp'
 
     def iperf_udp_up_RS(self):
-        self.iperf_udp(self.R, self.S, self.timeout, self.rate_access)
+        if self.blast:
+            self.iperf_udp(self.R, self.S, self.timeout, self.rate_blast)
+        else:
+            self.iperf_udp(self.R, self.S, self.timeout, self.rate_access)
         return 'RS_udp'
 
     def iperf_udp_dw_SR(self):
-        self.iperf_udp(self.S, self.R, self.timeout, self.rate_access)
+        if self.blast:
+            self.iperf_udp(self.S, self.R, self.timeout, self.rate_blast)
+        else:
+            self.iperf_udp(self.S, self.R, self.timeout, self.rate_access)
         return 'SR_udp'
 
     def iperf_udp_up_AS(self):
@@ -780,7 +774,11 @@ class Experiment:
             rate_mbit = self.rate_home
         else:
             rate_mbit = self.rate_access
-        self.iperf_udp(self.A, self.S, self.timeout, rate_mbit)
+
+        if self.blast:
+            self.iperf_udp(self.A, self.S, self.timeout, self.rate_blast)
+        else:
+            self.iperf_udp(self.A, self.S, self.timeout, rate_mbit)
         return 'AS_udp'
 
     def iperf_udp_dw_SA(self):
@@ -789,17 +787,13 @@ class Experiment:
             rate_mbit = self.rate_home
         else:
             rate_mbit = self.rate_access
-        self.iperf_udp(self.S, self.A, self.timeout, rate_mbit)
+
+        if self.blast:
+            self.iperf_udp(self.S, self.A, self.timeout, self.rate_blast)
+        else:
+            self.iperf_udp(self.S, self.A, self.timeout, rate_mbit)
         return 'SA_udp'
 
-    def iperf_udp_dw_SA(self):
-        #cap e2e to 100mbit or home
-        if float(self.rate_access) > float(self.rate_home):
-            rate_mbit = self.rate_home
-        else:
-            rate_mbit = self.rate_access
-        self.iperf_udp(self.S, self.A, self.timeout, rate_mbit)
-        return 'SA_udp'
 
     def run_udpprobe(self, exp, exp_name):
         self.exp_name = exp_name
@@ -817,7 +811,7 @@ class Experiment:
         state = 'during'
         print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()
-        time.sleep(20)
+        time.sleep(15)
 
         print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
 
