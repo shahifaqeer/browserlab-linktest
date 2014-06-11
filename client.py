@@ -388,7 +388,7 @@ def wired_simulation_testbed(rates, delays, tot_runs):
 
 if __name__ == "__main__":
 
-    measurement_folder_name = raw_input('Enter measurement name: ')
+    comment = raw_input('Enter measurement comment: ')
     tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
 
     try:
@@ -400,4 +400,4 @@ if __name__ == "__main__":
 
     for timeout in [2, 5, 10]:
         for rate in [2,4,6,8,10,12,20]:
-            test_measurements(tot_runs, rate, timeout, 'no-dumps-pure')
+            test_measurements(tot_runs, rate, timeout, comment)
