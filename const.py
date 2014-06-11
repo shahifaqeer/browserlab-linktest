@@ -1,6 +1,6 @@
 # DO NOT CHANGE THESE VALUES
-SERVER_ADDRESS = '130.207.97.240'
-SERVER_INTERFACE_NAME = 'eth0'
+SERVER_ADDRESS = '192.168.20.1'
+SERVER_INTERFACE_NAME = 'eth1'
 CONTROL_PORT = 12345
 MSG_SIZE = 1024
 PASSIVE_TIMEOUT = 5
@@ -10,7 +10,7 @@ PING_SIZE = '1400'
 PERF_PORT = '5001'
 
 # Configuration and measurement options
-EXPERIMENT_TIMEOUT = 10     # test time for tcp and udp tests
+EXPERIMENT_TIMEOUT = 5     # test time for tcp and udp tests
 COLLECT_tcp = 1
 COLLECT_udp = 1
 COLLECT_tcpdump = 0         # tcpdump is messing things up so don't collect at the moment
@@ -19,10 +19,10 @@ INIT_ACCESS_RATE = 100      # Mbps fore access link iperf udp -b
 
 # UPDATE THE FOLLOWING VALUES
 ROUTER_USER = 'root'
-ROUTER_PASS = 'bismark123'
-ROUTER_ADDRESS_GLOBAL = '10.30.161.171'
-ROUTER_ADDRESS_LOCAL = '192.168.142.1'
-CLIENT_ADDRESS = '192.168.146.128'
+ROUTER_PASS = 'passw0rd'
+ROUTER_ADDRESS_GLOBAL = '192.168.1.2'
+ROUTER_ADDRESS_LOCAL = '192.168.10.1'
+CLIENT_ADDRESS = '192.168.10.184'
 CLIENT_WIRELESS_INTERFACE_NAME = 'wlan0' #'wlan0'
 #CLIENT_WIRELESS_INTERFACE_NAME = 'wlan1' #if 5 GHz ?
 ROUTER_WIRELESS_INTERFACE_NAME = 'wlan0'
