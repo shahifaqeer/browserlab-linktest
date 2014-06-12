@@ -743,30 +743,34 @@ class Experiment:
     def iperf_udp_up_AR(self):
         if self.blast:
             self.iperf_udp(self.A, self.R, self.timeout, self.rate_blast)
+            return 'AR_bla'
         else:
             self.iperf_udp(self.A, self.R, self.timeout, self.rate_home)
-        return 'AR_udp'
+            return 'AR_udp'
 
     def iperf_udp_dw_RA(self):
         if self.blast:
             self.iperf_udp(self.R, self.A, self.timeout, self.rate_blast)
+            return 'RA_bla'
         else:
             self.iperf_udp(self.R, self.A, self.timeout, self.rate_home)
-        return 'RA_udp'
+            return 'RA_udp'
 
     def iperf_udp_up_RS(self):
         if self.blast:
             self.iperf_udp(self.R, self.S, self.timeout, self.rate_blast)
+            return 'RS_bla'
         else:
             self.iperf_udp(self.R, self.S, self.timeout, self.rate_access)
-        return 'RS_udp'
+            return 'RS_udp'
 
     def iperf_udp_dw_SR(self):
         if self.blast:
             self.iperf_udp(self.S, self.R, self.timeout, self.rate_blast)
+            return 'SR_bla'
         else:
             self.iperf_udp(self.S, self.R, self.timeout, self.rate_access)
-        return 'SR_udp'
+            return 'SR_udp'
 
     def iperf_udp_up_AS(self):
         #cap e2e to 100mbit or home
@@ -777,9 +781,10 @@ class Experiment:
 
         if self.blast:
             self.iperf_udp(self.A, self.S, self.timeout, self.rate_blast)
+            return 'AS_bla'
         else:
             self.iperf_udp(self.A, self.S, self.timeout, rate_mbit)
-        return 'AS_udp'
+            return 'AS_udp'
 
     def iperf_udp_dw_SA(self):
         #cap e2e to 100mbit or home
@@ -790,9 +795,10 @@ class Experiment:
 
         if self.blast:
             self.iperf_udp(self.S, self.A, self.timeout, self.rate_blast)
+            return 'SA_bla'
         else:
             self.iperf_udp(self.S, self.A, self.timeout, rate_mbit)
-        return 'SA_udp'
+            return 'SA_udp'
 
 
     def run_udpprobe(self, exp, exp_name):

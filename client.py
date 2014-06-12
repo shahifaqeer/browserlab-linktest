@@ -191,41 +191,68 @@ def experiment_suit_testbed_all(e):
     else:
         print "not doing calibrate"
 
-   # shaperprobe
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AR " +str(e.experiment_counter)
-    e.run_udpprobe(e.probe_udp_AR, 'AR_pro')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe RS " +str(e.experiment_counter)
-    e.run_udpprobe(e.probe_udp_RS, 'RS_pro')
+    # shaperprobe
+    # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AS " +str(e.experiment_counter)
     e.run_udpprobe(e.probe_udp_AS, 'AS_pro')
-
-    # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
     e.run_experiment(e.iperf_udp_up_AS, 'AS_udp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
+    e.blast = 1
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf bla AS " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_up_AS, 'AS_bla')
+    e.blast = 0
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AR " +str(e.experiment_counter)
+    e.run_udpprobe(e.probe_udp_AR, 'AR_pro')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AR " +str(e.experiment_counter)
     e.run_experiment(e.iperf_udp_up_AR, 'AR_udp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AR " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+    e.blast=1
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf bla AR " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_up_AR, 'AR_bla')
+    e.blast =0
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe RS " +str(e.experiment_counter)
+    e.run_udpprobe(e.probe_udp_RS, 'RS_pro')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RS " +str(e.experiment_counter)
     e.run_experiment(e.iperf_udp_up_RS, 'RS_udp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf RS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
+    e.blast=1
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf bla RS " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_up_RS, 'RS_bla')
+    e.blast=0
+
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SA " +str(e.experiment_counter)
     e.run_experiment(e.iperf_udp_dw_SA, 'SA_udp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf SA " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
+    e.blast=1
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf bla SA " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_dw_SA, 'SA_bla')
+    e.blast=0
+
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RA " +str(e.experiment_counter)
     e.run_experiment(e.iperf_udp_dw_RA, 'RA_udp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf RA " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
+    e.blast=1
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf blast RA " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_dw_RA, 'RA_bla')
+    e.blast=0
+
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SR " +str(e.experiment_counter)
     e.run_experiment(e.iperf_udp_dw_SR, 'SR_udp')
-
-    # tcp bandwidth
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AS " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf AR " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RS " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SA " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf RA " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
-    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf SR " +str(e.experiment_counter)
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf SR " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
+    e.blast=1
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf blast SR " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_dw_SR, 'SR_bla')
+    e.blast=0
+
 
 
     e.increment_experiment_counter()
@@ -398,6 +425,6 @@ if __name__ == "__main__":
         print "Error. Running "+str(tot_runs)+" measurement."
 
 
-    for timeout in [2, 5, 10]:
-        for rate in [2,4,6,8,10,12,20]:
+    for rate in [1, 2, 4 ,8, 16]:
+        for timeout in [2, 5, 10]:
             test_measurements(tot_runs, rate, timeout, comment)
