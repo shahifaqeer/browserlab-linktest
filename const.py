@@ -10,13 +10,16 @@ PING_SIZE = '1400'
 PERF_PORT = '5001'
 
 # Configuration and measurement options
-EXPERIMENT_TIMEOUT = 5     # test time for tcp and udp tests
+EXPERIMENT_TIMEOUT = 5      # test time for tcp and udp tests
 COLLECT_tcp = 1
 COLLECT_udp = 1
 COLLECT_udp_blast = 0
 COLLECT_tcpdump = 0         # tcpdump is messing things up so don't collect at the moment
+USE_IPERF3 = 0
 INIT_HOME_RATE = 100        # Mbps threshold for wireless iperf udp -b
 INIT_ACCESS_RATE = 100      # Mbps fore access link iperf udp -b
+INIT_BLAST_RATE = 100      # Mbps fore access link iperf udp -b
+PROBE_TIMEOUT = 25          #s
 
 # UPDATE THE FOLLOWING VALUES
 ROUTER_USER = 'root'

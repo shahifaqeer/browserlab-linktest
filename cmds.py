@@ -256,7 +256,7 @@ class Experiment:
         if self.udp == 1:
             self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
-        self.set_udp_rate_mbit(const.INIT_ACCESS_RATE, const.INIT_HOME_RATE)
+        self.set_udp_rate_mbit(const.INIT_ACCESS_RATE, const.INIT_HOME_RATE, const.INIT_BLAST_RATE)
 
     def check_connection(self):
         cmd = {'CMD': 'echo "check port"'}
@@ -402,8 +402,12 @@ class Experiment:
         return
 
     def start_iperf_udp_servers(self):
-        for rx in [self.S, self.R, self.A]:
-            rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
+        if const.USE_IPERF3:
+            #TODO
+            pass
+        else:
+            for rx in [self.S, self.R, self.A]:
+                rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
         return
 
     def start_shaperprobe_udp_servers(self):
@@ -597,7 +601,7 @@ class Experiment:
     def no_traffic(self):
         return 'no_tra'
 
-    def set_udp_rate_mbit(self, rate_access, rate_home=100, rate_blast=100):
+    def set_udp_rate_mbit(self, rate_access, rate_home=100, rate_blast=1000):
         self.rate_access = str(rate_access)
         self.rate_home = str(rate_home)
         self.rate_blast = str(rate_blast)
@@ -731,10 +735,14 @@ class Experiment:
 
         print str(time.time()) + " UDP DEBUG: start "+tx.name + rx.name
 
-        recv_ip = rx.ip
-        if tx.name == 'S' and rx.name == 'R':
-            recv_ip = const.ROUTER_ADDRESS_GLOBAL
-        tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
+        if const.USE_IPERF3:
+            #TODO
+            pass
+        else:
+            recv_ip = rx.ip
+            if tx.name == 'S' and rx.name == 'R':
+                recv_ip = const.ROUTER_ADDRESS_GLOBAL
+            tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
         time.sleep(timeout+0.1)
         print str(time.time()) + " UDP DEBUG: stop "+tx.name + rx.name
 
@@ -817,9 +825,9 @@ class Experiment:
         state = 'during'
         print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()
-        time.sleep(15)
+        time.sleep(const.PROBE_TIMEOUT)
 
-        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
+        print '\nDEBUG: Sleep for ' + str(const.PROBE_TIMEOUT) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
 
         state = 'after'
         print "DEBUG: "+str(time.time())+" state = " + state
