@@ -403,7 +403,8 @@ class Experiment:
 
     def start_iperf_udp_servers(self):
         if const.USE_IPERF3:
-            #TODO
+            for rx in [self.S, self.R, self.A]:
+                rx.command({'CMD': 'iperf3 -s -p 5001 -J -D'})
             pass
         else:
             for rx in [self.S, self.R, self.A]:
@@ -611,7 +612,7 @@ class Experiment:
         self.timeout = timeout
         return
 
-
+    # iperf tcp
     def iperf_tcp_up_AR(self):
         self.R.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_AR_R.log &'})
         self.A.command({'CMD': 'iperf -c ' + const.ROUTER_ADDRESS_LOCAL + ' -y C -i 0.5 > /tmp/browserlab/iperf_AR_A.log &'})
@@ -643,38 +644,57 @@ class Experiment:
         self.A.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C --reverse > /tmp/browserlab/iperf_SA_A.log &'})
         return 'SA_tcp'
 
+    # netperf tcp
     def netperf_tcp_up_AR(self):
         # v2.4.5; default port 12865; reverse tcp stream RA
         #self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.A.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AR_R.log &'})
-        self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.R.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AR_A.log &'})
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.R, 'AR', self.timeout, 0, 'tcp', 0)
+        else:
+            self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.R.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AR_A.log &'})
         return 'AR_tcp'
 
     def netperf_tcp_up_RS(self):
         # reverse tcp stream RS
-        self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RS_R.log &'})
+        if const.USE_IPERF3:
+            return self.iperf3(self.R, self.S, 'RS', self.timeout, 0, 'tcp', 0)
+        else:
+            self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RS_R.log &'})
         #self.S.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.ROUTER_ADDRESS_GLOBAL + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RS_S.log &'})
         return 'RS_tcp'
 
     def netperf_tcp_up_AS(self):
         # reverse tcp stream AS
-        self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AS_A.log &'})
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.S, 'AS', self.timeout, 0, 'tcp', 0)
+        else:
+            self.A.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_AS_A.log &'})
         return 'AS_tcp'
 
     def netperf_tcp_dw_RA(self):
         # v2.4.5; default port 12865; tcp stream RA
         #self.R.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.A.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log &'})
-        self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.R.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_A.log &'})
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.R, 'RA', self.timeout, 1, 'tcp', 0)
+        else:
+            self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + self.R.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_A.log &'})
         return 'RA_tcp'
 
     def netperf_tcp_dw_SR(self):
         # reverse tcp stream RS
-        self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SR_R.log &'})
+        if const.USE_IPERF3:
+            return self.iperf3(self.R, self.S, 'SR', self.timeout, 1, 'tcp', 0)
+        else:
+            self.R.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SR_R.log &'})
         #self.S.command({'CMD': 'netperf -t TCP_STREAM -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.ROUTER_ADDRESS_GLOBAL + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SR_S.log &'})
         return 'SR_tcp'
 
     def netperf_tcp_dw_SA(self):
         # reverse tcp stream AS
-        self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SA_A.log &'})
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.S, 'SA', self.timeout, 1, 'tcp', 0)
+        else:
+            self.A.command({'CMD': 'netperf -t TCP_MAERTS -P 0 -f k -c -C -l '+str(self.timeout)+' -H ' + const.SERVER_ADDRESS + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SA_A.log &'})
         return 'SA_tcp'
 
     def netperf_tcp(self, tx, rx, rev=0):
@@ -690,6 +710,7 @@ class Experiment:
 
         return tx.name + rx.name + '_tcp'
 
+    # netperf udp
     def netperf_udp_dw_SA(self):
         # reverse tcp stream AS
         self.S.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_SA_S.log &'})
@@ -723,92 +744,126 @@ class Experiment:
         self.A.command({'CMD': 'udpprober -s ' + self.S.ip + ' >> /tmp/browserlab/probe_AS_A.log &'})
         return 'AS_pro'
 
+    # fabprobe doesn't really work
     def fabprobe_SR(self):
         self.S.command({'CMD': 'time fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + ' > /tmp/browserlab/fabprobe_SR.log'})
         return 'SR_fab'
 
+    # iperf udp
     def iperf_udp(self, tx, rx, timeout, rate_mbit):
         #USE 100 mbit for wireless and limit for anything else
         #rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+rx.name+'.log &'})
-        #TODO for real test rx.ip of router will be local or global
-        #TODO check will the following command be blocking for one second?
 
         print str(time.time()) + " UDP DEBUG: start "+tx.name + rx.name
 
-        if const.USE_IPERF3:
-            #TODO
-            pass
-        else:
-            recv_ip = rx.ip
-            if tx.name == 'S' and rx.name == 'R':
-                recv_ip = const.ROUTER_ADDRESS_GLOBAL
-            tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
-        time.sleep(timeout+0.1)
+        recv_ip = rx.ip
+        if tx.name == 'S' and rx.name == 'R':
+            recv_ip = const.ROUTER_ADDRESS_GLOBAL
+        tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
+        time.sleep(timeout+0.2)
         print str(time.time()) + " UDP DEBUG: stop "+tx.name + rx.name
 
         return tx.name+rx.name + '_udp'
 
+    def iperf3(self, tx, rx, link, timeout, reverse, proto='tcp', rate_mbit='100'):
+        cmd = 'iperf3 -c '++' -p '+const.PERF_PORT+' -t '+str(timeout)+' -J -Z '
+        if reverse:
+            cmd = cmd + ' -R '
+        if proto != 'tcp':
+            cmd = cmd + ' -u -b '+rate_mbit
+
+        tx.command('CMD': cmd + ' > /tmp/iperf3_'+proto+'_'+link+'_'+tx.name+'.log &')
+
+        time.sleep(timeout+0.2)
+        print str(time.time()) + " DONE iperf3 DEBUG: " + cmd + ' > /tmp/iperf3_'+proto+'_'+link+'_'+tx.name+'.log &'
+
+        return link + '_' + proto
+
     def iperf_udp_up_AR(self):
         if self.blast:
-            self.iperf_udp(self.A, self.R, self.timeout, self.rate_blast)
-            return 'AR_bla'
+            rate_mbit = self.rate_blast
+            proto='bla'
         else:
-            self.iperf_udp(self.A, self.R, self.timeout, self.rate_home)
-            return 'AR_udp'
+            rate_mbit = self.rate_home
+            proto='udp'
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.R, 'AR', self.timeout, 0, proto, rate_mbit)
+        else:
+            self.iperf_udp(self.A, self.R, self.timeout, rate_mbit)
+            return 'AR_'+proto
 
     def iperf_udp_dw_RA(self):
         if self.blast:
-            self.iperf_udp(self.R, self.A, self.timeout, self.rate_blast)
-            return 'RA_bla'
+            rate_mbit = self.rate_blast
+            proto='bla'
         else:
-            self.iperf_udp(self.R, self.A, self.timeout, self.rate_home)
-            return 'RA_udp'
+            rate_mbit = self.rate_home
+            proto='udp'
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.R, 'RA', self.timeout, 1, proto, rate_mbit)
+        else:
+            self.iperf_udp(self.R, self.A, self.timeout, rate_mbit)
+            return 'RA_'+proto
 
     def iperf_udp_up_RS(self):
         if self.blast:
-            self.iperf_udp(self.R, self.S, self.timeout, self.rate_blast)
-            return 'RS_bla'
+            rate_mbit = self.rate_blast
+            proto='bla'
         else:
-            self.iperf_udp(self.R, self.S, self.timeout, self.rate_access)
-            return 'RS_udp'
+            rate_mbit = self.rate_access
+            proto='udp'
+        if const.USE_IPERF3:
+            return self.iperf3(self.R, self.S, 'RS', self.timeout, 0, proto, rate_mbit)
+        else:
+            self.iperf_udp(self.R, self.S, self.timeout, rate_mbit)
+            return 'RS_'+proto
 
     def iperf_udp_dw_SR(self):
         if self.blast:
-            self.iperf_udp(self.S, self.R, self.timeout, self.rate_blast)
-            return 'SR_bla'
+            rate_mbit = self.rate_blast
+            proto='bla'
         else:
-            self.iperf_udp(self.S, self.R, self.timeout, self.rate_access)
-            return 'SR_udp'
+            rate_mbit = self.rate_access
+            proto='udp'
+        if const.USE_IPERF3:
+            return self.iperf3(self.R, self.S, 'SR', self.timeout, 1, proto, rate_mbit)
+        else:
+            self.iperf_udp(self.S, self.R, self.timeout, rate_mbit)
+            return 'SR_' + proto
 
     def iperf_udp_up_AS(self):
-        #cap e2e to 100mbit or home
         if float(self.rate_access) > float(self.rate_home):
             rate_mbit = self.rate_home
         else:
             rate_mbit = self.rate_access
-
         if self.blast:
-            self.iperf_udp(self.A, self.S, self.timeout, self.rate_blast)
-            return 'AS_bla'
+            rate_mbit = self.rate_blast
+            proto='bla'
+        else:
+            proto='udp'
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.S, 'AS', self.timeout, 0, proto, rate_mbit)
         else:
             self.iperf_udp(self.A, self.S, self.timeout, rate_mbit)
-            return 'AS_udp'
+            return 'AS_' + proto
 
     def iperf_udp_dw_SA(self):
-        #cap e2e to 100mbit or home
         if float(self.rate_access) > float(self.rate_home):
             rate_mbit = self.rate_home
         else:
             rate_mbit = self.rate_access
-
         if self.blast:
-            self.iperf_udp(self.S, self.A, self.timeout, self.rate_blast)
-            return 'SA_bla'
+            rate_mbit = self.rate_blast
+            proto='bla'
+        else:
+            proto='udp'
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.S, 'SA', self.timeout, 1, proto, rate_mbit)
         else:
             self.iperf_udp(self.S, self.A, self.timeout, rate_mbit)
-            return 'SA_udp'
+            return 'SA_' + proto
 
-
+    # run experiments
     def run_udpprobe(self, exp, exp_name):
         self.exp_name = exp_name
         self.get_folder_name_from_server()

@@ -15,11 +15,11 @@ COLLECT_tcp = 1
 COLLECT_udp = 1
 COLLECT_udp_blast = 0
 COLLECT_tcpdump = 0         # tcpdump is messing things up so don't collect at the moment
-USE_IPERF3 = 0
+USE_IPERF3 = 1
 INIT_HOME_RATE = 100        # Mbps threshold for wireless iperf udp -b
 INIT_ACCESS_RATE = 100      # Mbps fore access link iperf udp -b
-INIT_BLAST_RATE = 100      # Mbps fore access link iperf udp -b
-PROBE_TIMEOUT = 25          #s
+INIT_BLAST_RATE = 100       # Mbps fore access link iperf udp -b
+PROBE_TIMEOUT = 25          # udpprobe timeout in sec
 
 # UPDATE THE FOLLOWING VALUES
 ROUTER_USER = 'root'
