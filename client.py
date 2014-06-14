@@ -261,6 +261,42 @@ def experiment_suit_testbed_all(e):
 
     return
 
+def experiment_suit_testbed_udp(e):
+
+    e.blast = 1
+    e.rate_blast = '1000'
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+    if e.collect_calibrate:
+        e.run_calibrate()                       # 120 + 20 = 140 s
+    else:
+        print "not doing calibrate"
+
+    # shaperprobe
+    # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf bla AS " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_up_AS, 'AS_bla')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf bla AR " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_up_AR, 'AR_bla')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf bla RS " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_up_RS, 'RS_bla')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf bla SA " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_dw_SA, 'SA_bla')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf blast RA " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_dw_RA, 'RA_bla')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf blast SR " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_dw_SR, 'SR_bla')
+
+    e.increment_experiment_counter()
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 2 sec before next run"
+    time.sleep(2)                          # 1 s wait before next suit
+
+    return
 
 
 def try_job():
@@ -303,6 +339,7 @@ def test_measurements(tot_runs, rate, timeout, comment=''):
     for nruns in range(tot_runs):
         print "\n\t\t RUN : " + str(nruns) + " rate : " + rate_bit + "Mbps\n"
         experiment_suit_testbed_all(e)
+        #experiment_suit_testbed_udp(e)
         time.sleep(1)
 
     Q = Router('192.168.1.1', 'root', 'passw0rd')
