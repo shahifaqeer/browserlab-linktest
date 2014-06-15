@@ -766,16 +766,16 @@ class Experiment:
         return tx.name+rx.name + '_udp'
 
     def iperf3(self, tx, rx, link, timeout, reverse, proto='tcp', rate_mbit='100'):
-        cmd = 'iperf3 -c '++' -p '+const.PERF_PORT+' -t '+str(timeout)+' -J -Z '
+        cmd = 'iperf3 -c '+rx.ip+' -p '+const.PERF_PORT+' -t '+str(timeout)+' -J -Z '
         if reverse:
             cmd = cmd + ' -R '
         if proto != 'tcp':
             cmd = cmd + ' -u -b '+rate_mbit
 
-        tx.command('CMD': cmd + ' > /tmp/iperf3_'+proto+'_'+link+'_'+tx.name+'.log &')
+        tx.command({'CMD': cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log &'})
 
         time.sleep(timeout+0.2)
-        print str(time.time()) + " DONE iperf3 DEBUG: " + cmd + ' > /tmp/iperf3_'+proto+'_'+link+'_'+tx.name+'.log &'
+        print str(time.time()) + " DONE iperf3 DEBUG: " + cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log &'
 
         return link + '_' + proto
 
