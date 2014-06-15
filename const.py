@@ -14,11 +14,11 @@ EXPERIMENT_TIMEOUT = 5      # test time for tcp and udp tests
 COLLECT_tcp = 1
 COLLECT_udp = 1
 COLLECT_udp_blast = 0
-COLLECT_tcpdump = 0         # tcpdump is messing things up so don't collect at the moment
+COLLECT_tcpdump = 1         # tcpdump is messing things up so don't collect at the moment
 USE_IPERF3 = 1
 INIT_HOME_RATE = 100        # Mbps threshold for wireless iperf udp -b
 INIT_ACCESS_RATE = 100      # Mbps fore access link iperf udp -b
-INIT_BLAST_RATE = 1000      # Mbps fore access link iperf udp -b
+INIT_BLAST_RATE = 150       # Mbps fore access link iperf udp -b
 PROBE_TIMEOUT = 25          #s
 
 # UPDATE THE FOLLOWING VALUES

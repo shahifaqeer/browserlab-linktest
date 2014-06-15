@@ -489,6 +489,7 @@ class Experiment:
         if all_proc:
             for node in [self.A, self.R, self.S]:
                 node.command({'CMD': 'killall iperf'})
+                node.command({'CMD': 'killall iperf3'})
                 node.command({'CMD': 'killall netperf'})
         return
 
@@ -770,7 +771,7 @@ class Experiment:
         if reverse:
             cmd = cmd + ' -R '
         if proto != 'tcp':
-            cmd = cmd + ' -u -b '+rate_mbit
+            cmd = cmd + ' -u -b '+rate_mbit +'m'
 
         tx.command({'CMD': cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log &'})
 
