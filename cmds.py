@@ -250,6 +250,7 @@ class Experiment:
         self.udp = const.COLLECT_udp
         self.blast = const.COLLECT_udp_blast
         self.tcpdump = const.COLLECT_tcpdump
+        self.parallel = const.USE_PARALLEL_TCP
 
         if self.tcp == 1:
             self.start_netperf_servers()
@@ -772,6 +773,8 @@ class Experiment:
             cmd = cmd + ' -R '
         if proto != 'tcp':
             cmd = cmd + ' -u -b '+rate_mbit +'m'
+        if self.parallel:
+            cmd = cmd + ' -P '+str(const.TCP_PARALLEL)
 
         tx.command({'CMD': cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log &'})
 

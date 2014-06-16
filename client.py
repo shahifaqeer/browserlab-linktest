@@ -261,6 +261,41 @@ def experiment_suit_testbed_all(e):
 
     return
 
+def experiment_suit_testbed_tcp(e):
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+    if e.collect_calibrate:
+        e.run_calibrate()                       # 120 + 20 = 140 s
+    else:
+        print "not doing calibrate"
+
+    e.parallel = 1
+    # shaperprobe
+    # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AR " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf RS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf SA " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf RA " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf SR " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
+
+    e.increment_experiment_counter()
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 10 sec before next run"
+    time.sleep(1)                          # 1 s wait before next suit
+
+    return
+
 def experiment_suit_testbed_udp(e):
 
     e.blast = 1
