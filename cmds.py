@@ -774,7 +774,7 @@ class Experiment:
         if proto != 'tcp':
             cmd = cmd + ' -u -b '+rate_mbit +'m'
         if self.parallel:
-            cmd = cmd + ' -P '+str(const.TCP_PARALLEL)
+            cmd = cmd + ' -P '+str(const.TCP_PARALLEL_STREAMS)
 
         tx.command({'CMD': cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log &'})
 
