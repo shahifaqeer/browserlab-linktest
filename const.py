@@ -19,7 +19,9 @@ TCP_PARALLEL_STREAMS = 10   # in case we need to test parallel
 INIT_HOME_RATE = 100        # Mbps threshold for wireless iperf udp -b
 INIT_ACCESS_RATE = 100      # Mbps fore access link iperf udp -b
 INIT_BLAST_RATE = 150       # Mbps fore access link iperf udp -b
-PROBE_TIMEOUT = 25          #s
+PROBE_TIMEOUT = 25          # seconds for shaperprobe udp
+USE_IPERF_TIMEOUT = 1       # use -t <EXPERIMENT_TIMEOUT> instead of -n
+NUM_BITS_TO_SEND = '100M'   # use -b <NUM_BITS_TO_SEND> instead of -t
 
 # UPDATE THE FOLLOWING VALUES
 ROUTER_USER = 'root'

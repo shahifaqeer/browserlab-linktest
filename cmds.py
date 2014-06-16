@@ -251,6 +251,8 @@ class Experiment:
         self.blast = const.COLLECT_udp_blast
         self.tcpdump = const.COLLECT_tcpdump
         self.parallel = const.USE_PARALLEL_TCP
+        self.use_iperf_timeout = const.USE_IPERF_TIMEOUT
+        self.num_bits_to_send = const.NUM_BITS_TO_SEND
 
         if self.tcp == 1:
             self.start_netperf_servers()
@@ -768,7 +770,11 @@ class Experiment:
         return tx.name+rx.name + '_udp'
 
     def iperf3(self, tx, rx, link, timeout, reverse, proto='tcp', rate_mbit='100'):
-        cmd = 'iperf3 -c '+rx.ip+' -p '+const.PERF_PORT+' -t '+str(timeout)+' -J -Z '
+        cmd = 'iperf3 -c '+rx.ip+' -p '+const.PERF_PORT
+        if self.use_iperf_timeout:
+            cmd = cmd +' -t '+str(timeout)+' -J -Z '
+        else:
+            cmd = cmd +' -n '+self.num_bits_to_send+' -J -Z '        #where timeout is number of bytes instead
         if reverse:
             cmd = cmd + ' -R '
         if proto != 'tcp':
