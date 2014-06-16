@@ -1,6 +1,4 @@
 # DO NOT CHANGE THESE VALUES
-SERVER_ADDRESS = '130.207.97.240'
-SERVER_INTERFACE_NAME = 'eth0'
 CONTROL_PORT = 12345
 MSG_SIZE = 1024
 PASSIVE_TIMEOUT = 5
@@ -14,7 +12,7 @@ EXPERIMENT_TIMEOUT = 5      # test time for tcp and udp tests
 COLLECT_tcp = 1
 COLLECT_udp = 1
 COLLECT_udp_blast = 0
-COLLECT_tcpdump = 0         # tcpdump is messing things up so don't collect at the moment
+COLLECT_tcpdump = 1         # tcpdump is messing things up so don't collect at the moment
 USE_IPERF3 = 1
 USE_PARALLEL_TCP = 0        # in case we need to test parallel
 TCP_PARALLEL_STREAMS = 10   # in case we need to test parallel
@@ -25,17 +23,30 @@ PROBE_TIMEOUT = 25          #s
 
 # UPDATE THE FOLLOWING VALUES
 ROUTER_USER = 'root'
-ROUTER_PASS = 'bismark123'
-ROUTER_ADDRESS_GLOBAL = '50.167.212.31'
-ROUTER_ADDRESS_LOCAL = '192.168.142.1'
-CLIENT_ADDRESS = '192.168.142.183'
 CLIENT_WIRELESS_INTERFACE_NAME = 'wlan0' #'wlan0'
 #CLIENT_WIRELESS_INTERFACE_NAME = 'wlan1' #if 5 GHz ?
 ROUTER_WIRELESS_INTERFACE_NAME = 'wlan0'
 #ROUTER_WIRELESS_INTERFACE_NAME = 'wlan1' #if 5 GHz
 ROUTER_ADDRESS_PINGS = ''
-
 GENERIC_WIRELESS_INTERFACE_NAME = "wlan"
+
+# Testbed settings
+SERVER_ADDRESS = '192.168.20.1'     #testbed
+SERVER_INTERFACE_NAME = 'eth1'      #testbed
+ROUTER_PASS = 'passw0rd'            #testbed
+ROUTER_ADDRESS_GLOBAL = '192.168.1.2'
+ROUTER_ADDRESS_LOCAL = '192.168.10.1'
+CLIENT_ADDRESS = '192.168.10.184'
+
+# Real settings
+#SERVER_ADDRESS = '130.207.97.240'
+#SERVER_INTERFACE_NAME = 'eth0'
+#ROUTER_PASS = 'bismark123'
+#ROUTER_ADDRESS_GLOBAL = '50.167.212.31'
+#ROUTER_ADDRESS_LOCAL = '192.168.142.1'
+#CLIENT_ADDRESS = '192.168.142.183'
+
+# ---------------------------------------------------------
 
 # DIRECT CONNECTION TO MODEM: NO ROUTER
 #ROUTER_USER = 'gtnoise'
