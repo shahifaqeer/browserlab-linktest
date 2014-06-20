@@ -22,6 +22,9 @@ INIT_BLAST_RATE = 150       # Mbps fore access link iperf udp -b
 PROBE_TIMEOUT = 25          # seconds for shaperprobe udp
 USE_IPERF_TIMEOUT = 1       # use -t <EXPERIMENT_TIMEOUT> instead of -n
 NUM_BITS_TO_SEND = '100M'   # use -b <NUM_BITS_TO_SEND> instead of -t
+TMP_BROWSERLAB_PATH = '$HOME/tmp/browserlab/'
+TMP_DATA_PATH = '$HOME/tmp/data/'
+DATA_SERVER_PATH = 'browserlab@130.207.97.240:'
 
 # UPDATE THE FOLLOWING VALUES
 ROUTER_USER = 'root'

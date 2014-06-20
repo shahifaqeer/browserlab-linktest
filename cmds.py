@@ -362,9 +362,9 @@ class Experiment:
         # weird bug with R.command(tcpdump) -> doesn't work with &
         # also seems like timeout only kills the bash/sh -c process but not tcpdump itself - no wonder it doesn't work!
         if timeout:
-            self.S.command({'CMD':'tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
+            self.S.command({'CMD':'tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
         else:
-            self.S.command({'CMD':'tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_S'+state+'.pcap &'})
+            self.S.command({'CMD':'tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap &'})
         # dump at both incoming wireless and outgoing eth1 for complete picture
 
         if self.experiment_name[:2] == 'RS' or self.experiment_name[:2] == 'SR':
@@ -393,7 +393,7 @@ class Experiment:
     def ping_all(self):
         timeout = 2 * self.timeout      # 20 sec
         # ALWAYS pass fping with & not to thread - thread seems to be blocking
-        self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_S.log &'})
+        self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > '+const.TMP_BROWSERLAB_PATH+'fping_S.log &'})
         self.R.command({'CMD':'fping '+self.A.ip+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
         self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE +  ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
         return
@@ -408,32 +408,34 @@ class Experiment:
         if const.USE_IPERF3:
             for rx in [self.S, self.R, self.A]:
                 rx.command({'CMD': 'iperf3 -s -p 5001 -J -D'})
-            pass
         else:
-            for rx in [self.S, self.R, self.A]:
+            for rx in [self.R, self.A]:
                 rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
+            self.S.command({'CMD': 'iperf -s -u -f k -y C >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_server_'+rx.name+'.log &'})
         return
 
     def start_shaperprobe_udp_servers(self):
-        for rx in [self.S, self.R, self.A]:
+        for rx in [self.R, self.A]:
             rx.command({'CMD': 'udpprobeserver >> /tmp/browserlab/probe_server_'+rx.name+'.log &'})
+        self.S.command({'CMD': 'udpprobeserver >> '+const.TMP_BROWSERLAB_PATH+'probe_server_'+rx.name+'.log &'})
         return
 
     def convert_sar_to_log(self):
-        for dev in [self.S, self.R, self.A]:
+        for dev in [self.R, self.A]:
             dev.command({'CMD':'sar -f /tmp/browserlab/sar_' + dev.name + '.out > /tmp/browserlab/sar_' + dev.name + '.log;rm -rf /tmp/browserlab/sar_' + dev.name + '.out'})
+        self.S.command({'CMD':'sar -f '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out > '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.log;rm -rf '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out'})
         return
 
     def active_logs(self, nrepeats, delta_time=1):
         nrepeats = str(nrepeats)
         delta_time = str(delta_time)
-        self.S.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_S.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
+        self.S.command({'CMD': 'nohup sar -o '+const.TMP_BROWSERLAB_PATH+'sar_S.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
         self.R.command({'CMD': 'sar -o /tmp/browserlab/sar_R.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
         self.A.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_A.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
 
         self.S.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
-        echo "$i: $(date)" >> /tmp/browserlab/ifconfig_S.log;\
-        ifconfig  >> /tmp/browserlab/ifconfig_S.log;\
+        echo "$i: $(date)" >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_S.log;\
+        ifconfig  >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_S.log;\
         sleep ' + delta_time + '; done &'})
 
         self.R.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
@@ -465,8 +467,8 @@ class Experiment:
 
         #ifconfig (byte counters) for S
         #self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
-        self.S.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/ifconfig_'+self.S.name+'.log;'})
-        self.S.command({'CMD':'ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log'})
+        self.S.command({'CMD':'echo "$(date): ' + comment + '" >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_'+self.S.name+'.log;'})
+        self.S.command({'CMD':'ifconfig >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_'+self.S.name+'.log'})
 
         #iw dev (radiotap info) for wireless
         #self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
@@ -497,7 +499,7 @@ class Experiment:
         return
 
     def clear_all(self, close_R=0):
-        self.S.command({'CMD': 'rm -rf /tmp/browserlab/*'})
+        self.S.command({'CMD': 'rm -rf '+const.TMP_BROWSERLAB_PATH+'*'})
         self.R.command({'CMD': 'rm -rf /tmp/browserlab/*'})
         self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.log'})
         self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.pcap'})
@@ -508,9 +510,9 @@ class Experiment:
     def transfer_logs(self, run_number, comment):
         self.convert_sar_to_log()
 
-        self.S.command({'CMD':'mkdir -p /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
-        self.S.command({'CMD':'cp /tmp/browserlab/*.log /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
-        self.S.command({'CMD':'cp /tmp/browserlab/*.pcap /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
+        self.S.command({'CMD':'mkdir -p '+TMP_DATA_PATH+self.unique_id+'/'+run_number+'_'+comment})
+        self.S.command({'CMD':'cp '+const.TMP_BROWSERLAB_PATH+'*.log '+const.TMP_DATA_PATH+self.unique_id+'/'+run_number+'_'+comment})
+        self.S.command({'CMD':'cp '+const.TMP_BROWSERLAB_PATH+'*.pcap '+const.TMP_DATA_PATH+self.unique_id+'/'+run_number+'_'+comment})
 
         self.A.command({'CMD': 'mkdir -p /tmp/browserlab/'+run_number+'_'+comment}) # instead of time use blocking resource to sync properly
         self.A.command({'CMD':'cp /tmp/browserlab/*.log /tmp/browserlab/'+run_number+'_'+comment+'/'})
@@ -522,11 +524,11 @@ class Experiment:
         self.R.command({'CMD':'rm -rf /tmp/browserlab/*.log'})
         self.A.command({'CMD':'rm -rf /tmp/browserlab/*.pcap'})
         self.A.command({'CMD':'rm -rf /tmp/browserlab/*.log'})
-        self.S.command({'CMD':'rm -rf /tmp/browserlab/*.pcap'})
-        self.S.command({'CMD':'rm -rf /tmp/browserlab/*.log'})
+        self.S.command({'CMD':'rm -rf '+const.TMP_BROWSERLAB_PATH+'*.pcap'})
+        self.S.command({'CMD':'rm -rf '+const.TMP_BROWSERLAB_PATH+'*.log'})
 
-        self.S.command({'CMD': 'chown -R browserlab:browserlab /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
-        self.S.command({'CMD': 'chmod -R 777 /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
+        #self.S.command({'CMD': 'chown -R browserlab:browserlab /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
+        #self.S.command({'CMD': 'chmod -R 777 /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
         #self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/'+run_number+'_'+comment+' browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
         self.A.command({'CMD': 'mkdir -p /tmp/data/' + self.unique_id})
         self.A.command({'CMD': 'mv -f /tmp/browserlab/* /tmp/data/' + self.unique_id + '/'})
@@ -534,7 +536,9 @@ class Experiment:
         return
 
     def transfer_all_later(self):
-        self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/data/' +self.unique_id+ '/* browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
+        #self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/data/' +self.unique_id+ '/* browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
+        self.S.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r '+const.TMP_DATA_PATH+self.unique_id+ '/* '+const.DATA_SERVER_PATH+self.unique_id})
+        self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/data/' +self.unique_id+ '/* '+const.DATA_SERVER_PATH+self.unique_id})
         return
 
     def passive(self, comment, timeout):
@@ -628,23 +632,23 @@ class Experiment:
         return 'RA_tcp'
 
     def iperf_tcp_up_RS(self):
-        self.S.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_RS_S.log &'})
+        self.S.command({'CMD': 'iperf -s -y C > '+const.TMP_BROWSERLAB_PATH+'iperf_RS_S.log &'})
         self.R.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C -i 0.5 > /tmp/browserlab/iperf_RS_R.log &'})
         return 'RS_tcp'
 
     def iperf_tcp_dw_SR(self):
         self.R.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_SR_R.log &'})
-        self.S.command({'CMD': 'iperf -c ' + const.ROUTER_ADDRESS_GLOBAL + ' -y C -i 0.5 > /tmp/browserlab/iperf_SR_S.log &'})
+        self.S.command({'CMD': 'iperf -c ' + const.ROUTER_ADDRESS_GLOBAL + ' -y C -i 0.5 > '+const.TMP_BROWSERLAB_PATH+'iperf_SR_S.log &'})
         return 'SR_tcp'
 
     def iperf_tcp_up_AS(self):
-        self.S.command({'CMD': 'iperf -s -y C >> /tmp/browserlab/iperf_AS_S.log &'})
+        self.S.command({'CMD': 'iperf -s -y C >> '+const.TMP_BROWSERLAB_PATH+'iperf_AS_S.log &'})
         self.A.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C -i 0.5 > /tmp/browserlab/iperf_AS_A.log &'})
         return 'AS_tcp'
 
     def iperf_tcp_dw_SA(self):
         #NOTE this requires iperf reverse installed on client and server
-        self.S.command({'CMD': 'iperf -s -y C -i 0.5 -t 10 --reverse > /tmp/browserlab/iperf_SA_S.log &'})
+        self.S.command({'CMD': 'iperf -s -y C -i 0.5 -t 10 --reverse > '+const.TMP_BROWSERLAB_PATH+'iperf_SA_S.log &'})
         self.A.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C --reverse > /tmp/browserlab/iperf_SA_A.log &'})
         return 'SA_tcp'
 
@@ -763,7 +767,10 @@ class Experiment:
         recv_ip = rx.ip
         if tx.name == 'S' and rx.name == 'R':
             recv_ip = const.ROUTER_ADDRESS_GLOBAL
-        tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
+        if tx.name == 'S'
+            tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
+        else:
+            tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log &'})
         time.sleep(timeout+0.2)
         print str(time.time()) + " UDP DEBUG: stop "+tx.name + rx.name
 
@@ -782,7 +789,10 @@ class Experiment:
         if self.parallel:
             cmd = cmd + ' -P '+str(const.TCP_PARALLEL_STREAMS)
 
-        tx.command({'CMD': cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log &'})
+        if tx.name == 'S':
+            tx.command({'CMD': cmd + ' > '+const.TMP_BROWSERLAB_PATH+'iperf3_'+proto+'_'+link+'_'+tx.name+'.log &'})
+        else:
+            tx.command({'CMD': cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log &'})
 
         time.sleep(timeout+0.2)
         print str(time.time()) + " DONE iperf3 DEBUG: " + cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log &'
