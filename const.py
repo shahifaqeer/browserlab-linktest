@@ -1,5 +1,5 @@
 # DO NOT CHANGE THESE VALUES
-CONTROL_PORT = 12345
+CONTROL_PORT = 12346
 MSG_SIZE = 1024
 PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
@@ -12,7 +12,7 @@ EXPERIMENT_TIMEOUT = 5      # test time for tcp and udp tests
 COLLECT_tcp = 1
 COLLECT_udp = 1
 COLLECT_udp_blast = 0
-COLLECT_tcpdump = 1         # tcpdump is messing things up so don't collect at the moment
+COLLECT_tcpdump = 0         # tcpdump is messing things up so don't collect at the moment
 USE_IPERF3 = 1
 USE_PARALLEL_TCP = 0        # in case we need to test parallel
 TCP_PARALLEL_STREAMS = 10   # in case we need to test parallel
