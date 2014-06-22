@@ -333,6 +333,60 @@ def experiment_suit_testbed_udp(e):
 
     return
 
+def experiment_suit_real_all(e):
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+    if e.collect_calibrate:
+        e.run_calibrate()                       # 120 + 20 = 140 s
+    else:
+        print "not doing calibrate"
+
+
+    # shaperprobe
+    # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
+    e.blast = 1
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AS " +str(e.experiment_counter)
+    e.run_udpprobe(e.probe_udp_AS, 'AS_pro')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf bla AS " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_up_AS, 'AS_bla')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AR " +str(e.experiment_counter)
+    e.run_udpprobe(e.probe_udp_AR, 'AR_pro')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AR " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf bla AR " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_up_AR, 'AR_bla')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe RS " +str(e.experiment_counter)
+    e.run_udpprobe(e.probe_udp_RS, 'RS_pro')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf RS " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf bla RS " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_up_RS, 'RS_bla')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf SA " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf bla SA " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_dw_SA, 'SA_bla')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf RA " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf blast RA " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_dw_RA, 'RA_bla')
+
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf SR " +str(e.experiment_counter)
+    e.run_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf blast SR " +str(e.experiment_counter)
+    e.run_experiment(e.iperf_udp_dw_SR, 'SR_bla')
+
+    e.increment_experiment_counter()
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 10 sec before next run"
+    time.sleep(1)                          # 1 s wait before next suit
+
+    return
+
 
 def try_job():
     measurement_folder_name = raw_input('Enter measurement name: ')
@@ -404,16 +458,17 @@ def real_measurements(calibrate=False):
     e = Experiment(measurement_folder_name)
     e.collect_calibrate = calibrate
 
-    for nruns in range(tot_runs):
-        print "\t\t\n RUN : " + str(nruns) + "\n"
-        #experiment_suit_non_coop(e)
-        #experiment_suit(e)
-        experiment_suit_testbed_all(e)
-        #experiment_suit_no_router(e)
-        time.sleep(1)
+    e.use_iperf_timeout = 0
 
-    #trans = raw_input("transfer now?[Y] ")
-    #if trans == 'Y' or trans == 'y':
+    for nruns in range(tot_runs):
+
+        for bits in ['10K', '100K', '1M', '10M', '100M', '1000M']:
+            e.num_bits_to_send = bits
+            print "\n\t\tbits: "+bits+"; RUN : " + str(nruns) + "\n"
+
+            experiment_suit_real_all(e)
+            time.sleep(1)
+
     e.transfer_all_later()
 
     e.kill_all(1)
