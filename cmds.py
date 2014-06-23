@@ -537,8 +537,8 @@ class Experiment:
 
     def transfer_all_later(self):
         #self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/data/' +self.unique_id+ '/* browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
-        self.S.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r '+const.TMP_DATA_PATH+self.unique_id+ '/* '+const.DATA_SERVER_PATH+self.unique_id})
-        self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/data/' +self.unique_id+ '/* '+const.DATA_SERVER_PATH+self.unique_id})
+        self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/data/' +self.unique_id ' '+const.DATA_SERVER_PATH})
+        self.S.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r '+const.TMP_DATA_PATH+self.unique_id+'/* '+const.DATA_SERVER_PATH+self.unique_id+'/'})
         return
 
     def passive(self, comment, timeout):
