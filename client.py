@@ -476,7 +476,7 @@ def real_measurements(calibrate=False):
         for nruns in range(tot_runs):
             print "\n\t\tbits: "+bits+"; RUN : " + str(nruns) + "\n"
 
-            #experiment_suit_real_all(e)
+            experiment_suit_real_all(e)
             time.sleep(1)
 
     e.transfer_all_later()
