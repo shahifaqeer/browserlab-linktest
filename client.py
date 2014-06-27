@@ -450,34 +450,21 @@ def test_measurements(tot_runs, rate, timeout, comment=''):
 
     return e
 
-def real_measurements(calibrate=False):
+def measure_iperf_sizes(folder_name, to, bits, calibrate=False):
 
-    measurement_folder_name = raw_input('Enter measurement name: ')
-    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
+    e = Experiment(folder_name)
+    e.collect_calibrate = calibrate
 
-    try:
-        tot_runs = int(tot_runs)
-    except Exception:
-        tot_runs = 1
-        print "Error. Running "+str(tot_runs)+" measurement."
+    e.use_iperf_timeout = 0
+    e.timeout = to
 
-    timeout = iter([0.1, 0.11, 0.15, 0.9, 8.1, 15.5])
-    for bits in ['10K', '100K', '1M', '10M', '100M', '1000M']:
-        measurement_folder_name = measurement_folder_name + '_' + bits
-        to = timeout.next()
-        e = Experiment(measurement_folder_name)
-        e.collect_calibrate = calibrate
+    e.num_bits_to_send = bits
 
-        e.use_iperf_timeout = 0
-        e.timeout = to
+    for nruns in range(tot_runs):
+        print "\n\t\tbits: "+bits+"; RUN : " + str(nruns) + "\n"
 
-        e.num_bits_to_send = bits
-
-        for nruns in range(tot_runs):
-            print "\n\t\tbits: "+bits+"; RUN : " + str(nruns) + "\n"
-
-            experiment_suit_real_all(e)
-            time.sleep(1)
+        experiment_suit_real_all(e)
+        time.sleep(1)
 
     e.transfer_all_later()
 
@@ -552,7 +539,23 @@ def wired_simulation_testbed(rates, delays, tot_runs):
 
 if __name__ == "__main__":
 
-    real_measurements(False)
+    measurement_folder_name = raw_input('Enter measurement name: ')
+    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
+
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
+        tot_runs = 1
+        print "Error. Running "+str(tot_runs)+" measurement."
+
+    timeout = iter([0.1, 0.11, 0.15, 0.9, 8.1, 15.5])
+
+    for bits in ['10K', '100K', '1M', '10M', '100M', '1000M']:
+        folder_name = measurement_folder_name + '_' + bits
+        to = timeout.next()
+
+
+        measure_iperf_sizes(folder_name, to, bits, False)
 
     #comment = raw_input('Enter measurement comment: ')
     #tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
