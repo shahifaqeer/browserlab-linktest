@@ -9,11 +9,13 @@ PERF_PORT = '5001'
 
 # Configuration and measurement options
 EXPERIMENT_TIMEOUT = 5      # test time for tcp and udp tests
+BEFORE_TIMEOUT = 2
 COLLECT_tcp = 1
 COLLECT_udp = 1
 COLLECT_udp_blast = 0
 COLLECT_tcpdump = 0         # tcpdump is messing things up so don't collect at the moment
 USE_IPERF3 = 1
+NON_BLOCKING_EXP = 0        # wait time is part of the test or separate as timeout?
 USE_PARALLEL_TCP = 0        # in case we need to test parallel
 TCP_PARALLEL_STREAMS = 10   # in case we need to test parallel
 INIT_HOME_RATE = 100        # Mbps threshold for wireless iperf udp -b
