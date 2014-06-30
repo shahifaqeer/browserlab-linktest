@@ -11,6 +11,7 @@ import os
 import time
 import traceback
 
+SERVER_NAME = 'S'
 CLIENT_ADDRESS = 'localhost'
 #SERVER_ADDRESS = '192.168.20.1'
 SERVER_ADDRESS = 'localhost'
@@ -40,7 +41,7 @@ class Command(object):
         self.process = None
         if not (os.path.exists('/tmp/browserlab/')):
             os.mkdir('/tmp/browserlab/')
-        self.fout = open('/tmp/browserlab/S_debug.log', 'a+w')
+        self.fout = open('/tmp/browserlab/'+SERVER_NAME+'_debug.log', 'a+w')
 
     def run(self, timeout):
         def target():
