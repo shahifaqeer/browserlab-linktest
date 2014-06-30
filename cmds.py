@@ -504,13 +504,11 @@ class Experiment:
         return
 
     def kill_all(self, all_proc = 0):
-        self.S.command({'CMD': 'killall tcpdump'})
-        self.A.command({'CMD': 'killall tcpdump'})
-        self.R.command({'CMD': 'killall tcpdump'})
-
-        if all_proc:
-            for node in [self.A, self.R, self.S]:
+        for node in [self.A, self.R, self.S]:
+            node.command({'CMD': 'killall tcpdump'})
+            if all_proc:
                 node.command({'CMD': 'killall iperf'})
+                node.command({'CMD': 'killall fping'})
                 node.command({'CMD': 'killall iperf3'})
                 node.command({'CMD': 'killall netperf'})
         return
