@@ -425,7 +425,7 @@ class Experiment:
     def start_iperf_udp_servers(self):
         if const.USE_IPERF3:
             for rx in [self.S, self.R, self.A]:
-                rx.command({'CMD': 'iperf3 -s -p 5201 -J -D'})
+                rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J -D'})
         else:
             for rx in [self.R, self.A]:
                 rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
@@ -504,13 +504,11 @@ class Experiment:
         return
 
     def kill_all(self, all_proc = 0):
-        self.S.command({'CMD': 'killall tcpdump'})
-        self.A.command({'CMD': 'killall tcpdump'})
-        self.R.command({'CMD': 'killall tcpdump'})
-
-        if all_proc:
-            for node in [self.A, self.R, self.S]:
+        for node in [self.A, self.R, self.S]:
+            node.command({'CMD': 'killall tcpdump'})
+            if all_proc:
                 node.command({'CMD': 'killall iperf'})
+                node.command({'CMD': 'killall fping'})
                 node.command({'CMD': 'killall iperf3'})
                 node.command({'CMD': 'killall netperf'})
         return
@@ -625,7 +623,8 @@ class Experiment:
 
     # EXPERIMENTS
     # passed as args into run_experiment()
-    def no_traffic(self, timeout=self.timeout):
+    def no_traffic(self):
+        timeout = self.timeout
         if not self.non_blocking_experiment:
             time.sleep(timeout)
         return 'no_tra'

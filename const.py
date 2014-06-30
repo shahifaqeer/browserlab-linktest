@@ -1,11 +1,11 @@
 # DO NOT CHANGE THESE VALUES
-CONTROL_PORT = 12345
+CONTROL_PORT = 12347
 MSG_SIZE = 1024
 PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
 CALIBRATE_TIMEOUT = 120
 PING_SIZE = '1400'
-PERF_PORT = '5001'
+PERF_PORT = '5201'
 
 # Configuration and measurement options
 EXPERIMENT_TIMEOUT = 5      # test time for tcp and udp tests
