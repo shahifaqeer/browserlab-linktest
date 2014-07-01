@@ -382,8 +382,10 @@ def experiment_suit_real_all(e):
 
     # shaperprobe
     # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
+
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
-    e.run_experiment(e.no_traffic)
+    e.run_experiment(e.no_traffic, 'no_tra')
+
     real_udp_perf(e)
     real_tcp_perf(e)
     real_udp_probes(e)
