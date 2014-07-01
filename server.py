@@ -12,10 +12,6 @@ import time
 import traceback
 
 SERVER_NAME = 'S'
-CLIENT_ADDRESS = 'localhost'
-#SERVER_ADDRESS = '192.168.20.1'
-SERVER_ADDRESS = 'localhost'
-ROUTER_ADDRESS = '192.168.1.2'
 port = 12345
 backlog = 5
 size = 1024
@@ -77,6 +73,8 @@ def execute_command(msg):
 
     if not (os.path.exists('/tmp/browserlab/')):
         os.mkdir('/tmp/browserlab/')
+    if not (os.path.exists('$HOME/tmp/browserlab/')):
+        os.mkdir('$HOME/tmp/browserlab/')
 
     #if msg == 'tcpdump':
     #    return tcpdump()
