@@ -343,7 +343,6 @@ def real_udp_probes(e):
     return
 
 def real_udp_perf(e):
-    e.blast = 0
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AS " +str(e.experiment_counter)
     e.run_experiment(e.iperf_udp_up_AS, 'AS_udp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AR " +str(e.experiment_counter)
@@ -383,6 +382,8 @@ def experiment_suit_real_all(e):
 
     # shaperprobe
     # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
+    e.run_experiment(e.no_traffic)
     real_udp_perf(e)
     real_tcp_perf(e)
     real_udp_probes(e)
@@ -450,7 +451,7 @@ def test_measurements(tot_runs, rate, timeout, comment=''):
 
     return e
 
-def measure_iperf_sizes(folder_name, to, bits, calibrate=False):
+def measure_iperf_sizes(folder_name, tot_runs, to, bits, calibrate=False):
 
     e = Experiment(folder_name)
     e.collect_calibrate = calibrate
@@ -555,7 +556,7 @@ if __name__ == "__main__":
         to = timeout.next()
 
 
-        measure_iperf_sizes(folder_name, to, bits, False)
+        measure_iperf_sizes(folder_name, tot_runs, to, bits, False)
 
     #comment = raw_input('Enter measurement comment: ')
     #tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')

@@ -623,8 +623,9 @@ class Experiment:
 
     # EXPERIMENTS
     # passed as args into run_experiment()
-    def no_traffic(self):
-        timeout = self.timeout
+    def no_traffic(self, timeout=0):
+        if timeout == 0:
+            timeout = self.timeout
         if not self.non_blocking_experiment:
             time.sleep(timeout)
         return 'no_tra'
