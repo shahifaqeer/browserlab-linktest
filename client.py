@@ -453,6 +453,38 @@ def test_measurements(tot_runs, rate, timeout, comment=''):
 
     return e
 
+def real_measurements(calibrate=False):
+
+    measurement_folder_name = raw_input('Enter measurement name: ')
+    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
+
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
+        tot_runs = 1
+        print "Error. Running "+str(tot_runs)+" measurement."
+
+
+    e = Experiment(measurement_folder_name)
+    e.collect_calibrate = calibrate
+
+    e.use_iperf_timeout = 1
+    e.timeout = 5
+    e.tcpdump = 0
+
+    for nruns in range(tot_runs):
+        print "\n\t\tbits: "+bits+"; RUN : " + str(nruns) + "\n"
+
+        experiment_suit_real_all(e)
+        time.sleep(1)
+
+    e.transfer_all_later()
+
+    e.kill_all(1)
+    e.clear_all()
+    return e
+
+
 def measure_iperf_sizes(folder_name, tot_runs, to, bits, calibrate=False):
 
     e = Experiment(folder_name)
