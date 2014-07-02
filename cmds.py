@@ -248,11 +248,13 @@ class Experiment:
 
         self.set_config_options()
 
-        if self.tcp == 1:
-            self.start_netperf_servers()
         if self.udp == 1:
-            self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
+        if const.USE_IPERF3:
+            self.start_iperf_udp_servers()
+        else:
+            if self.tcp == 1:
+                self.start_netperf_servers()
         self.set_udp_rate_mbit(const.INIT_ACCESS_RATE, const.INIT_HOME_RATE, const.INIT_BLAST_RATE)
 
     def set_config_options(self):
@@ -453,7 +455,7 @@ class Experiment:
 
         self.S.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
         echo "$i: $(date)" >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_S.log;\
-        ifconfig  >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_S.log;\
+        /sbin/ifconfig  >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_S.log;\
         sleep ' + delta_time + '; done &'})
 
         self.R.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
@@ -486,7 +488,7 @@ class Experiment:
         #ifconfig (byte counters) for S
         #self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
         self.S.command({'CMD':'echo "$(date): ' + comment + '" >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_'+self.S.name+'.log;'})
-        self.S.command({'CMD':'ifconfig >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_'+self.S.name+'.log'})
+        self.S.command({'CMD':'/sbin/ifconfig >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_'+self.S.name+'.log'})
 
         #iw dev (radiotap info) for wireless
         #self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
@@ -623,8 +625,9 @@ class Experiment:
 
     # EXPERIMENTS
     # passed as args into run_experiment()
-    def no_traffic(self):
-        timeout = self.timeout
+    def no_traffic(self, timeout=0):
+        if timeout == 0:
+            timeout = self.timeout
         if not self.non_blocking_experiment:
             time.sleep(timeout)
         return 'no_tra'

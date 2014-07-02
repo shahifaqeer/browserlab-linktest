@@ -73,8 +73,6 @@ def execute_command(msg):
 
     if not (os.path.exists('/tmp/browserlab/')):
         os.mkdir('/tmp/browserlab/')
-    if not (os.path.exists('$HOME/tmp/browserlab/')):
-        os.mkdir('$HOME/tmp/browserlab/')
 
     #if msg == 'tcpdump':
     #    return tcpdump()
