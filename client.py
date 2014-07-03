@@ -389,6 +389,9 @@ def experiment_suit_real_all(e):
     real_udp_perf(e)
     real_tcp_perf(e)
     real_udp_probes(e)
+    #e.blast=1
+    #real_udp_perf(e)
+    #e.blast=0
 
     e.increment_experiment_counter()
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 5 sec before next run"
@@ -473,10 +476,28 @@ def real_measurements(calibrate=False):
     e.tcpdump = 0
 
     for nruns in range(tot_runs):
-        print "\n\t\tbits: "+bits+"; RUN : " + str(nruns) + "\n"
+        print "\n\t\tRUN : " + str(nruns) + "\n"
 
-        experiment_suit_real_all(e)
-        time.sleep(1)
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+        if e.collect_calibrate:
+            e.run_calibrate()                       # 120 + 20 = 140 s
+        else:
+            print "not doing calibrate"
+
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
+        e.run_experiment(e.no_traffic, 'no_tra')
+
+        real_udp_perf(e)
+        real_tcp_perf(e)
+        real_udp_probes(e)
+        e.blast=1
+        e.set_udp_rate_mbit(100,100,300)
+        real_udp_perf(e)
+        e.blast=0
+
+        e.increment_experiment_counter()
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 5 sec before next run"
+        time.sleep(5)                          # 1 s wait before next suit
 
     e.transfer_all_later()
 
