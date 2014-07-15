@@ -470,6 +470,49 @@ class Experiment:
             self.start_shaperprobe_udp_servers()
 
         return
+
+    def run_only_experiment(self, exp, exp_name):
+        self.experiment_name = exp_name #same as comment
+        self.get_folder_name_from_server()
+
+        if self.tcpdump == 1:
+            self.tcpdump_radiotapdump('', 0)
+
+        nrepeats = int(self.timeout)
+        self.active_logs(nrepeats)
+        self.ping_all()
+
+        print "DEBUG: "+str(time.time())+" state = " + state
+        comment = exp()
+        if self.non_blocking_experiment:
+            time.sleep(timeout)
+        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
+
+        self.kill_all(1)
+        self.transfer_logs(self.run_number, comment)
+
+        #hack to start udp servers for next round
+        if self.udp == 1:
+            self.start_iperf_udp_servers()
+            self.start_shaperprobe_udp_servers()
+        return
+
+    def get_udpprobe_rate(self):
+        self.experiment_name = 'udp_probe' #same as comment
+        self.get_folder_name_from_server()
+        if self.tcpdump == 1:
+            self.tcpdump_radiotapdump('', 0)
+        probe_udp_AR()
+        probe_udp_AS()
+        probe_udp_RS()
+        self.transfer_logs(self.run_number, comment)
+        if self.udp == 1:
+            self.start_iperf_udp_servers()
+            self.start_shaperprobe_udp_servers()
+        #TODO read udp probe
+        return
+
+
     def no_traffic(self, timeout=0):
         if timeout == 0:
             timeout = self.timeout
