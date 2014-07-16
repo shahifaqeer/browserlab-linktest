@@ -2,6 +2,7 @@
 
 from __future__ import division
 
+import const
 import time
 import socket
 import os
@@ -58,6 +59,7 @@ class Router:
         self.client = const.CLIENT_ADDRESS
         self.router = const.ROUTER_ADDRESS_LOCAL
         self.host = self.connectHost(ip, user, passwd)
+        self.blocking_cmd = 0
         self.remoteCommand('mkdir -p /tmp/browserlab/')
         #self.initialize_servers()
 
@@ -74,11 +76,15 @@ class Router:
         tcpdumps, etc.
         """
         stdin, stdout, stderr = self.host.exec_command(cmd)
-        #for line in stdout:
-        #    print 'DEBUG: '+ line
+        if self.blocking_cmd:
+            for line in stdout:
+                print 'DEBUG: '+ line
         return
 
     def command(self, cmd):
+        if 'BLK' in cmd:
+            if cmd['BLK'] == 1:
+                self.blocking_cmd = 1
         self.remoteCommand(cmd['CMD'])
         logcmd(str(cmd), self.name)
         return
@@ -113,41 +119,6 @@ class Client:
         else:
             Command(cmd['CMD']).run(cmd['TIMEOUT'])
         return
-
-    """
-    def fping(self, list_of_IPs=None):
-        if list_of_IPs is None:
-            y = const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS
-        else:
-            y = ''
-            for x in list_of_IPs:
-                y = y + x + ' '
-        self.command({'CMD':'fping '+ y +' -p 100 -c '+ str(self.timeout * 10) + ' -r 1 -A >> /tmp/browserlab/fping_A.log',
-                   'TIMEOUT': self.timeout})
-        return
-
-    def tcpdump(self):
-        return
-
-    def radiotapdump(self):
-        return
-
-    def iperf_tcp_server(self):
-        return
-
-    def iperf_tcp_client(self):
-        return
-
-    def iperf_tcp_client_reverse(self):
-        return
-
-    def killall(self):
-        return
-
-    def transfer_logs(self):
-        return
-
-    """
 
 
 class Server:

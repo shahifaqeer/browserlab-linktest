@@ -4,7 +4,10 @@ from __future__ import division
 #from datetime import datetime
 #from random import randint
 from classes import Command, Router, Client, Server
+from parsers import MyParser
+from collections import defaultdict
 
+import numpy as np
 import time
 import socket
 import subprocess
@@ -58,6 +61,7 @@ class Experiment:
         else:
             if self.tcp == 1:
                 self.start_netperf_servers()
+        self.probe_rate = defaultdict(int)
         self.set_udp_rate_mbit(const.INIT_ACCESS_RATE, const.INIT_HOME_RATE, const.INIT_BLAST_RATE)
 
     def set_config_options(self):
@@ -70,6 +74,7 @@ class Experiment:
         self.use_iperf_timeout = const.USE_IPERF_TIMEOUT
         self.num_bits_to_send = const.NUM_BITS_TO_SEND
         self.non_blocking_experiment = const.NON_BLOCKING_EXP
+        self.blk = not self.non_blocking_experiment
         self.before_timeout = const.BEFORE_TIMEOUT
 
         if self.non_blocking_experiment:
@@ -469,10 +474,13 @@ class Experiment:
             self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
 
+
         return
 
     def run_only_experiment(self, exp, exp_name):
         self.experiment_name = exp_name #same as comment
+        state = exp_name
+        timeout = self.timeout
         self.get_folder_name_from_server()
 
         if self.tcpdump == 1:
@@ -497,19 +505,34 @@ class Experiment:
             self.start_shaperprobe_udp_servers()
         return
 
+    def parse_udpprobe_output(self, filename):
+        p = MyParser()
+        df = p.parse_probe(filename)
+        if len(df) > 0:
+            return df.iloc[10]['up'], df.iloc[10]['dw']
+        return np.nan, np.nan
+
     def get_udpprobe_rate(self):
-        self.experiment_name = 'udp_probe' #same as comment
+        comment = 'udp_probe'
+        self.experiment_name = comment          #same as comment
         self.get_folder_name_from_server()
         if self.tcpdump == 1:
             self.tcpdump_radiotapdump('', 0)
-        probe_udp_AR()
-        probe_udp_AS()
-        probe_udp_RS()
+        print "DONE ", self.probe_udp_AR()
+        print "DONE ", self.probe_udp_AS()
+        print "DONE ", self.probe_udp_RS()
+        self.kill_all(1)
         self.transfer_logs(self.run_number, comment)
         if self.udp == 1:
             self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
         #TODO read udp probe
+        probe_path = '/tmp/data/'+self.unique_id + '/' +self.run_number+'_'+comment+'/'
+        self.probe_rate['e2e'] = self.parse_udpprobe_output(probe_path + 'probe_AS_A.log')
+        self.probe_rate['home'] = self.parse_udpprobe_output(probe_path + 'probe_AR_A.log')
+        self.probe_rate['access'] = self.parse_udpprobe_output(probe_path + 'probe_RS_R.log')
+        print "UDP probe (up, dw) home, access, e2e: ", self.probe_rate
+
         return
 
 
@@ -631,7 +654,7 @@ class Experiment:
 
     def netperf_udp_dw_RA(self):
         # v2.4.5; default port 12865; tcp stream RA
-        self.R.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log'+self.experiment_suffix})
+        self.R.command({'CMD': 'netperf -t UDP_STREAM -P 0 -f k -c -l 10 -H ' + self.A.ip  + ' -- -P ' + const.PERF_PORT + ' > /tmp/browserlab/netperf_RA_R.log'+self.experiment_suffix, 'BLK':self.blk})
         return 'RA_udp'
 
     def netperf_udp_up_AR(self):
@@ -645,7 +668,7 @@ class Experiment:
         return 'AR_pro'
 
     def probe_udp_RS(self):
-        self.R.command({'CMD': 'udpprober -s ' + self.S.ip + ' >> /tmp/browserlab/probe_RS_R.log'+self.experiment_suffix})
+        self.R.command({'CMD': 'udpprober -s ' + self.S.ip + ' >> /tmp/browserlab/probe_RS_R.log'+self.experiment_suffix, 'BLK':self.blk})
         return 'RS_pro'
 
     def probe_udp_AS(self):
@@ -654,7 +677,7 @@ class Experiment:
 
     # fabprobe doesn't really work
     def fabprobe_SR(self):
-        self.S.command({'CMD': 'time fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + ' > /tmp/browserlab/fabprobe_SR.log'})
+        self.S.command({'CMD': 'time fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + ' > /tmp/browserlab/fabprobe_SR.log', 'BLK':self.blk})
         return 'SR_fab'
 
     # iperf udp
@@ -668,9 +691,9 @@ class Experiment:
         if tx.name == 'S' and rx.name == 'R':
             recv_ip = const.ROUTER_ADDRESS_GLOBAL
         if tx.name == 'S':
-            tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log'+self.experiment_suffix})
+            tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})
         else:
-            tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log'+self.experiment_suffix})
+            tx.command({'CMD': 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -f k -y C -t '+str(timeout)+' >> /tmp/browserlab/iperf_udp_'+tx.name+rx.name+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})
         #time.sleep(timeout+0.2)
         print str(time.time()) + " UDP DEBUG: stop "+tx.name + rx.name
 
@@ -690,9 +713,9 @@ class Experiment:
             cmd = cmd + ' -P '+str(const.TCP_PARALLEL_STREAMS)
 
         if tx.name == 'S':
-            tx.command({'CMD': cmd + ' > '+const.TMP_BROWSERLAB_PATH+'iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix})
+            tx.command({'CMD': cmd + ' > '+const.TMP_BROWSERLAB_PATH+'iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})
         else:
-            tx.command({'CMD': cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix})
+            tx.command({'CMD': cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})
 
         if self.non_blocking_experiment:
             time.sleep(timeout+0.2)

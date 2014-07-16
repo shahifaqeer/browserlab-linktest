@@ -78,7 +78,7 @@ def execute_command(msg):
     #    return tcpdump()
 
     if 'CMD' in msg:
-        print 'DEBUG: Started command: ' + msg['CMD'] + '\n'
+        print 'DEBUG: Started command: ' + msg['CMD'] + ' at time: '+str(time.time())+'\n'
         #if 'SUDO' in msg:
         #    if msg['SUDO'] == 1:
         #        msg['CMD'] = 'echo "hattorihanzo" | sudo -S ' + msg['CMD']
@@ -90,7 +90,7 @@ def execute_command(msg):
             else:
                 outfile = None
             pid = subprocess.call(msg['CMD'], stdout=outfile, shell=True)
-        print 'DEBUG: Finished command: ' + msg['CMD'] + '\n'
+        print 'DEBUG: Finished command: ' + msg['CMD'] + ' at time: '+str(time.time())+'; PID = '+str(pid)+'\n'
         return 0
     else:
         print 'PROBLEM: no CMD in msg'
