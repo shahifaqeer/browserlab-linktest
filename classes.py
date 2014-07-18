@@ -49,19 +49,14 @@ class Command(object):
 
 
 class Router:
-    def __init__(self, ip, user, passwd):
+    def __init__(self, ip, user, passwd, name='R'):
         self.ip = ip
         self.user = user
         self.passwd = passwd
         self.name = 'R'
-        #self.logfile = initialize_logfile()
-        self.server = const.SERVER_ADDRESS
-        self.client = const.CLIENT_ADDRESS
-        self.router = const.ROUTER_ADDRESS_LOCAL
         self.host = self.connectHost(ip, user, passwd)
         self.blocking_cmd = 0
         self.remoteCommand('mkdir -p /tmp/browserlab/')
-        #self.initialize_servers()
 
     def connectHost(self, ip, user, passwd):
         host = paramiko.SSHClient()
@@ -89,21 +84,10 @@ class Router:
         logcmd(str(cmd), self.name)
         return
 
-    """
-    def initialize_servers(self):
-        # iperf tcp serverip
-        self.remoteCommand('iperf -s >> ' + self.name + '_iperf_tcp_server.log &')
-        # iperf udp server
-        self.remoteCommand('iperf -s -u >> '+ self.name + '_iperf_udp_server.log &')
-        # udp probe server
-        self.remoteCommand('udpprobeserver >> ' + self.name + '_udpprobe_server.log &')
-        return 0
-    """
-
 
 class Client:
-    def __init__(self, ip):
-        self.name = 'A'
+    def __init__(self, ip, name='A'):
+        self.name = name
         self.ip = ip
         #self.logfile = initialize_logfile()
 
@@ -122,10 +106,10 @@ class Client:
 
 
 class Server:
-    def __init__(self, ip):
-        self.name = 'S'
+    def __init__(self, ip, port=const.CONTROL_PORT, name='S'):
+        self.name = name
         self.ip = ip
-        self.port = const.CONTROL_PORT
+        self.port = port
         #self.logfile = initialize_logfile()
 
     def command(self, cmd):

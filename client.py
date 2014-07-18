@@ -143,7 +143,7 @@ def experiment_suit_testbed(e):
 
     return
 
-def experiment_suit_testbed_udp(e):
+def experiment_suit_testbed_default(e):
 
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
     if e.collect_calibrate:
@@ -386,9 +386,10 @@ def experiment_suit_real_all(e):
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
     e.run_experiment(e.no_traffic, 'no_tra')
 
+    real_udp_probes(e)
+    e.get_udpprobe_rate()
     real_udp_perf(e)
     real_tcp_perf(e)
-    real_udp_probes(e)
     #e.blast=1
     #real_udp_perf(e)
     #e.blast=0
@@ -404,7 +405,7 @@ def try_job():
     measurement_folder_name = raw_input('Enter measurement name: ')
     tot_runs = int(raw_input('how many runs?'))
     e = Experiment(measurement_folder_name)
-    print 'Try experiment '
+    print 'Try experiment; tot_runs: ', tot_runs
     e.run_experiment(e.iperf_tcp_dw_RA, 'RA_tcp')
     print 'DONE!'
     return
@@ -436,6 +437,7 @@ def test_measurements(tot_runs, rate, timeout, comment=''):
     e.collect_calibrate = False
     e.set_udp_rate_mbit(rate * 8)
     e.set_test_timeout(timeout)
+    e.set_test_timeout(timeout)
 
     for nruns in range(tot_runs):
         print "\n\t\t RUN : " + str(nruns) + " rate : " + rate_bit + "Mbps\n"
@@ -456,7 +458,7 @@ def test_measurements(tot_runs, rate, timeout, comment=''):
 
     return e
 
-def real_measurements(calibrate=False):
+def  real_measurements(calibrate=False, timeout=5):
 
     measurement_folder_name = raw_input('Enter measurement name: ')
     tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
@@ -472,7 +474,7 @@ def real_measurements(calibrate=False):
     e.collect_calibrate = calibrate
 
     e.use_iperf_timeout = 1
-    e.timeout = 5
+    e.timeout = timeout
     e.tcpdump = 0
 
     for nruns in range(tot_runs):
@@ -491,7 +493,8 @@ def real_measurements(calibrate=False):
         real_tcp_perf(e)
         real_udp_probes(e)
         e.blast=1
-        e.set_udp_rate_mbit(100,100,300)
+        e.get_udpprobe_rate()
+        #e.set_udp_rate_mbit(100,100,300)
         real_udp_perf(e)
         e.blast=0
 
@@ -552,8 +555,6 @@ def wired_simulation_testbed(rates, delays, tot_runs):
             if rate != 0:
                 Q.remoteCommand('sh ratelimit3.sh eth0 '+str(rate))
                 Q.remoteCommand('sh ratelimit3.sh eth1 '+str(rate))
-                Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 50ms;tc qdisc show dev br-lan')
-            else:
                 Q.remoteCommand('tc qdisc del dev eth0 root')
                 Q.remoteCommand('tc qdisc del dev eth1 root')
             Q.host.close()
