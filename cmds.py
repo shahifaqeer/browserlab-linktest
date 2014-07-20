@@ -255,7 +255,7 @@ class Experiment:
     def convert_sar_to_log(self):
         for dev in [self.R, self.A]:
             dev.command({'CMD':'sar -f /tmp/browserlab/sar_' + dev.name + '.out > /tmp/browserlab/sar_' + dev.name + '.log;rm -rf /tmp/browserlab/sar_' + dev.name + '.out'})
-        self.S.command({'CMD':'sar -f '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out > '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.log;rm -rf '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out'})
+        self.S.command({'CMD':'sar -f '+const.TMP_BROWSERLAB_PATH+'sar_' + self.S.name + '.out > '+const.TMP_BROWSERLAB_PATH+'sar_' + self.S.name + '.log;rm -rf '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out'})
         return
 
     def active_logs(self, nrepeats, delta_time=1):
