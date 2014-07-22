@@ -2,7 +2,8 @@
 
 #CLIENT
 from __future__ import division
-from cmds import Experiment, Router
+from cmds import Experiment
+from classes import Router, Server, Client
 
 import time
 import subprocess
@@ -333,16 +334,23 @@ def experiment_suit_testbed_udp(e):
 
     return
 
-def real_udp_probes(e):
+def real_udp_probes(e, OTHER_NODE=False):
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AS " +str(e.experiment_counter)
     e.run_udpprobe(e.probe_udp_AS, 'AS_pro')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AR " +str(e.experiment_counter)
     e.run_udpprobe(e.probe_udp_AR, 'AR_pro')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe RS " +str(e.experiment_counter)
     e.run_udpprobe(e.probe_udp_RS, 'RS_pro')
+
+    if OTHER_NODE:
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AB " +str(e.experiment_counter)
+        e.run_udpprobe(e.probe_udp_AR, 'AR_pro')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe BS " +str(e.experiment_counter)
+        e.run_udpprobe(e.probe_udp_RS, 'RS_pro')
+
     return
 
-def real_udp_perf(e):
+def real_udp_perf(e, OTHER_NODE=False):
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AS " +str(e.experiment_counter)
     e.run_experiment(e.iperf_udp_up_AS, 'AS_udp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AR " +str(e.experiment_counter)
@@ -355,9 +363,20 @@ def real_udp_perf(e):
     e.run_experiment(e.iperf_udp_dw_RA, 'RA_udp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SR " +str(e.experiment_counter)
     e.run_experiment(e.iperf_udp_dw_SR, 'SR_udp')
+
+    if OTHER_NODE:
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AB " +str(e.experiment_counter)
+        e.run_experiment(e.iperf_udp_up_AB, 'AB_udp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp BS " +str(e.experiment_counter)
+        e.run_experiment(e.iperf_udp_up_BS, 'BS_udp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp BA " +str(e.experiment_counter)
+        e.run_experiment(e.iperf_udp_dw_BA, 'BA_udp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SB " +str(e.experiment_counter)
+        e.run_experiment(e.iperf_udp_dw_SB, 'SB_udp')
+
     return
 
-def real_tcp_perf(e):
+def real_tcp_perf(e, OTHER_NODE=False):
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AS " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AR " +str(e.experiment_counter)
@@ -370,6 +389,16 @@ def real_tcp_perf(e):
     e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf SR " +str(e.experiment_counter)
     e.run_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
+
+    if OTHER_NODE:
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AB " +str(e.experiment_counter)
+        e.run_experiment(e.netperf_tcp_up_AB, 'AB_tcp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf BS " +str(e.experiment_counter)
+        e.run_experiment(e.netperf_tcp_up_BS, 'BS_tcp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf BA " +str(e.experiment_counter)
+        e.run_experiment(e.netperf_tcp_dw_BA, 'BA_tcp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf SB " +str(e.experiment_counter)
+        e.run_experiment(e.netperf_tcp_dw_SB, 'SB_tcp')
     return
 
 def experiment_suit_real_all(e):
@@ -458,7 +487,7 @@ def test_measurements(tot_runs, rate, timeout, comment=''):
 
     return e
 
-def  real_measurements(calibrate=False, timeout=5):
+def real_measurements(calibrate=False, timeout=5):
 
     measurement_folder_name = raw_input('Enter measurement name: ')
     tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
@@ -591,6 +620,60 @@ def wired_simulation_testbed(rates, delays, tot_runs):
 
             print "\n\t\t DONE " + measurement_folder_name + "\n"
 
+    return e
+
+
+def udp_test_real_measurements(calibrate=False, timeout=5):
+
+    measurement_folder_name = raw_input('Enter measurement name: ')
+    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
+
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
+        tot_runs = 1
+        print "Error. Running "+str(tot_runs)+" measurement."
+
+    e = Experiment(measurement_folder_name)
+    e.collect_calibrate = calibrate
+
+    e.use_iperf_timeout = 1
+    e.timeout = timeout
+    e.tcpdump = 1
+
+    for nruns in range(tot_runs):
+        print "\n\t\tRUN : " + str(nruns) + "\n"
+
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+        if e.collect_calibrate:
+            e.run_calibrate()                       # 120 + 20 = 140 s
+        else:
+            print "not doing calibrate"
+
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
+        e.run_experiment(e.no_traffic, 'no_tra')
+
+        #real_tcp_perf(e)
+        real_udp_probes(e)
+        e.get_udpprobe_rate()
+        real_udp_perf(e)
+        e.set_udp_rate_mbit(20,20,20)
+        real_udp_perf(e)
+        e.set_udp_rate_mbit(40,40,40)
+        real_udp_perf(e)
+        e.set_udp_rate_mbit(60,60,60)
+        real_udp_perf(e)
+        e.set_udp_rate_mbit(100,100,100)
+        real_udp_perf(e)
+
+        e.increment_experiment_counter()
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 5 sec before next run"
+        time.sleep(5)                          # 1 s wait before next suit
+
+    e.transfer_all_later()
+
+    e.kill_all(1)
+    e.clear_all()
     return e
 
 

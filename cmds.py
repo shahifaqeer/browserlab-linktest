@@ -88,7 +88,10 @@ class Experiment:
             self.experiment_suffix = ''
         return
 
-    def check_connection(self, serv=self.S):
+    def check_connection(self, serv=None):
+        if serv == None:
+            serv = self.S
+
         cmd = {'CMD': 'echo "check port"'}
         if type(cmd) is dict:
             msg = str(cmd)  # remember to eval and check for flags on other end (START, TIMEOUT, CMD, SUDO(?))
@@ -255,7 +258,8 @@ class Experiment:
     def convert_sar_to_log(self):
         for dev in [self.R, self.A]:
             dev.command({'CMD':'sar -f /tmp/browserlab/sar_' + dev.name + '.out > /tmp/browserlab/sar_' + dev.name + '.log;rm -rf /tmp/browserlab/sar_' + dev.name + '.out'})
-        self.S.command({'CMD':'sar -f '+const.TMP_BROWSERLAB_PATH+'sar_' + self.S.name + '.out > '+const.TMP_BROWSERLAB_PATH+'sar_' + self.S.name + '.log;rm -rf '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out'})
+        dev = self.S
+        dev.command({'CMD':'sar -f '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out > '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.log;rm -rf '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out'})
         return
 
     def active_logs(self, nrepeats, delta_time=1):
