@@ -27,7 +27,7 @@ NUM_BITS_TO_SEND = '100M'   # use -b <NUM_BITS_TO_SEND> instead of -t
 TMP_BROWSERLAB_PATH = '$HOME/tmp/browserlab/'
 TMP_DATA_PATH = '$HOME/browserlab/'
 DATA_SERVER_PATH = 'browserlab@130.207.97.240:'
-EXTRA_NODES = 0
+EXTRA_NODES = 1
 
 # UPDATE THE FOLLOWING VALUES
 ROUTER_USER = 'root'

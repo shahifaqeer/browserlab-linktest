@@ -511,10 +511,15 @@ class Experiment:
         self.get_folder_name_from_server()
         if self.tcpdump == 1:
             self.tcpdump_radiotapdump('', 0)
+        # set experiment suffix to none for blocking udpprober
+        self.experiment_suffix = ''
         print "DONE ", self.probe_udp_AR()
         print "DONE ", self.probe_udp_AS()
         self.start_shaperprobe_udp_servers()
         print "DONE ", self.probe_udp_RS()
+        # if non blocking, set it back to bg process
+        if self.non_blocking_experiment:
+            self.experiment_suffix = ' &'
         self.kill_all(1)
         self.transfer_logs(self.run_number, comment)
         if self.udp == 1:

@@ -489,11 +489,11 @@ def  real_measurements(calibrate=False, timeout=5):
         print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
         e.run_experiment(e.no_traffic, 'no_tra')
 
+        e.get_udpprobe_rate()
         real_udp_perf(e)
         real_tcp_perf(e)
         real_udp_probes(e)
         e.blast=1
-        e.get_udpprobe_rate()
         #e.set_udp_rate_mbit(100,100,300)
         real_udp_perf(e)
         e.blast=0
