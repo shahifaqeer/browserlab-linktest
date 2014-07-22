@@ -521,6 +521,8 @@ class Experiment:
         print "DONE ", self.probe_udp_AS()
         self.start_shaperprobe_udp_servers()
         print "DONE ", self.probe_udp_RS()
+        time.sleep(15)
+        # as RS probe is non blocking so sleep for 15 sec
         # if non blocking, set it back to bg process
         if self.non_blocking_experiment:
             self.experiment_suffix = ' &'
@@ -534,9 +536,9 @@ class Experiment:
         self.probe_rate['e2e'] = self.parse_udpprobe_output(probe_path + 'probe_AS_A.log')
         self.probe_rate['home'] = self.parse_udpprobe_output(probe_path + 'probe_AR_A.log')
         self.probe_rate['access'] = self.parse_udpprobe_output(probe_path + 'probe_RS_R.log')
-        print "UDP probe (up, dw) home, access, e2e: ", self.probe_rate
+        print "DEBUG: "+str(time.time())+": UDP probe (up, dw) home, access, e2e: ", self.probe_rate
 
-        self.set_udp_rate_mbit(self.probe_rate['access'][1], self.probe_rate['home'][1])
+        self.set_udp_rate_mbit(float(self.probe_rate['access'][1])/1000, float(self.probe_rate['home'][1])/1000)
 
         return
 

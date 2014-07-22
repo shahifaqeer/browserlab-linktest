@@ -651,20 +651,20 @@ def udp_test_real_measurements(calibrate=False, timeout=5):
             print "not doing calibrate"
 
         print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
-        e.run_experiment(e.no_traffic, 'no_tra')
+        #e.run_experiment(e.no_traffic, 'no_tra')
 
         #real_tcp_perf(e)
-        real_udp_probes(e)
+        #real_udp_probes(e)
         e.get_udpprobe_rate()
         real_udp_perf(e)
-        e.set_udp_rate_mbit(20,20,20)
-        real_udp_perf(e)
-        e.set_udp_rate_mbit(40,40,40)
-        real_udp_perf(e)
-        e.set_udp_rate_mbit(60,60,60)
-        real_udp_perf(e)
-        e.set_udp_rate_mbit(100,100,100)
-        real_udp_perf(e)
+        #e.set_udp_rate_mbit(20,20,20)
+        #real_udp_perf(e)
+        #e.set_udp_rate_mbit(40,40,40)
+        #real_udp_perf(e)
+        #e.set_udp_rate_mbit(60,60,60)
+        #real_udp_perf(e)
+        #e.set_udp_rate_mbit(100,100,100)
+        #real_udp_perf(e)
 
         e.increment_experiment_counter()
         print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 5 sec before next run"
