@@ -16,7 +16,7 @@ COLLECT_udp_blast = 0
 COLLECT_tcpdump = 1         # tcpdump is messing things up so don't collect at the moment
 USE_IPERF3 = 1
 NON_BLOCKING_EXP = 1        # wait time is part of the test or separate as timeout?
-USE_PARALLEL_TCP = 0        # in case we need to test parallel
+USE_PARALLEL_TCP = 1        # in case we need to test parallel
 TCP_PARALLEL_STREAMS = 10   # in case we need to test parallel
 INIT_HOME_RATE = 100        # Mbps threshold for wireless iperf udp -b
 INIT_ACCESS_RATE = 100      # Mbps for access link iperf udp -b
@@ -28,6 +28,7 @@ TMP_BROWSERLAB_PATH = '$HOME/tmp/browserlab/'
 TMP_DATA_PATH = '$HOME/browserlab/'
 DATA_SERVER_PATH = 'browserlab@130.207.97.240:'
 EXTRA_NODES = 0
+ROUTER_TCP_DUMP = 0
 
 # UPDATE THE FOLLOWING VALUES
 ROUTER_USER = 'root'
@@ -50,10 +51,10 @@ GENERIC_WIRELESS_INTERFACE_NAME = "wlan"
 #SERVER_ADDRESS = '130.207.97.240'
 SERVER_ADDRESS = '132.227.126.1' #cmon.lip6
 SERVER_INTERFACE_NAME = 'eth0'
-ROUTER_PASS = 'passw0rd'
+ROUTER_PASS = 'bismark123'
 ROUTER_ADDRESS_GLOBAL = ''
-ROUTER_ADDRESS_LOCAL = '192.168.1.1'
-CLIENT_ADDRESS = '192.168.1.108' #'192.168.146.128'
+ROUTER_ADDRESS_LOCAL = '192.168.142.1'
+CLIENT_ADDRESS = '192.168.142.108' #'192.168.146.128'
 EXTRA_NODE_ADDRESSES = ['192.168.1.135']
 
 # ---------------------------------------------------------

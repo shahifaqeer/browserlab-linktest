@@ -59,9 +59,9 @@ class Experiment:
 
         self.set_config_options()
 
+        self.start_iperf3_servers()
         if self.udp == 1:
             self.start_shaperprobe_udp_servers()
-        if const.USE_IPERF3:
             self.start_iperf_udp_servers()
         else:
             if self.tcp == 1:
@@ -201,15 +201,16 @@ class Experiment:
         else:
             router_interface_name = const.ROUTER_WIRELESS_INTERFACE_NAME
 
-        if router_interface_name[:4] == const.GENERIC_WIRELESS_INTERFACE_NAME:    #wlan
-            # take only radiotap
-            self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 200 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
-            # need this for WTF
-            #self.R.command({'CMD':'tcpdump -s 100 -i br-lan -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
-            # need this for buffer timing check
-            #self.R.command({'CMD':'tcpdump -s 100 -i eth1 -w /tmp/browserlab/tcpdump_eth1_R'+state+'.pcap'})
-        else:
-            self.R.command({'CMD':'tcpdump -s 100 -i '+router_interface_name+' -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
+        if const.ROUTER_TCP_DUMP:
+            if router_interface_name[:4] == const.GENERIC_WIRELESS_INTERFACE_NAME:    #wlan
+                # take only radiotap
+                self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 200 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
+                # need this for WTF
+                #self.R.command({'CMD':'tcpdump -s 100 -i br-lan -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
+                # need this for buffer timing check
+                #self.R.command({'CMD':'tcpdump -s 100 -i eth1 -w /tmp/browserlab/tcpdump_eth1_R'+state+'.pcap'})
+            else:
+                self.R.command({'CMD':'tcpdump -s 100 -i '+router_interface_name+' -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
 
         if self.iface[:4] == const.GENERIC_WIRELESS_INTERFACE_NAME:
             # take only radiotap
@@ -239,11 +240,14 @@ class Experiment:
         self.A.command({'CMD': 'netserver'})
         return
 
-    def start_iperf_udp_servers(self):
+    def start_iperf3_servers(self):
         if const.USE_IPERF3:
             for rx in [self.S, self.R, self.A]:
-                rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J -D'})
-        else:
+                rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J > iperf_udp_server_'+rx.name+'.log &'})
+        return
+
+    def start_iperf_udp_servers(self):
+        if not const.USE_IPERF3:
             for rx in [self.R, self.A]:
                 rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
             self.S.command({'CMD': 'iperf -s -u -f k -y C >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_server_'+rx.name+'.log &'})
@@ -278,6 +282,7 @@ class Experiment:
         echo "$i: $(date)" >> /tmp/browserlab/iw_R.log;\
         iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iw_R.log;\
         iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iw_R.log;\
+        ifconfig >> /tmp/browserlab/iw_R.log;\
         sleep ' + delta_time + '; done &'})
 
         self.A.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
@@ -361,7 +366,8 @@ class Experiment:
     def transfer_all_later(self):
         #self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/data/' +self.unique_id+ '/* browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
         self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/data/' +self.unique_id+ ' '+const.DATA_SERVER_PATH})
-        self.S.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r '+const.TMP_DATA_PATH+self.unique_id+'/* '+const.DATA_SERVER_PATH+self.unique_id+'/'})
+        #rsync --rsh="sshpass -p passw0rd ssh -l browserlab" const.TMP_DATA_PATH:/var/www/html/ /backup/
+        self.S.command({'CMD': 'scp -o StrictHostKeyChecking=no -r '+const.TMP_DATA_PATH+self.unique_id+'/* '+const.DATA_SERVER_PATH+self.unique_id+'/'})
         return
 
     def passive(self, comment, timeout):
@@ -425,6 +431,7 @@ class Experiment:
         self.transfer_logs(self.run_number, comment)
 
         #hack to start udp servers for next round
+        self.start_iperf3_servers()
         if self.udp == 1:
             self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
@@ -467,6 +474,7 @@ class Experiment:
         self.transfer_logs(self.run_number, comment)
 
         #hack to start udp servers for next round
+        self.start_iperf3_servers()
         if self.udp == 1:
             self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
@@ -491,12 +499,13 @@ class Experiment:
         comment = exp()
         if self.non_blocking_experiment:
             time.sleep(timeout)
-        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
+            print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
 
         self.kill_all(1)
         self.transfer_logs(self.run_number, comment)
 
         #hack to start udp servers for next round
+        self.start_iperf3_servers()
         if self.udp == 1:
             self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
@@ -509,7 +518,7 @@ class Experiment:
             return df.iloc[10]['up'], df.iloc[10]['dw']
         return np.nan, np.nan
 
-    def get_udpprobe_rate(self):
+    def get_udpprobe_rate(self, x=1):
         comment = 'udp_probe'
         self.experiment_name = comment          #same as comment
         self.get_folder_name_from_server()
@@ -528,6 +537,7 @@ class Experiment:
             self.experiment_suffix = ' &'
         self.kill_all(1)
         self.transfer_logs(self.run_number, comment)
+        self.start_iperf3_servers()
         if self.udp == 1:
             self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
@@ -538,7 +548,7 @@ class Experiment:
         self.probe_rate['access'] = self.parse_udpprobe_output(probe_path + 'probe_RS_R.log')
         print "DEBUG: "+str(time.time())+": UDP probe (up, dw) home, access, e2e: ", self.probe_rate
 
-        self.set_udp_rate_mbit(float(self.probe_rate['access'][1])/1000, float(self.probe_rate['home'][1])/1000)
+        self.set_udp_rate_mbit(float(self.probe_rate['access'][x])/1000, float(self.probe_rate['home'][x])/1000)
 
         return
 
@@ -726,7 +736,7 @@ class Experiment:
 
         if self.non_blocking_experiment:
             time.sleep(timeout+0.2)
-        print str(time.time()) + " DONE iperf3 DEBUG: " + cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix
+        print "DEBUG: " + tx.name+ " " + str(time.time()) + " DONE: " + cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix
 
         return link + '_' + proto
 
