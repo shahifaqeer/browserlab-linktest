@@ -560,6 +560,26 @@ def measure_iperf_sizes(folder_name, tot_runs, to, bits, calibrate=False):
     e.clear_all()
     return e
 
+def measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par=10, calibrate=False):
+
+    e = Experiment(folder_name)
+    e.collect_calibrate = calibrate
+
+    e.use_iperf_timeout = 1
+    e.timeout = timeout
+    e.num_parallel_streams = num_par
+
+    for nruns in range(tot_runs):
+        print "\n\t\tduration: "+str(timeout)+"; parallel: "+str(num_par)+"; RUN: " + str(nruns) + "\n"
+        experiment_suit_real_all(e)
+        time.sleep(1)
+
+    e.transfer_all_later()
+
+    e.kill_all(1)
+    e.clear_all()
+    return e
+
 def remove_tc_shaping(client_int='eth0', router_int='eth0'):
     Q = Router('192.168.10.1', 'root', 'passw0rd')
     try:
@@ -685,9 +705,55 @@ def udp_test_real_measurements(calibrate=False, timeout=5):
     e.clear_all()
     return e
 
+def measure_iperf_udp_bandwidth_ratios(measurement_folder_name, tot_runs, timeout, calibrate=False):
+    e = Experiment(measurement_folder_name)
+    e.collect_calibrate = calibrate
+
+    e.use_iperf_timeout = 1
+    e.timeout = timeout
+    e.tcpdump = 1
+    e.parallel = 0
+    e.udp = 1
+
+    for nruns in range(tot_runs):
+        print "\n\t\tUDP duration: "+str(timeout)+"; RUN : " + str(nruns) + "\n"
+
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+        if e.collect_calibrate:
+            e.run_calibrate()                       # 120 + 20 = 140 s
+        else:
+            print "not doing calibrate"
+
+        #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
+        #e.run_experiment(e.no_traffic, 'no_tra')
+
+        e.set_udp_rate_mbit(10,10,10)
+        real_udp_perf(e)
+        e.set_udp_rate_mbit(100,100,100)
+        real_udp_perf(e)
+
+        #SHAPERPROBE
+        real_udp_probes(e)
+        e.get_udpprobe_rate(1)
+        real_udp_perf(e)
+        e.get_udpprobe_rate(0)
+        real_udp_perf(e)
+
+        e.increment_experiment_counter()
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 5 sec before next run"
+        time.sleep(5)                          # 1 s wait before next suit
+
+    e.transfer_all_later()
+
+    e.kill_all(1)
+    e.clear_all()
+
+    return
+
 
 if __name__ == "__main__":
 
+    # TCP
     measurement_folder_name = raw_input('Enter measurement name: ')
     tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
 
@@ -697,15 +763,27 @@ if __name__ == "__main__":
         tot_runs = 1
         print "Error. Running "+str(tot_runs)+" measurement."
 
-    timeout = iter([0.1, 0.11, 0.15, 0.9, 8.1, 15.5])
+    #for num_par in [1,2,3,4,5,6,7,8,9,10]:
+    #    for timeout in [1, 2, 3, 4, 5, 10]:
+    #        folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
+    #        measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par, False)
 
-    for bits in ['10K', '100K', '1M', '10M', '100M', '1000M']:
-        folder_name = measurement_folder_name + '_' + bits
-        to = timeout.next()
+    for timeout in [1,2,5]:
+        folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
+        measure_iperf_udp_bandwidth_ratios(folder_name, tot_runs, timeout, False)
+    # UDP
 
-        measure_iperf_sizes(folder_name, tot_runs, to, bits, False)
 
-    #comment = raw_input('Enter measurement comment: ')
+    #timeout = iter([0.1, 0.11, 0.15, 0.9, 8.1, 15.5])
+
+    #for bits in ['10K', '100K', '1M', '10M', '100M', '1000M']:
+    #    folder_name = measurement_folder_name + '_' + bits
+    #    to = timeout.next()
+
+
+        #measure_iperf_sizes(folder_name, tot_runs, to, bits, False)
+
+        #comment = raw_input('Enter measurement comment: ')
     #tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
 
     #try:

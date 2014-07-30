@@ -76,6 +76,7 @@ class Experiment:
         self.blast = const.COLLECT_udp_blast
         self.tcpdump = const.COLLECT_tcpdump
         self.parallel = const.USE_PARALLEL_TCP
+        self.num_parallel_streams = const.TCP_PARALLEL_STREAMS
         self.use_iperf_timeout = const.USE_IPERF_TIMEOUT
         self.num_bits_to_send = const.NUM_BITS_TO_SEND
         self.non_blocking_experiment = const.NON_BLOCKING_EXP
@@ -242,8 +243,10 @@ class Experiment:
 
     def start_iperf3_servers(self):
         if const.USE_IPERF3:
-            for rx in [self.S, self.R, self.A]:
-                rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J > iperf_udp_server_'+rx.name+'.log &'})
+            rx = self.S
+            rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> '+const.TMP_BROWSERLAB_PATH+'iperf3_server_'+rx.name+'.log &'})
+            for rx in [self.R, self.A]:
+                rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log &'})
         return
 
     def start_iperf_udp_servers(self):
@@ -727,7 +730,7 @@ class Experiment:
         if proto != 'tcp':
             cmd = cmd + ' -u -b '+rate_mbit +'m'
         if self.parallel:
-            cmd = cmd + ' -P '+str(const.TCP_PARALLEL_STREAMS)
+            cmd = cmd + ' -P '+str(self.num_parallel_streams)
 
         if tx.name == 'S':
             tx.command({'CMD': cmd + ' > '+const.TMP_BROWSERLAB_PATH+'iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})

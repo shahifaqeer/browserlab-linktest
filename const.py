@@ -11,7 +11,7 @@ PERF_PORT = '5201'
 EXPERIMENT_TIMEOUT = 10      # test time for tcp and udp tests
 BEFORE_TIMEOUT = 2
 COLLECT_tcp = 1
-COLLECT_udp = 1
+COLLECT_udp = 0
 COLLECT_udp_blast = 0
 COLLECT_tcpdump = 1         # tcpdump is messing things up so don't collect at the moment
 USE_IPERF3 = 1
@@ -51,10 +51,10 @@ GENERIC_WIRELESS_INTERFACE_NAME = "wlan"
 #SERVER_ADDRESS = '130.207.97.240'
 SERVER_ADDRESS = '132.227.126.1' #cmon.lip6
 SERVER_INTERFACE_NAME = 'eth0'
-ROUTER_PASS = 'bismark123'
+ROUTER_PASS = 'passw0rd' #'bismark123'
 ROUTER_ADDRESS_GLOBAL = ''
-ROUTER_ADDRESS_LOCAL = '192.168.142.1'
-CLIENT_ADDRESS = '192.168.142.108' #'192.168.146.128'
+ROUTER_ADDRESS_LOCAL = '192.168.1.1' #'192.168.142.1'
+CLIENT_ADDRESS = '192.168.1.108' #'192.168.142.108' #'192.168.146.128'
 EXTRA_NODE_ADDRESSES = ['192.168.1.135']
 
 # ---------------------------------------------------------
