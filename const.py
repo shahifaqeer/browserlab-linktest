@@ -1,5 +1,5 @@
 # DO NOT CHANGE THESE VALUES
-CONTROL_PORT = 12345
+CONTROL_PORT = 12346
 MSG_SIZE = 1024
 PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
@@ -54,7 +54,7 @@ SERVER_INTERFACE_NAME = 'eth0'
 ROUTER_PASS = 'passw0rd' #'bismark123'
 ROUTER_ADDRESS_GLOBAL = ''
 ROUTER_ADDRESS_LOCAL = '192.168.1.1' #'192.168.142.1'
-CLIENT_ADDRESS = '192.168.1.108' #'192.168.142.108' #'192.168.146.128'
+CLIENT_ADDRESS = '192.168.1.173' #'192.168.142.108' #'192.168.146.128'
 EXTRA_NODE_ADDRESSES = ['192.168.1.135']
 
 # ---------------------------------------------------------

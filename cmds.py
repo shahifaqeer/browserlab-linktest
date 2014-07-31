@@ -4,7 +4,7 @@ from __future__ import division
 #from datetime import datetime
 #from random import randint
 from classes import Command, Router, Client, Server
-from parsers import MyParser
+#from parsers import MyParser
 from collections import defaultdict
 
 import numpy as np
@@ -514,11 +514,57 @@ class Experiment:
             self.start_shaperprobe_udp_servers()
         return
 
+    def parse_probe(self, filename):
+        fread = open(filename, 'r')
+        capacity = defaultdict(list)
+        lines = [line.rstrip('\n') for line in fread]
+        if len(lines) == 0:
+            print "no data "+ filename
+            return capacity
+        # router
+        elif len(lines) == 1:
+            router_data = lines[0].split('\x1b[2K\r')
+            if len(router_data) > 0:
+                for each_line in router_data[:-1]:
+                    data = each_line.split()
+                    if len(data) > 0:
+                        if data[0] == 'Upload':
+                            direction = 'up'
+                            value = data[4]
+                            train_num = data[3].rstrip(':')
+                        elif data[0] == 'Download':
+                            direction = 'dw'
+                            value = data[4]
+                            train_num = data[3].rstrip(':')
+                        capacity[direction].append(float(value))
+                        capacity['num_'+direction].append(train_num)
+                lines = router_data
+        # normal
+        else:
+            for line in lines[:-1]:
+                data = line.split()
+                direction = data[0]
+                value = data[2]
+                train_num = data[1].rstrip(':')
+                capacity[direction].append(float(value))
+                capacity['num_'+direction].append(train_num)
+        if len(lines[-1].split(', ')) == 4:
+            dstip, timestamp, capup, capdw = lines[-1].split(', ')
+            capacity['num_up'].append('final')
+            capacity['num_dw'].append('final')
+            capacity['up'].append(float(capup))
+            capacity['dw'].append(float(capdw))
+            capacity['timestamp'] = timestamp
+            capacity['dstip'] = dstip
+            return capacity
+        print 'Error in reading '+filename
+        return capacity
+
     def parse_udpprobe_output(self, filename):
-        p = MyParser()
-        df = p.parse_probe(filename)
+        #p = MyParser()
+        df = self.parse_probe(filename)
         if len(df) > 0:
-            return df.iloc[10]['up'], df.iloc[10]['dw']
+            return df['up'][10], df['dw'][10]
         return np.nan, np.nan
 
     def get_udpprobe_rate(self, x=1):
