@@ -734,10 +734,10 @@ def measure_iperf_udp_bandwidth_ratios(measurement_folder_name, tot_runs, timeou
 
         #SHAPERPROBE
         real_udp_probes(e)
-        e.get_udpprobe_rate(1)
-        real_udp_perf(e)
-        e.get_udpprobe_rate(0)
-        real_udp_perf(e)
+        #e.get_udpprobe_rate(1)
+        #real_udp_perf(e)
+        #e.get_udpprobe_rate(0)
+        #real_udp_perf(e)
 
         e.increment_experiment_counter()
         print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 5 sec before next run"
