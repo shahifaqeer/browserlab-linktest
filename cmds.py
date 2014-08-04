@@ -245,8 +245,10 @@ class Experiment:
         if const.USE_IPERF3:
             rx = self.S
             rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> '+const.TMP_BROWSERLAB_PATH+'iperf3_server_'+rx.name+'.log &'})
-            for rx in [self.R, self.A]:
-                rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log &'})
+            rx = self.A
+	    rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log &'})
+            rx = self.R
+	    rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log'})
         return
 
     def start_iperf_udp_servers(self):
