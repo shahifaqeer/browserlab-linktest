@@ -43,6 +43,7 @@ Required Tools (Dependencies)
 ROUTER
 - udpprobe: opkg install http://riverside.noise.gatech.edu:8080/udpprobe_2014-03-09_ar71xx.ipk
 - sysstats: opkg install http://downloads.openwrt.org/attitude_adjustment/12.09/ar71xx/generic/packages/sysstat_9.0.6-1_ar71xx.ipk
+- iperf3: opkg install http://cmon.lip6.fr/~apietila/tma2014/router/iperf3_2013-12-11_ar71xx.ipk
 
 If the router is not bismark, you will also need
 - iperf: opkg install http://cmon.lip6.fr/~apietila/tma2014/router/iperf_2.0.5-1_ar71xx.ipk
@@ -51,6 +52,10 @@ If the router is not bismark, you will also need
 CLIENT
 - sshpass: sudo apt-get install sshpass
 - fping: https://github.com/shahifaqeer/fping (follow installation steps in README)
+- iperf3 [iperf not needed]: https://github.com/esnet/iperf
+	- ./configure
+	- make
+	- make install
 - iperf reverse (maybe): https://github.com/shahifaqeer/iperf (replace normal iperf either by uninstalling first or using 'install' command)
 - udpprobe: https://github.com/shahifaqeer/shaperprobe
 	- make shaperprobe/udpprobe/linux/ and shaperprobe/udpprobeserver/ (I haven't fixed the osx or windows version yet)
@@ -59,7 +64,7 @@ CLIENT
   		sudo install udpprobeserver /usr/local/bin/ 
 	- (or simply add these directory to your PATH)
 - paramiko (python module): sudo pip install paramiko
-- schedule (python module): sudo pip install schedule [UPDATE: not needed]
+- sar: sudo apt-get install sysstat
 
 Update constants.py
 -------------------
