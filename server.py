@@ -18,7 +18,7 @@ if port == "":
     port = 12345
 else:
     port = int(port)
-password = raw_input("Enter password for sudo access (cleartext): ")
+password = raw_input("Enter password for sudo access *not compulsary* (cleartext): ")
 port_max = port+5
 backlog = 5
 size = 1024
