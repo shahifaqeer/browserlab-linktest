@@ -769,12 +769,8 @@ if __name__ == "__main__":
         tot_runs = 1
         print "Error. Running "+str(tot_runs)+" measurement."
 
-    # parallel 1,2 already collected for all duration
-    # parallel 3 collected for duration 1,2,3,4
-    for num_par in [3, 4, 5, 10]:
+    for num_par in [1, 2, 3, 4, 5, 10]:
         for timeout in [1, 2, 3, 4, 5, 10]:
-            if num_par == 3 and timeout < 5:
-                continue
             folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
             measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par, False)
 

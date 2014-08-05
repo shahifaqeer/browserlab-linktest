@@ -5,7 +5,7 @@ PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
 CALIBRATE_TIMEOUT = 120
 PING_SIZE = '1400'
-PERF_PORT = '5202'
+PERF_PORT = '5201'
 
 # Configuration and measurement options
 EXPERIMENT_TIMEOUT = 10      # test time for tcp and udp tests
@@ -48,13 +48,13 @@ GENERIC_WIRELESS_INTERFACE_NAME = "wlan"
 #CLIENT_ADDRESS = '192.168.10.184'
 
 # Real settings
-#SERVER_ADDRESS = '130.207.97.240'
-SERVER_ADDRESS = '132.227.126.1' #cmon.lip6
+SERVER_ADDRESS = '130.207.97.240'
+#SERVER_ADDRESS = '132.227.126.1' #cmon.lip6
 SERVER_INTERFACE_NAME = 'eth0'
-ROUTER_PASS = 'passw0rd' #'bismark123'
+ROUTER_PASS = 'bismark123'
 ROUTER_ADDRESS_GLOBAL = ''
-ROUTER_ADDRESS_LOCAL = '192.168.1.1' #'192.168.142.1'
-CLIENT_ADDRESS = '192.168.1.173' #'192.168.142.108' #'192.168.146.128'
+ROUTER_ADDRESS_LOCAL = '192.168.142.1'
+CLIENT_ADDRESS = '192.168.142.173' #'192.168.142.108' #'192.168.146.128'
 EXTRA_NODE_ADDRESSES = ['192.168.1.135']
 
 # ---------------------------------------------------------
