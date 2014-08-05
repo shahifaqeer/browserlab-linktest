@@ -13,7 +13,11 @@ import traceback
 import const
 
 SERVER_NAME = 'S'
-port = int(raw_input("Enter CONTROL PORT. DEFAULT = 12345: "))
+port = raw_input("Enter CONTROL PORT [DEFAULT = 12345]: ")
+if port == "":
+    port = 12345
+else:
+    port = int(port)
 password = raw_input("Enter password for sudo access (cleartext): ")
 port_max = port+5
 backlog = 5
