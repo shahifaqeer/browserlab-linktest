@@ -245,10 +245,10 @@ class Experiment:
         if const.USE_IPERF3:
             rx = self.S
             rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> '+const.TMP_BROWSERLAB_PATH+'iperf3_server_'+rx.name+'.log &'})
-            rx = self.A
-	    rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log &'})
             rx = self.R
 	    rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log'})
+            rx = self.A
+	    rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log &'})
         return
 
     def start_iperf_udp_servers(self):
@@ -329,10 +329,9 @@ class Experiment:
 
     def kill_all(self, all_proc = 0):
         for node in [self.A, self.R, self.S]:
-            node.command({'CMD': 'killall tcpdump'})
+            node.command({'CMD': 'killall tcpdump;killall fping'})
             if all_proc:
                 node.command({'CMD': 'killall iperf;killall iperf3;killall netperf'})
-                node.command({'CMD': 'killall fping'})
         return
 
     def clear_all(self, close_R=0):
@@ -503,8 +502,9 @@ class Experiment:
         print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()
         if self.non_blocking_experiment:
-            time.sleep(timeout)
-            print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
+	    #takes around 3 sec to transfer results properly for iperf3 RA tcp
+            time.sleep(timeout + 3.0)
+            print '\nDEBUG: Sleep for ' + str(timeout + 3.0) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
 
         self.kill_all(1)
         self.transfer_logs(self.run_number, comment)
@@ -785,8 +785,8 @@ class Experiment:
         else:
             tx.command({'CMD': cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})
 
-        if self.non_blocking_experiment:
-            time.sleep(timeout+0.2)
+        #if self.non_blocking_experiment:
+        #    time.sleep(timeout+1.0)
         print "DEBUG: " + tx.name+ " " + str(time.time()) + " DONE: " + cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix
 
         return link + '_' + proto

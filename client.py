@@ -419,6 +419,7 @@ def experiment_suit_real_all(e):
     #e.get_udpprobe_rate()
     #real_udp_perf(e)
     real_tcp_perf(e)
+
     #e.blast=1
     #real_udp_perf(e)
     #e.blast=0
@@ -560,25 +561,6 @@ def measure_iperf_sizes(folder_name, tot_runs, to, bits, calibrate=False):
     e.clear_all()
     return e
 
-def measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par=10, calibrate=False):
-
-    e = Experiment(folder_name)
-    e.collect_calibrate = calibrate
-
-    e.use_iperf_timeout = 1
-    e.timeout = timeout
-    e.num_parallel_streams = num_par
-
-    for nruns in range(tot_runs):
-        print "\n\t\tduration: "+str(timeout)+"; parallel: "+str(num_par)+"; RUN: " + str(nruns) + "\n"
-        experiment_suit_real_all(e)
-        time.sleep(1)
-
-    e.transfer_all_later()
-
-    e.kill_all(1)
-    e.clear_all()
-    return e
 
 def remove_tc_shaping(client_int='eth0', router_int='eth0'):
     Q = Router('192.168.10.1', 'root', 'passw0rd')
@@ -705,6 +687,30 @@ def udp_test_real_measurements(calibrate=False, timeout=5):
     e.clear_all()
     return e
 
+def measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par=10, calibrate=False):
+
+    e = Experiment(folder_name)
+    e.collect_calibrate = calibrate
+
+    e.use_iperf_timeout = 1
+    e.timeout = timeout
+    e.num_parallel_streams = num_par
+
+    for nruns in range(tot_runs):
+        print "\n\t\tduration: "+str(timeout)+"; parallel: "+str(num_par)+"; RUN: " + str(nruns) + "\n"
+        #experiment_suit_real_all(e)
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AR " +str(e.experiment_counter)
+        e.run_only_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf RA " +str(e.experiment_counter)
+        e.run_only_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
+        time.sleep(1)
+
+    e.transfer_all_later()
+
+    e.kill_all(1)
+    e.clear_all()
+    return e
+
 def measure_iperf_udp_bandwidth_ratios(measurement_folder_name, tot_runs, timeout, calibrate=False):
     e = Experiment(measurement_folder_name)
     e.collect_calibrate = calibrate
@@ -768,9 +774,9 @@ if __name__ == "__main__":
             folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
             measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par, False)
 
-    timeout=5:
-    folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
-    measure_iperf_udp_bandwidth_ratios(folder_name, tot_runs, timeout, False)
+    #timeout=5
+    #folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
+    #measure_iperf_udp_bandwidth_ratios(folder_name, tot_runs, timeout, False)
     # UDP
 
 
