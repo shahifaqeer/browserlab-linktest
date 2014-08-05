@@ -698,11 +698,11 @@ def measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par=1
 
     for nruns in range(tot_runs):
         print "\n\t\tduration: "+str(timeout)+"; parallel: "+str(num_par)+"; RUN: " + str(nruns) + "\n"
-        #experiment_suit_real_all(e)
-        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AR " +str(e.experiment_counter)
-        e.run_only_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
-        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf RA " +str(e.experiment_counter)
-        e.run_only_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
+        experiment_suit_real_all(e)
+        #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AR " +str(e.experiment_counter)
+        #e.run_only_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+        #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf RA " +str(e.experiment_counter)
+        #e.run_only_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
         time.sleep(1)
 
     e.transfer_all_later()
@@ -769,14 +769,14 @@ if __name__ == "__main__":
         tot_runs = 1
         print "Error. Running "+str(tot_runs)+" measurement."
 
-    for num_par in [1,2,3,4,5]:
+    for num_par in [1,2,3,4,5, 10]:
         for timeout in [1, 2, 3, 4, 5, 10]:
             folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
             measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par, False)
 
-    #timeout=5
-    #folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
-    #measure_iperf_udp_bandwidth_ratios(folder_name, tot_runs, timeout, False)
+    timeout=2
+    folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
+    measure_iperf_udp_bandwidth_ratios(folder_name, tot_runs, timeout, False)
     # UDP
 
 
