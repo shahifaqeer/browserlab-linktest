@@ -503,8 +503,8 @@ class Experiment:
         comment = exp()
         if self.non_blocking_experiment:
 	    #takes around 3 sec to transfer results properly for iperf3 RA tcp
-            time.sleep(timeout + 3.0)
-            print '\nDEBUG: Sleep for ' + str(timeout + 3.0) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
+            time.sleep(timeout + 5.0)
+            print '\nDEBUG: Sleep for ' + str(timeout + 5.0) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
 
         self.kill_all(1)
         self.transfer_logs(self.run_number, comment)
