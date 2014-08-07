@@ -82,6 +82,7 @@ class Experiment:
         self.non_blocking_experiment = const.NON_BLOCKING_EXP
         self.blk = not self.non_blocking_experiment
         self.before_timeout = const.BEFORE_TIMEOUT
+        self.ping_timed = const.PING_TIMED
 
         if self.non_blocking_experiment:
             self.experiment_suffix = ' &'
@@ -192,9 +193,9 @@ class Experiment:
         # also seems like timeout only kills the bash/sh -c process but not tcpdump itself - no wonder it doesn't work!
         if self.S.ip != '132.227.126.1':
             if timeout:
-                self.S.command({'CMD':'tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
+                self.S.command({'CMD':'/usr/sbin/tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
             else:
-                self.S.command({'CMD':'tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap &'})
+                self.S.command({'CMD':'/usr/sbin/tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap &'})
             # dump at both incoming wireless and outgoing eth1 for complete picture
 
         if self.experiment_name[:2] == 'RS' or self.experiment_name[:2] == 'SR':
@@ -222,7 +223,7 @@ class Experiment:
         return
 
     def ping_all(self):
-        if self.non_blocking_experiment:
+        if self.ping_timed:
             timeout = 2 * self.timeout      # 20 sec
             # ALWAYS pass fping with & not to thread - thread seems to be blocking
             self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > '+const.TMP_BROWSERLAB_PATH+'fping_S.log &'})
