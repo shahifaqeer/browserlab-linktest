@@ -769,7 +769,7 @@ if __name__ == "__main__":
         tot_runs = 1
         print "Error. Running "+str(tot_runs)+" measurement."
 
-    for num_par in [1,2,3,4,5, 10]:
+    for num_par in [1, 2, 3, 4, 5, 10]:
         for timeout in [1, 2, 3, 4, 5, 10]:
             folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
             measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par, False)
