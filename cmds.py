@@ -46,12 +46,8 @@ class Experiment:
         self.collect_calibrate = False
         self.experiment_counter = 0
         self.experiment_name = 'default'
-        if measurement_name is not None:
-            self.unique_id = self.get_mac_address() + '_' + measurement_name
-        else:
-            self.unique_id = self.get_mac_address()
         self.create_monitor_interface()
-
+        self.set_unique_id(measurement_name)
         self.set_test_timeout(const.EXPERIMENT_TIMEOUT)
 
         self.kill_all(1)  #kill tcpdump, iperf, netperf, fping on all
@@ -88,6 +84,13 @@ class Experiment:
             self.experiment_suffix = ' &'
         else:
             self.experiment_suffix = ''
+        return
+
+    def set_unique_id(self, measurement_name):
+        if measurement_name is not None:
+            self.unique_id = self.get_mac_address() + '_' + measurement_name
+        else:
+            self.unique_id = self.get_mac_address()
         return
 
     def check_connection(self, serv=None):
