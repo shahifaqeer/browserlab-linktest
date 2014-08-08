@@ -54,6 +54,7 @@ class Experiment:
         self.clear_all(0) #clear /tmp/browserlab/* but don't close the connection to R
 
         self.set_config_options()
+        self.set_iperf_config_options()
 
         self.start_iperf3_servers()
         if self.udp == 1:
@@ -71,22 +72,31 @@ class Experiment:
         self.udp = const.COLLECT_udp
         self.blast = const.COLLECT_udp_blast
         self.tcpdump = const.COLLECT_tcpdump
-        self.parallel = const.USE_PARALLEL_TCP
-        self.num_parallel_streams = const.TCP_PARALLEL_STREAMS
-        self.use_iperf_timeout = const.USE_IPERF_TIMEOUT
-        self.num_bits_to_send = const.NUM_BITS_TO_SEND
         self.non_blocking_experiment = const.NON_BLOCKING_EXP
         self.blk = not self.non_blocking_experiment
         self.before_timeout = const.BEFORE_TIMEOUT
         self.ping_timed = const.PING_TIMED
-        self.use_window_size = const.USE_WINDOW_SIZE
-        if self.use_window_size:
-            self.window_size = const.WINDOW_SIZE
 
         if self.non_blocking_experiment:
             self.experiment_suffix = ' &'
         else:
             self.experiment_suffix = ''
+
+        return
+
+    def set_iperf_config_options(self):
+        # iperf config opions
+        self.parallel = const.USE_PARALLEL_TCP
+        self.num_parallel_streams = const.TCP_PARALLEL_STREAMS
+        self.use_iperf_timeout = const.USE_IPERF_TIMEOUT
+        self.num_bits_to_send = const.NUM_BITS_TO_SEND
+        self.use_window_size = const.USE_WINDOW_SIZE
+        if self.use_window_size:
+            self.window_size = const.WINDOW_SIZE
+        self.use_omit_n_sec = const.USE_OMIT_N_SEC
+        if self.use_omit_n_sec:
+            self.omit_n_sec = const.OMIT_N_SEC
+
         return
 
     def set_unique_id(self, measurement_name):
