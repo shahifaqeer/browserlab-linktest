@@ -4,7 +4,7 @@ from __future__ import division
 #from datetime import datetime
 #from random import randint
 from classes import Command, Router, Client, Server
-from parsers import MyParser
+#from parsers import MyParser
 from collections import defaultdict
 
 import numpy as np
@@ -46,22 +46,19 @@ class Experiment:
         self.collect_calibrate = False
         self.experiment_counter = 0
         self.experiment_name = 'default'
-        if measurement_name is not None:
-            self.unique_id = self.get_mac_address() + '_' + measurement_name
-        else:
-            self.unique_id = self.get_mac_address()
         self.create_monitor_interface()
-
+        self.set_unique_id(measurement_name)
         self.set_test_timeout(const.EXPERIMENT_TIMEOUT)
 
         self.kill_all(1)  #kill tcpdump, iperf, netperf, fping on all
         self.clear_all(0) #clear /tmp/browserlab/* but don't close the connection to R
 
         self.set_config_options()
+        self.set_iperf_config_options()
 
+        self.start_iperf3_servers()
         if self.udp == 1:
             self.start_shaperprobe_udp_servers()
-        if const.USE_IPERF3:
             self.start_iperf_udp_servers()
         else:
             if self.tcp == 1:
@@ -75,20 +72,44 @@ class Experiment:
         self.udp = const.COLLECT_udp
         self.blast = const.COLLECT_udp_blast
         self.tcpdump = const.COLLECT_tcpdump
-        self.parallel = const.USE_PARALLEL_TCP
-        self.use_iperf_timeout = const.USE_IPERF_TIMEOUT
-        self.num_bits_to_send = const.NUM_BITS_TO_SEND
         self.non_blocking_experiment = const.NON_BLOCKING_EXP
         self.blk = not self.non_blocking_experiment
         self.before_timeout = const.BEFORE_TIMEOUT
+        self.ping_timed = const.PING_TIMED
 
         if self.non_blocking_experiment:
             self.experiment_suffix = ' &'
         else:
             self.experiment_suffix = ''
+
         return
 
-    def check_connection(self, serv=self.S):
+    def set_iperf_config_options(self):
+        # iperf config opions
+        self.parallel = const.USE_PARALLEL_TCP
+        self.num_parallel_streams = const.TCP_PARALLEL_STREAMS
+        self.use_iperf_timeout = const.USE_IPERF_TIMEOUT
+        self.num_bits_to_send = const.NUM_BITS_TO_SEND
+        self.use_window_size = const.USE_WINDOW_SIZE
+        if self.use_window_size:
+            self.window_size = const.WINDOW_SIZE
+        self.use_omit_n_sec = const.USE_OMIT_N_SEC
+        if self.use_omit_n_sec:
+            self.omit_n_sec = const.OMIT_N_SEC
+
+        return
+
+    def set_unique_id(self, measurement_name):
+        if measurement_name is not None:
+            self.unique_id = self.get_mac_address() + '_' + measurement_name
+        else:
+            self.unique_id = self.get_mac_address()
+        return
+
+    def check_connection(self, serv=None):
+        if serv == None:
+            serv = self.S
+
         cmd = {'CMD': 'echo "check port"'}
         if type(cmd) is dict:
             msg = str(cmd)  # remember to eval and check for flags on other end (START, TIMEOUT, CMD, SUDO(?))
@@ -186,27 +207,28 @@ class Experiment:
     def tcpdump_radiotapdump(self, state, timeout):
         # weird bug with R.command(tcpdump) -> doesn't work with &
         # also seems like timeout only kills the bash/sh -c process but not tcpdump itself - no wonder it doesn't work!
-        if self.S.ip != '132.227.126.1':
-            if timeout:
-                self.S.command({'CMD':'tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
-            else:
-                self.S.command({'CMD':'tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap &'})
-            # dump at both incoming wireless and outgoing eth1 for complete picture
+        #if self.S.ip != '132.227.126.1':
+        if timeout:
+            self.S.command({'CMD':'/usr/sbin/tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
+        else:
+            self.S.command({'CMD':'/usr/sbin/tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap &'})
+        # dump at both incoming wireless and outgoing eth1 for complete picture
 
         if self.experiment_name[:2] == 'RS' or self.experiment_name[:2] == 'SR':
             router_interface_name = 'eth1'
         else:
             router_interface_name = const.ROUTER_WIRELESS_INTERFACE_NAME
 
-        if router_interface_name[:4] == const.GENERIC_WIRELESS_INTERFACE_NAME:    #wlan
-            # take only radiotap
-            self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 200 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
-            # need this for WTF
-            #self.R.command({'CMD':'tcpdump -s 100 -i br-lan -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
-            # need this for buffer timing check
-            #self.R.command({'CMD':'tcpdump -s 100 -i eth1 -w /tmp/browserlab/tcpdump_eth1_R'+state+'.pcap'})
-        else:
-            self.R.command({'CMD':'tcpdump -s 100 -i '+router_interface_name+' -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
+        if const.ROUTER_TCP_DUMP:
+            if router_interface_name[:4] == const.GENERIC_WIRELESS_INTERFACE_NAME:    #wlan
+                # take only radiotap
+                self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 200 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
+                # need this for WTF
+                #self.R.command({'CMD':'tcpdump -s 100 -i br-lan -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
+                # need this for buffer timing check
+                #self.R.command({'CMD':'tcpdump -s 100 -i eth1 -w /tmp/browserlab/tcpdump_eth1_R'+state+'.pcap'})
+            else:
+                self.R.command({'CMD':'tcpdump -s 100 -i '+router_interface_name+' -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
 
         if self.iface[:4] == const.GENERIC_WIRELESS_INTERFACE_NAME:
             # take only radiotap
@@ -217,7 +239,7 @@ class Experiment:
         return
 
     def ping_all(self):
-        if self.non_blocking_experiment:
+        if self.ping_timed:
             timeout = 2 * self.timeout      # 20 sec
             # ALWAYS pass fping with & not to thread - thread seems to be blocking
             self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > '+const.TMP_BROWSERLAB_PATH+'fping_S.log &'})
@@ -236,11 +258,18 @@ class Experiment:
         self.A.command({'CMD': 'netserver'})
         return
 
-    def start_iperf_udp_servers(self):
+    def start_iperf3_servers(self):
         if const.USE_IPERF3:
-            for rx in [self.S, self.R, self.A]:
-                rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J -D'})
-        else:
+            rx = self.S
+            rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> '+const.TMP_BROWSERLAB_PATH+'iperf3_server_'+rx.name+'.log &'})
+            rx = self.R
+            rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log'})
+            rx = self.A
+            rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log &'})
+        return
+
+    def start_iperf_udp_servers(self):
+        if not const.USE_IPERF3:
             for rx in [self.R, self.A]:
                 rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
             self.S.command({'CMD': 'iperf -s -u -f k -y C >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_server_'+rx.name+'.log &'})
@@ -255,7 +284,8 @@ class Experiment:
     def convert_sar_to_log(self):
         for dev in [self.R, self.A]:
             dev.command({'CMD':'sar -f /tmp/browserlab/sar_' + dev.name + '.out > /tmp/browserlab/sar_' + dev.name + '.log;rm -rf /tmp/browserlab/sar_' + dev.name + '.out'})
-        self.S.command({'CMD':'sar -f '+const.TMP_BROWSERLAB_PATH+'sar_' + self.S.name + '.out > '+const.TMP_BROWSERLAB_PATH+'sar_' + self.S.name + '.log;rm -rf '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out'})
+        dev = self.S
+        dev.command({'CMD':'sar -f '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out > '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.log;rm -rf '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out'})
         return
 
     def active_logs(self, nrepeats, delta_time=1):
@@ -274,6 +304,7 @@ class Experiment:
         echo "$i: $(date)" >> /tmp/browserlab/iw_R.log;\
         iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iw_R.log;\
         iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iw_R.log;\
+        ifconfig >> /tmp/browserlab/iw_R.log;\
         sleep ' + delta_time + '; done &'})
 
         self.A.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
@@ -315,10 +346,9 @@ class Experiment:
 
     def kill_all(self, all_proc = 0):
         for node in [self.A, self.R, self.S]:
-            node.command({'CMD': 'killall tcpdump'})
+            node.command({'CMD': 'killall tcpdump;killall fping'})
             if all_proc:
                 node.command({'CMD': 'killall iperf;killall iperf3;killall netperf'})
-                node.command({'CMD': 'killall fping'})
         return
 
     def clear_all(self, close_R=0):
@@ -357,7 +387,8 @@ class Experiment:
     def transfer_all_later(self):
         #self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/data/' +self.unique_id+ '/* browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
         self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/data/' +self.unique_id+ ' '+const.DATA_SERVER_PATH})
-        self.S.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r '+const.TMP_DATA_PATH+self.unique_id+'/* '+const.DATA_SERVER_PATH+self.unique_id+'/'})
+        #rsync --rsh="sshpass -p passw0rd ssh -l browserlab" const.TMP_DATA_PATH:/var/www/html/ /backup/
+        self.S.command({'CMD': 'scp -o StrictHostKeyChecking=no -r '+const.TMP_DATA_PATH+self.unique_id+'/* '+const.DATA_SERVER_PATH+self.unique_id+'/'})
         return
 
     def passive(self, comment, timeout):
@@ -421,6 +452,7 @@ class Experiment:
         self.transfer_logs(self.run_number, comment)
 
         #hack to start udp servers for next round
+        self.start_iperf3_servers()
         if self.udp == 1:
             self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
@@ -463,6 +495,7 @@ class Experiment:
         self.transfer_logs(self.run_number, comment)
 
         #hack to start udp servers for next round
+        self.start_iperf3_servers()
         if self.udp == 1:
             self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
@@ -486,37 +519,93 @@ class Experiment:
         print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()
         if self.non_blocking_experiment:
-            time.sleep(timeout)
-        print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
+	    #takes around 3 sec to transfer results properly for iperf3 RA tcp
+            time.sleep(timeout + 5.0)
+            print '\nDEBUG: Sleep for ' + str(timeout + 5.0) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
 
         self.kill_all(1)
         self.transfer_logs(self.run_number, comment)
 
         #hack to start udp servers for next round
+        self.start_iperf3_servers()
         if self.udp == 1:
             self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
         return
 
+    def parse_probe(self, filename):
+        fread = open(filename, 'r')
+        capacity = defaultdict(list)
+        lines = [line.rstrip('\n') for line in fread]
+        if len(lines) == 0:
+            print "no data "+ filename
+            return capacity
+        # router
+        elif len(lines) == 1:
+            router_data = lines[0].split('\x1b[2K\r')
+            if len(router_data) > 0:
+                for each_line in router_data[:-1]:
+                    data = each_line.split()
+                    if len(data) > 0:
+                        if data[0] == 'Upload':
+                            direction = 'up'
+                            value = data[4]
+                            train_num = data[3].rstrip(':')
+                        elif data[0] == 'Download':
+                            direction = 'dw'
+                            value = data[4]
+                            train_num = data[3].rstrip(':')
+                        capacity[direction].append(float(value))
+                        capacity['num_'+direction].append(train_num)
+                lines = router_data
+        # normal
+        else:
+            for line in lines[:-1]:
+                data = line.split()
+                direction = data[0]
+                value = data[2]
+                train_num = data[1].rstrip(':')
+                capacity[direction].append(float(value))
+                capacity['num_'+direction].append(train_num)
+        if len(lines[-1].split(', ')) == 4:
+            dstip, timestamp, capup, capdw = lines[-1].split(', ')
+            capacity['num_up'].append('final')
+            capacity['num_dw'].append('final')
+            capacity['up'].append(float(capup))
+            capacity['dw'].append(float(capdw))
+            capacity['timestamp'] = timestamp
+            capacity['dstip'] = dstip
+            return capacity
+        print 'Error in reading '+filename
+        return capacity
+
     def parse_udpprobe_output(self, filename):
-        p = MyParser()
-        df = p.parse_probe(filename)
+        #p = MyParser()
+        df = self.parse_probe(filename)
         if len(df) > 0:
-            return df.iloc[10]['up'], df.iloc[10]['dw']
+            return df['up'][10], df['dw'][10]
         return np.nan, np.nan
 
-    def get_udpprobe_rate(self):
+    def get_udpprobe_rate(self, x=1):
         comment = 'udp_probe'
         self.experiment_name = comment          #same as comment
         self.get_folder_name_from_server()
         if self.tcpdump == 1:
             self.tcpdump_radiotapdump('', 0)
+        # set experiment suffix to none for blocking udpprober
+        self.experiment_suffix = ''
         print "DONE ", self.probe_udp_AR()
         print "DONE ", self.probe_udp_AS()
         self.start_shaperprobe_udp_servers()
         print "DONE ", self.probe_udp_RS()
+        time.sleep(15)
+        # as RS probe is non blocking so sleep for 15 sec
+        # if non blocking, set it back to bg process
+        if self.non_blocking_experiment:
+            self.experiment_suffix = ' &'
         self.kill_all(1)
         self.transfer_logs(self.run_number, comment)
+        self.start_iperf3_servers()
         if self.udp == 1:
             self.start_iperf_udp_servers()
             self.start_shaperprobe_udp_servers()
@@ -525,9 +614,9 @@ class Experiment:
         self.probe_rate['e2e'] = self.parse_udpprobe_output(probe_path + 'probe_AS_A.log')
         self.probe_rate['home'] = self.parse_udpprobe_output(probe_path + 'probe_AR_A.log')
         self.probe_rate['access'] = self.parse_udpprobe_output(probe_path + 'probe_RS_R.log')
-        print "UDP probe (up, dw) home, access, e2e: ", self.probe_rate
+        print "DEBUG: "+str(time.time())+": UDP probe (up, dw) home, access, e2e: ", self.probe_rate
 
-        self.set_udp_rate_mbit(self.probe_rate['access'][1], self.probe_rate['home'][1])
+        self.set_udp_rate_mbit(float(self.probe_rate['access'][x])/1000, float(self.probe_rate['home'][x])/1000)
 
         return
 
@@ -541,32 +630,44 @@ class Experiment:
 
     # iperf tcp
     def iperf_tcp_up_AR(self):
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.R, 'AR', self.timeout, 0, 'tcp', 0)
         self.R.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_AR_R.log &'})
         self.A.command({'CMD': 'iperf -c ' + const.ROUTER_ADDRESS_LOCAL + ' -y C -i 0.5 > /tmp/browserlab/iperf_AR_A.log'+self.experiment_suffix})
         return 'AR_tcp'
 
     def iperf_tcp_dw_RA(self):
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.R, 'RA', self.timeout, 1, 'tcp', 0)
         self.A.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_RA_A.log &'})
         self.R.command({'CMD': 'iperf -c ' + self.A.ip + ' -y C -i 0.5 > /tmp/browserlab/iperf_RA_R.log'+self.experiment_suffix})
         return 'RA_tcp'
 
     def iperf_tcp_up_RS(self):
+        if const.USE_IPERF3:
+            return self.iperf3(self.R, self.S, 'RS', self.timeout, 0, 'tcp', 0)
         self.S.command({'CMD': 'iperf -s -y C > '+const.TMP_BROWSERLAB_PATH+'iperf_RS_S.log &'})
         self.R.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C -i 0.5 > /tmp/browserlab/iperf_RS_R.log'+self.experiment_suffix})
         return 'RS_tcp'
 
     def iperf_tcp_dw_SR(self):
+        if const.USE_IPERF3:
+            return self.iperf3(self.R, self.S, 'SR', self.timeout, 1, 'tcp', 0)
         self.R.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_SR_R.log &'})
         self.S.command({'CMD': 'iperf -c ' + const.ROUTER_ADDRESS_GLOBAL + ' -y C -i 0.5 > '+const.TMP_BROWSERLAB_PATH+'iperf_SR_S.log'+self.experiment_suffix})
         return 'SR_tcp'
 
     def iperf_tcp_up_AS(self):
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.S, 'AS', self.timeout, 0, 'tcp', 0)
         self.S.command({'CMD': 'iperf -s -y C >> '+const.TMP_BROWSERLAB_PATH+'iperf_AS_S.log &'})
         self.A.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C -i 0.5 > /tmp/browserlab/iperf_AS_A.log'+self.experiment_suffix})
         return 'AS_tcp'
 
     def iperf_tcp_dw_SA(self):
         #NOTE this requires iperf reverse installed on client and server
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.S, 'SA', self.timeout, 1, 'tcp', 0)
         self.S.command({'CMD': 'iperf -s -y C -i 0.5 -t 10 --reverse > '+const.TMP_BROWSERLAB_PATH+'iperf_SA_S.log &'})
         self.A.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C --reverse > /tmp/browserlab/iperf_SA_A.log'+self.experiment_suffix})
         return 'SA_tcp'
@@ -706,16 +807,18 @@ class Experiment:
         if proto != 'tcp':
             cmd = cmd + ' -u -b '+rate_mbit +'m'
         if self.parallel:
-            cmd = cmd + ' -P '+str(const.TCP_PARALLEL_STREAMS)
+            cmd = cmd + ' -P '+str(self.num_parallel_streams)
+        if self.use_window_size:
+            cmd = cmd + ' -w '+self.window_size
 
         if tx.name == 'S':
             tx.command({'CMD': cmd + ' > '+const.TMP_BROWSERLAB_PATH+'iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})
         else:
             tx.command({'CMD': cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})
 
-        if self.non_blocking_experiment:
-            time.sleep(timeout+0.2)
-        print str(time.time()) + " DONE iperf3 DEBUG: " + cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix
+        #if self.non_blocking_experiment:
+        #    time.sleep(timeout+1.0)
+        print "DEBUG: " + tx.name+ " " + str(time.time()) + " DONE: " + cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix
 
         return link + '_' + proto
 

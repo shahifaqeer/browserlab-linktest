@@ -2,7 +2,8 @@
 
 #CLIENT
 from __future__ import division
-from cmds import Experiment, Router
+from cmds import Experiment
+from classes import Router, Server, Client
 
 import time
 import subprocess
@@ -333,43 +334,71 @@ def experiment_suit_testbed_udp(e):
 
     return
 
-def real_udp_probes(e):
+def real_udp_probes(e, OTHER_NODE=False):
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AS " +str(e.experiment_counter)
     e.run_udpprobe(e.probe_udp_AS, 'AS_pro')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AR " +str(e.experiment_counter)
     e.run_udpprobe(e.probe_udp_AR, 'AR_pro')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe RS " +str(e.experiment_counter)
     e.run_udpprobe(e.probe_udp_RS, 'RS_pro')
+
+    if OTHER_NODE:
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe AB " +str(e.experiment_counter)
+        e.run_udpprobe(e.probe_udp_AR, 'AR_pro')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run probe BS " +str(e.experiment_counter)
+        e.run_udpprobe(e.probe_udp_RS, 'RS_pro')
+
     return
 
-def real_udp_perf(e):
+def real_udp_perf(e, OTHER_NODE=False):
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AS " +str(e.experiment_counter)
-    e.run_experiment(e.iperf_udp_up_AS, 'AS_udp')
+    e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AR " +str(e.experiment_counter)
-    e.run_experiment(e.iperf_udp_up_AR, 'AR_udp')
+    e.run_only_experiment(e.iperf_udp_up_AR, 'AR_udp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RS " +str(e.experiment_counter)
-    e.run_experiment(e.iperf_udp_up_RS, 'RS_udp')
+    e.run_only_experiment(e.iperf_udp_up_RS, 'RS_udp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SA " +str(e.experiment_counter)
-    e.run_experiment(e.iperf_udp_dw_SA, 'SA_udp')
+    e.run_only_experiment(e.iperf_udp_dw_SA, 'SA_udp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RA " +str(e.experiment_counter)
-    e.run_experiment(e.iperf_udp_dw_RA, 'RA_udp')
+    e.run_only_experiment(e.iperf_udp_dw_RA, 'RA_udp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SR " +str(e.experiment_counter)
-    e.run_experiment(e.iperf_udp_dw_SR, 'SR_udp')
+    e.run_only_experiment(e.iperf_udp_dw_SR, 'SR_udp')
+
+    if OTHER_NODE:
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AB " +str(e.experiment_counter)
+        e.run_experiment(e.iperf_udp_up_AB, 'AB_udp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp BS " +str(e.experiment_counter)
+        e.run_experiment(e.iperf_udp_up_BS, 'BS_udp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp BA " +str(e.experiment_counter)
+        e.run_experiment(e.iperf_udp_dw_BA, 'BA_udp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp SB " +str(e.experiment_counter)
+        e.run_experiment(e.iperf_udp_dw_SB, 'SB_udp')
+
     return
 
-def real_tcp_perf(e):
+def real_tcp_perf(e, OTHER_NODE=False):
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AS " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
+    e.run_only_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AR " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+    e.run_only_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf RS " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
+    e.run_only_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf SA " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
+    e.run_only_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf RA " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
+    e.run_only_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf SR " +str(e.experiment_counter)
-    e.run_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
+    e.run_only_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
+
+    if OTHER_NODE:
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AB " +str(e.experiment_counter)
+        e.run_experiment(e.netperf_tcp_up_AB, 'AB_tcp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf BS " +str(e.experiment_counter)
+        e.run_experiment(e.netperf_tcp_up_BS, 'BS_tcp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf BA " +str(e.experiment_counter)
+        e.run_experiment(e.netperf_tcp_dw_BA, 'BA_tcp')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf SB " +str(e.experiment_counter)
+        e.run_experiment(e.netperf_tcp_dw_SB, 'SB_tcp')
     return
 
 def experiment_suit_real_all(e):
@@ -384,12 +413,13 @@ def experiment_suit_real_all(e):
     # udp bandwidth                         # 15 * 3 + 15 * 3 = 90 s
 
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
-    e.run_experiment(e.no_traffic, 'no_tra')
+    e.run_only_experiment(e.no_traffic, 'no_tra')
 
-    real_udp_probes(e)
-    e.get_udpprobe_rate()
-    real_udp_perf(e)
+    #real_udp_probes(e)
+    #e.get_udpprobe_rate()
+    #real_udp_perf(e)
     real_tcp_perf(e)
+
     #e.blast=1
     #real_udp_perf(e)
     #e.blast=0
@@ -458,7 +488,7 @@ def test_measurements(tot_runs, rate, timeout, comment=''):
 
     return e
 
-def  real_measurements(calibrate=False, timeout=5):
+def real_measurements(calibrate=False, timeout=5):
 
     measurement_folder_name = raw_input('Enter measurement name: ')
     tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
@@ -489,11 +519,11 @@ def  real_measurements(calibrate=False, timeout=5):
         print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
         e.run_experiment(e.no_traffic, 'no_tra')
 
+        e.get_udpprobe_rate()
         real_udp_perf(e)
         real_tcp_perf(e)
         real_udp_probes(e)
         e.blast=1
-        e.get_udpprobe_rate()
         #e.set_udp_rate_mbit(100,100,300)
         real_udp_perf(e)
         e.blast=0
@@ -530,6 +560,7 @@ def measure_iperf_sizes(folder_name, tot_runs, to, bits, calibrate=False):
     e.kill_all(1)
     e.clear_all()
     return e
+
 
 def remove_tc_shaping(client_int='eth0', router_int='eth0'):
     Q = Router('192.168.10.1', 'root', 'passw0rd')
@@ -594,7 +625,7 @@ def wired_simulation_testbed(rates, delays, tot_runs):
     return e
 
 
-if __name__ == "__main__":
+def udp_test_real_measurements(calibrate=False, timeout=5):
 
     measurement_folder_name = raw_input('Enter measurement name: ')
     tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
@@ -605,16 +636,219 @@ if __name__ == "__main__":
         tot_runs = 1
         print "Error. Running "+str(tot_runs)+" measurement."
 
-    timeout = iter([0.1, 0.11, 0.15, 0.9, 8.1, 15.5])
+    e = Experiment(measurement_folder_name)
+    e.collect_calibrate = calibrate
 
-    for bits in ['10K', '100K', '1M', '10M', '100M', '1000M']:
-        folder_name = measurement_folder_name + '_' + bits
-        to = timeout.next()
+    e.use_iperf_timeout = 1
+    e.timeout = timeout
+    e.tcpdump = 1
+
+    for nruns in range(tot_runs):
+        print "\n\t\tRUN : " + str(nruns) + "\n"
+
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+        if e.collect_calibrate:
+            e.run_calibrate()                       # 120 + 20 = 140 s
+        else:
+            print "not doing calibrate"
+
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
+        e.run_experiment(e.no_traffic, 'no_tra')
+
+        #real_tcp_perf(e)
+        real_udp_probes(e)
+        e.get_udpprobe_rate(1)
+        real_udp_perf(e)
+        e.get_udpprobe_rate(0)
+        real_udp_perf(e)
+
+        e.set_udp_rate_mbit(10,10,10)
+        real_udp_perf(e)
+        e.set_udp_rate_mbit(20,20,20)
+        real_udp_perf(e)
+        e.set_udp_rate_mbit(40,40,40)
+        real_udp_perf(e)
+        e.set_udp_rate_mbit(60,60,60)
+        real_udp_perf(e)
+        e.set_udp_rate_mbit(80,80,80)
+        real_udp_perf(e)
+        e.set_udp_rate_mbit(100,100,100)
+        real_udp_perf(e)
+        e.set_udp_rate_mbit(150,150,150)
+        real_udp_perf(e)
+
+        e.increment_experiment_counter()
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 5 sec before next run"
+        time.sleep(5)                          # 1 s wait before next suit
+
+    e.transfer_all_later()
+
+    e.kill_all(1)
+    e.clear_all()
+    return e
+
+def measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par=10, calibrate=False):
+
+    e = Experiment(folder_name)
+    e.collect_calibrate = calibrate
+
+    e.use_iperf_timeout = 1
+    e.timeout = timeout
+    e.num_parallel_streams = num_par
+
+    for nruns in range(tot_runs):
+        print "\n\t\tduration: "+str(timeout)+"; parallel: "+str(num_par)+"; RUN: " + str(nruns) + "\n"
+        experiment_suit_real_all(e)
+        #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf AR " +str(e.experiment_counter)
+        #e.run_only_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+        #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run netperf RA " +str(e.experiment_counter)
+        #e.run_only_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
+        time.sleep(1)
+
+    e.transfer_all_later()
+
+    e.kill_all(1)
+    e.clear_all()
+    return e
+
+def measure_iperf_udp_bandwidth_ratios(measurement_folder_name, tot_runs, timeout, calibrate=False):
+    e = Experiment(measurement_folder_name)
+    e.collect_calibrate = calibrate
+
+    e.use_iperf_timeout = 1
+    e.timeout = timeout
+    e.tcpdump = 1
+    e.parallel = 0
+    e.udp = 1
+
+    for nruns in range(tot_runs):
+        print "\n\t\tUDP duration: "+str(timeout)+"; RUN : " + str(nruns) + "\n"
+
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
+        if e.collect_calibrate:
+            e.run_calibrate()                       # 120 + 20 = 140 s
+        else:
+            print "not doing calibrate"
+
+        #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
+        #e.run_experiment(e.no_traffic, 'no_tra')
+
+        e.set_udp_rate_mbit(10,10,10)
+        real_udp_perf(e)
+        e.set_udp_rate_mbit(100,100,100)
+        real_udp_perf(e)
+
+        #SHAPERPROBE
+        real_udp_probes(e)
+        #e.get_udpprobe_rate(1)
+        #real_udp_perf(e)
+        #e.get_udpprobe_rate(0)
+        #real_udp_perf(e)
+
+        e.increment_experiment_counter()
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Wait 5 sec before next run"
+        time.sleep(5)                          # 1 s wait before next suit
+
+    e.transfer_all_later()
+
+    e.kill_all(1)
+    e.clear_all()
+
+    return
+
+def parallel_duration_run_suit():
+    # TCP
+    print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    starttime = time.time()
+
+    measurement_folder_name = raw_input('Enter measurement name: ')
+    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
+
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
+        tot_runs = 1
+        print "Error. Running "+str(tot_runs)+" measurement."
+
+    e = Experiment()
+    e.collect_calibrate = False
+    e.use_iperf_timeout = 1
+
+    all_folder_name_list = []
+
+    for nruns in range(tot_runs):
+        for num_par in [1, 2, 3, 4, 5, 10]:
+            for timeout in [2, 5, 10, 15]:
+        #for num_par in [1, 10]:
+        #    for timeout in [10]:
+                print "\n\t\tTCP duration: "+str(timeout)+"; parallel: "+str(num_par)+"; RUN: " + str(nruns) + "\n"
+
+                folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
+
+                if not folder_name in all_folder_name_list:
+                    all_folder_name_list.append(folder_name)
+
+                e.timeout = timeout
+                e.num_parallel_streams = num_par
+                e.set_unique_id(folder_name)
+
+                print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
+                e.run_only_experiment(e.no_traffic, 'no_tra')
+
+                real_tcp_perf(e)
+
+    for folder_name in all_folder_name_list:
+        e.set_unique_id(folder_name)
+        e.transfer_all_later()
+        e.kill_all(1)
+        e.clear_all()
+
+    # FOLLOW UP WITH UDP
+    timeout=2
+    folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
+    measure_iperf_udp_bandwidth_ratios(folder_name, tot_runs, timeout, False)
+
+    print "DONE ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    endtime = time.time()
+
+    print "\n Total time taken = ", endtime - starttime
+
+    return
 
 
-        measure_iperf_sizes(folder_name, tot_runs, to, bits, False)
+if __name__ == "__main__":
 
-    #comment = raw_input('Enter measurement comment: ')
+    # TCP
+    measurement_folder_name = raw_input('Enter measurement name: ')
+    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
+
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
+        tot_runs = 1
+        print "Error. Running "+str(tot_runs)+" measurement."
+
+    for num_par in [1, 2, 3, 4, 5, 10]:
+        for timeout in [2, 5, 10, 15]:
+            folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
+            measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par, False)
+
+    timeout=2
+    folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
+    measure_iperf_udp_bandwidth_ratios(folder_name, tot_runs, timeout, False)
+    # UDP
+
+
+    #timeout = iter([0.1, 0.11, 0.15, 0.9, 8.1, 15.5])
+
+    #for bits in ['10K', '100K', '1M', '10M', '100M', '1000M']:
+    #    folder_name = measurement_folder_name + '_' + bits
+    #    to = timeout.next()
+
+
+        #measure_iperf_sizes(folder_name, tot_runs, to, bits, False)
+
+        #comment = raw_input('Enter measurement comment: ')
     #tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
 
     #try:
