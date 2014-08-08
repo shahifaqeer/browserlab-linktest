@@ -630,32 +630,44 @@ class Experiment:
 
     # iperf tcp
     def iperf_tcp_up_AR(self):
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.R, 'AR', self.timeout, 0, 'tcp', 0)
         self.R.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_AR_R.log &'})
         self.A.command({'CMD': 'iperf -c ' + const.ROUTER_ADDRESS_LOCAL + ' -y C -i 0.5 > /tmp/browserlab/iperf_AR_A.log'+self.experiment_suffix})
         return 'AR_tcp'
 
     def iperf_tcp_dw_RA(self):
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.R, 'RA', self.timeout, 1, 'tcp', 0)
         self.A.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_RA_A.log &'})
         self.R.command({'CMD': 'iperf -c ' + self.A.ip + ' -y C -i 0.5 > /tmp/browserlab/iperf_RA_R.log'+self.experiment_suffix})
         return 'RA_tcp'
 
     def iperf_tcp_up_RS(self):
+        if const.USE_IPERF3:
+            return self.iperf3(self.R, self.S, 'RS', self.timeout, 0, 'tcp', 0)
         self.S.command({'CMD': 'iperf -s -y C > '+const.TMP_BROWSERLAB_PATH+'iperf_RS_S.log &'})
         self.R.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C -i 0.5 > /tmp/browserlab/iperf_RS_R.log'+self.experiment_suffix})
         return 'RS_tcp'
 
     def iperf_tcp_dw_SR(self):
+        if const.USE_IPERF3:
+            return self.iperf3(self.R, self.S, 'SR', self.timeout, 1, 'tcp', 0)
         self.R.command({'CMD': 'iperf -s -y C > /tmp/browserlab/iperf_SR_R.log &'})
         self.S.command({'CMD': 'iperf -c ' + const.ROUTER_ADDRESS_GLOBAL + ' -y C -i 0.5 > '+const.TMP_BROWSERLAB_PATH+'iperf_SR_S.log'+self.experiment_suffix})
         return 'SR_tcp'
 
     def iperf_tcp_up_AS(self):
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.S, 'AS', self.timeout, 0, 'tcp', 0)
         self.S.command({'CMD': 'iperf -s -y C >> '+const.TMP_BROWSERLAB_PATH+'iperf_AS_S.log &'})
         self.A.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C -i 0.5 > /tmp/browserlab/iperf_AS_A.log'+self.experiment_suffix})
         return 'AS_tcp'
 
     def iperf_tcp_dw_SA(self):
         #NOTE this requires iperf reverse installed on client and server
+        if const.USE_IPERF3:
+            return self.iperf3(self.A, self.S, 'SA', self.timeout, 1, 'tcp', 0)
         self.S.command({'CMD': 'iperf -s -y C -i 0.5 -t 10 --reverse > '+const.TMP_BROWSERLAB_PATH+'iperf_SA_S.log &'})
         self.A.command({'CMD': 'iperf -c ' + const.SERVER_ADDRESS + ' -y C --reverse > /tmp/browserlab/iperf_SA_A.log'+self.experiment_suffix})
         return 'SA_tcp'
