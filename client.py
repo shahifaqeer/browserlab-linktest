@@ -758,6 +758,9 @@ def measure_iperf_udp_bandwidth_ratios(measurement_folder_name, tot_runs, timeou
 
 def parallel_duration_run_suit():
     # TCP
+    print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    starttime = time.time()
+
     measurement_folder_name = raw_input('Enter measurement name: ')
     tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
 
@@ -774,10 +777,10 @@ def parallel_duration_run_suit():
     all_folder_name_list = []
 
     for nruns in range(tot_runs):
-        #for num_par in [1, 2, 3, 4, 5, 10]:
-        #    for timeout in [2, 5, 10, 15]:
-        for num_par in [1, 10]:
-            for timeout in [10]:
+        for num_par in [1, 3, 5, 10]:
+            for timeout in [2, 5, 10, 15]:
+        #for num_par in [1, 10]:
+        #    for timeout in [10]:
                 print "\n\t\tTCP duration: "+str(timeout)+"; parallel: "+str(num_par)+"; RUN: " + str(nruns) + "\n"
 
                 folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
@@ -804,6 +807,11 @@ def parallel_duration_run_suit():
     timeout=2
     folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
     measure_iperf_udp_bandwidth_ratios(folder_name, tot_runs, timeout, False)
+
+    print "DONE ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    endtime = time.time()
+
+    print "\n Total time taken = ", endtime - starttime
 
     return
 
