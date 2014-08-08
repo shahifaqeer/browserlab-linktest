@@ -777,7 +777,7 @@ def parallel_duration_run_suit():
     all_folder_name_list = []
 
     for nruns in range(tot_runs):
-        for num_par in [1, 3, 5, 10]:
+        for num_par in [1, 2, 3, 4, 5, 10]:
             for timeout in [2, 5, 10, 15]:
         #for num_par in [1, 10]:
         #    for timeout in [10]:

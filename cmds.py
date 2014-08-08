@@ -79,6 +79,9 @@ class Experiment:
         self.blk = not self.non_blocking_experiment
         self.before_timeout = const.BEFORE_TIMEOUT
         self.ping_timed = const.PING_TIMED
+        self.use_window_size = const.USE_WINDOW_SIZE
+        if self.use_window_size:
+            self.window_size = const.WINDOW_SIZE
 
         if self.non_blocking_experiment:
             self.experiment_suffix = ' &'
@@ -194,12 +197,12 @@ class Experiment:
     def tcpdump_radiotapdump(self, state, timeout):
         # weird bug with R.command(tcpdump) -> doesn't work with &
         # also seems like timeout only kills the bash/sh -c process but not tcpdump itself - no wonder it doesn't work!
-        if self.S.ip != '132.227.126.1':
-            if timeout:
-                self.S.command({'CMD':'/usr/sbin/tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
-            else:
-                self.S.command({'CMD':'/usr/sbin/tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap &'})
-            # dump at both incoming wireless and outgoing eth1 for complete picture
+        #if self.S.ip != '132.227.126.1':
+        if timeout:
+            self.S.command({'CMD':'/usr/sbin/tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap', 'TIMEOUT': timeout})
+        else:
+            self.S.command({'CMD':'/usr/sbin/tcpdump -s 200 -i '+const.SERVER_INTERFACE_NAME+' -w '+const.TMP_BROWSERLAB_PATH+'tcpdump_S'+state+'.pcap &'})
+        # dump at both incoming wireless and outgoing eth1 for complete picture
 
         if self.experiment_name[:2] == 'RS' or self.experiment_name[:2] == 'SR':
             router_interface_name = 'eth1'
@@ -783,6 +786,8 @@ class Experiment:
             cmd = cmd + ' -u -b '+rate_mbit +'m'
         if self.parallel:
             cmd = cmd + ' -P '+str(self.num_parallel_streams)
+        if self.use_window_size:
+            cmd = cmd + ' -w '+self.window_size
 
         if tx.name == 'S':
             tx.command({'CMD': cmd + ' > '+const.TMP_BROWSERLAB_PATH+'iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})
