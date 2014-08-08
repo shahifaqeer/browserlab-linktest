@@ -756,7 +756,7 @@ def measure_iperf_udp_bandwidth_ratios(measurement_folder_name, tot_runs, timeou
 
     return
 
-def parallel_omit_window_run_suit():
+def parallel_omit_window_run_suit(rate):
     # TCP
     print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     starttime = time.time()
@@ -775,6 +775,22 @@ def parallel_omit_window_run_suit():
     e.use_iperf_timeout = 1
 
     all_folder_name_list = []
+
+    # shape outer router to limit bandwidth value and add 40 ms delay
+    rate_bit = str(rate * 8)
+    timeout_sec = str(timeout)
+    rate_byte = str(rate)
+    Q = Router('192.168.1.1', 'root', 'passw0rd')
+    if rate != 0 and rate_byte != '0':
+        Q.remoteCommand('sh ratelimit3.sh eth0 '+rate_byte)
+        Q.remoteCommand('sh ratelimit3.sh eth1 '+rate_byte)
+        Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 40ms;tc qdisc show dev br-lan')
+    else:
+        Q.remoteCommand('tc qdisc del dev eth0 root')
+        Q.remoteCommand('tc qdisc del dev eth1 root')
+        #Q.remoteCommand('tc qdisc del dev br-lan root')
+    Q.host.close()
+
 
     timeout = 15
     for nruns in range(tot_runs):
@@ -810,11 +826,34 @@ def parallel_omit_window_run_suit():
 
                     real_tcp_perf(e)
 
+    #Remove tc shaping before transfer
+    Q = Router('192.168.1.1', 'root', 'passw0rd')
+    try:
+        subprocess.check_output('tc qdisc del dev eth0 root;tc qdisc del dev eth1 root', shell=True)
+    except Exception:
+        print subprocess.check_output('tc qdisc show dev eth0;tc qdisc show dev eth1', shell=True)
+    Q.host.close()
+
     for folder_name in all_folder_name_list:
         e.set_unique_id(folder_name)
         e.transfer_all_later()
         e.kill_all(1)
         e.clear_all()
+
+    # shape outer router to limit bandwidth value and add 40 ms delay
+    rate_bit = str(rate * 8)
+    timeout_sec = str(timeout)
+    rate_byte = str(rate)
+    Q = Router('192.168.1.1', 'root', 'passw0rd')
+    if rate != 0 and rate_byte != '0':
+        Q.remoteCommand('sh ratelimit3.sh eth0 '+rate_byte)
+        Q.remoteCommand('sh ratelimit3.sh eth1 '+rate_byte)
+        Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 40ms;tc qdisc show dev br-lan')
+    else:
+        Q.remoteCommand('tc qdisc del dev eth0 root')
+        Q.remoteCommand('tc qdisc del dev eth1 root')
+        #Q.remoteCommand('tc qdisc del dev br-lan root')
+    Q.host.close()
 
     # FOLLOW UP WITH UDP
     timeout=2
@@ -825,6 +864,13 @@ def parallel_omit_window_run_suit():
     endtime = time.time()
 
     print "\n Total time taken = ", endtime - starttime
+
+    Q = Router('192.168.1.1', 'root', 'passw0rd')
+    try:
+        subprocess.check_output('tc qdisc del dev eth0 root;tc qdisc del dev eth1 root', shell=True)
+    except Exception:
+        print subprocess.check_output('tc qdisc show dev eth0;tc qdisc show dev eth1', shell=True)
+    Q.host.close()
 
     return
 
