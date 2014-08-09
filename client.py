@@ -756,7 +756,7 @@ def measure_iperf_udp_bandwidth_ratios(measurement_folder_name, tot_runs, timeou
 
     return
 
-def parallel_duration_run_suit():
+def parallel_omit_window_run_suit():
     # TCP
     print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     starttime = time.time()
@@ -776,26 +776,39 @@ def parallel_duration_run_suit():
 
     all_folder_name_list = []
 
+    timeout = 15
     for nruns in range(tot_runs):
-        for num_par in [1, 2, 3, 4, 5, 10]:
-            for timeout in [2, 5, 10, 15]:
-        #for num_par in [1, 10]:
-        #    for timeout in [10]:
-                print "\n\t\tTCP duration: "+str(timeout)+"; parallel: "+str(num_par)+"; RUN: " + str(nruns) + "\n"
+        for num_par in [1, 3, 5]:
+            for skip in [0, 2]:
+                for window in ['0M', '4M', '100M']:
+                    print "\n\t\tTCP duration: "+str(timeout)+"; parallel: "+str(num_par)+"; skip: "+str(skip)+"; window: "+window+"; RUN: " + str(nruns) + "\n"
 
-                folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
+                    folder_name = measurement_folder_name + '_tcp_' + str(timeout) + '_'+ str(num_par) + '_' + str(skip) + '_' + window
+                    if not folder_name in all_folder_name_list:
+                        all_folder_name_list.append(folder_name)
+                    e.set_unique_id(folder_name)
 
-                if not folder_name in all_folder_name_list:
-                    all_folder_name_list.append(folder_name)
+                    e.timeout = timeout
+                    if num_par == 1:
+                        e.parallel = False
+                    else:
+                        e.parallel = True
+                        e.num_parallel_streams = num_par
+                    if skip == 0:
+                        e.use_omit_n_sec = False
+                    else:
+                        e.use_omit_n_sec = True
+                        e.omit_n_sec = skip
+                    if window == '0M':
+                        e.use_window_size = False
+                    else:
+                        e.use_window_size = True
+                        e.window_size = window
 
-                e.timeout = timeout
-                e.num_parallel_streams = num_par
-                e.set_unique_id(folder_name)
+                    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
+                    e.run_only_experiment(e.no_traffic, 'no_tra')
 
-                print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
-                e.run_only_experiment(e.no_traffic, 'no_tra')
-
-                real_tcp_perf(e)
+                    real_tcp_perf(e)
 
     for folder_name in all_folder_name_list:
         e.set_unique_id(folder_name)

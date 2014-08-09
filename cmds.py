@@ -810,6 +810,8 @@ class Experiment:
             cmd = cmd + ' -P '+str(self.num_parallel_streams)
         if self.use_window_size:
             cmd = cmd + ' -w '+self.window_size
+        if self.use_omit_n_sec:
+            cmd = cmd + ' -O '+self.omit_n_sec
 
         if tx.name == 'S':
             tx.command({'CMD': cmd + ' > '+const.TMP_BROWSERLAB_PATH+'iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})
