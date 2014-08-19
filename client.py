@@ -401,6 +401,26 @@ def real_tcp_perf(e, OTHER_NODE=False):
         e.run_experiment(e.netperf_tcp_dw_SB, 'SB_tcp')
     return
 
+def real_udp_perf2(e):
+    # with reverse test
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AS " +str(e.experiment_counter)
+    e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp AR " +str(e.experiment_counter)
+    e.run_only_experiment(e.iperf_udp_up_AR, 'AR_udp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run perf udp RS " +str(e.experiment_counter)
+    e.run_only_experiment(e.iperf_udp_up_RS, 'RS_udp')
+    return
+
+def real_tcp_perf2(e,):
+    # iperf reverse mode
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AS " +str(e.experiment_counter)
+    e.run_only_experiment(e.iperf_tcp_up_AS, 'AS_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf AR " +str(e.experiment_counter)
+    e.run_only_experiment(e.iperf_tcp_up_AR, 'AR_tcp')
+    print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run iperf RS " +str(e.experiment_counter)
+    e.run_only_experiment(e.iperf_tcp_up_RS, 'RS_tcp')
+    return
+
 def experiment_suit_real_all(e):
 
     print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run Experiment Suit"
@@ -734,9 +754,11 @@ def measure_iperf_udp_bandwidth_ratios(measurement_folder_name, tot_runs, timeou
         #e.run_experiment(e.no_traffic, 'no_tra')
 
         e.set_udp_rate_mbit(10,10,10)
-        real_udp_perf(e)
+        #real_udp_perf(e)
+        real_udp_perf2(e)
         e.set_udp_rate_mbit(100,100,100)
-        real_udp_perf(e)
+        #real_udp_perf(e)
+        real_udp_perf2(e)
 
         #SHAPERPROBE
         real_udp_probes(e)
@@ -777,10 +799,10 @@ def parallel_duration_run_suit():
     all_folder_name_list = []
 
     for nruns in range(tot_runs):
-        for num_par in [1, 2, 3, 4, 5, 10]:
-            for timeout in [2, 5, 10, 15]:
-        #for num_par in [1, 10]:
-        #    for timeout in [10]:
+        #for num_par in [1, 2, 3, 4, 5, 10]:
+        #    for timeout in [2, 5, 10, 15]:
+        for num_par in [1, 10]:
+            for timeout in [10]:
                 print "\n\t\tTCP duration: "+str(timeout)+"; parallel: "+str(num_par)+"; RUN: " + str(nruns) + "\n"
 
                 folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
@@ -795,7 +817,8 @@ def parallel_duration_run_suit():
                 print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
                 e.run_only_experiment(e.no_traffic, 'no_tra')
 
-                real_tcp_perf(e)
+                #real_tcp_perf(e)
+                real_tcp_perf2(e)
 
     for folder_name in all_folder_name_list:
         e.set_unique_id(folder_name)

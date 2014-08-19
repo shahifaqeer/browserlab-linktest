@@ -5,10 +5,13 @@ PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
 CALIBRATE_TIMEOUT = 120
 PING_SIZE = '1400'
+SERVER = 'CMON'
 
 # IPERF3 CONFIG OPTIONS
 PERF_PORT = '5201'
-USE_IPERF3 = 1
+NETPERF_PORT = '5205'
+USE_IPERF3 = 0
+IPERF_REV = 1               #if using iperf instead of iperf3 for udp/tcp, use -r flag for 2 way test
 INIT_HOME_RATE = 100        # Mbps threshold for wireless iperf udp -b
 INIT_ACCESS_RATE = 100      # Mbps for access link iperf udp -b
 INIT_BLAST_RATE = 150       # Mbps for access link iperf udp -b
@@ -28,6 +31,7 @@ BEFORE_TIMEOUT = 2
 COLLECT_tcp = 1
 COLLECT_udp = 0
 COLLECT_udp_blast = 0
+COLLECT_udpprobe = 0
 COLLECT_tcpdump = 1         # tcpdump is messing things up so don't collect at the moment
 PROBE_TIMEOUT = 25          # seconds for shaperprobe udp
 TMP_BROWSERLAB_PATH = '$HOME/tmp/browserlab/'
@@ -58,10 +62,10 @@ GENERIC_WIRELESS_INTERFACE_NAME = "wlan"
 #SERVER_ADDRESS = '130.207.97.240'
 SERVER_ADDRESS = '132.227.126.1' #cmon.lip6
 SERVER_INTERFACE_NAME = 'eth0'
-ROUTER_PASS = 'bismark123' #'passw0rd'
+ROUTER_PASS = 'passw0rd'
 ROUTER_ADDRESS_GLOBAL = '193.51.181.101' #'132.227.127.193'
-ROUTER_ADDRESS_LOCAL = '192.168.142.1'
-CLIENT_ADDRESS = '192.168.142.108' #'192.168.146.128'
+ROUTER_ADDRESS_LOCAL = '192.168.1.1'
+CLIENT_ADDRESS = '192.168.1.108' #'192.168.146.128'
 EXTRA_NODE_ADDRESSES = ['192.168.1.135']
 
 # ---------------------------------------------------------
