@@ -750,8 +750,8 @@ def measure_iperf_udp_bandwidth_ratios(measurement_folder_name, tot_runs, timeou
         else:
             print "not doing calibrate"
 
-        #print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
-        #e.run_experiment(e.no_traffic, 'no_tra')
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
+        e.run_experiment(e.no_traffic, 'no_tra')
 
         e.set_udp_rate_mbit(10,10,10)
         #real_udp_perf(e)
@@ -761,7 +761,7 @@ def measure_iperf_udp_bandwidth_ratios(measurement_folder_name, tot_runs, timeou
         real_udp_perf2(e)
 
         #SHAPERPROBE
-        real_udp_probes(e)
+        #real_udp_probes(e)
         #e.get_udpprobe_rate(1)
         #real_udp_perf(e)
         #e.get_udpprobe_rate(0)
@@ -841,24 +841,25 @@ def parallel_duration_run_suit():
 
 if __name__ == "__main__":
 
+    parallel_duration_run_suit()
     # TCP
-    measurement_folder_name = raw_input('Enter measurement name: ')
-    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
+    #measurement_folder_name = raw_input('Enter measurement name: ')
+    #tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
 
-    try:
-        tot_runs = int(tot_runs)
-    except Exception:
-        tot_runs = 1
-        print "Error. Running "+str(tot_runs)+" measurement."
+    #try:
+    #    tot_runs = int(tot_runs)
+    #except Exception:
+    #    tot_runs = 1
+    #    print "Error. Running "+str(tot_runs)+" measurement."
 
-    for num_par in [1, 2, 3, 4, 5, 10]:
-        for timeout in [2, 5, 10, 15]:
-            folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
-            measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par, False)
+    #for num_par in [1, 2, 3, 4, 5, 10]:
+    #    for timeout in [2, 5, 10, 15]:
+    #       folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
+    #       measure_iperf_tcp_duration_streams(folder_name, tot_runs, timeout, num_par, False)
 
-    timeout=2
-    folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
-    measure_iperf_udp_bandwidth_ratios(folder_name, tot_runs, timeout, False)
+    #timeout=2
+    #folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
+    #measure_iperf_udp_bandwidth_ratios(folder_name, tot_runs, timeout, False)
     # UDP
 
 
