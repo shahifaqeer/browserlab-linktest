@@ -3,7 +3,7 @@
 #CLIENT
 from __future__ import division
 from cmds import Experiment
-from classes import Router, Server, Client
+from classes import Router, Client
 
 import time
 import subprocess
@@ -838,6 +838,112 @@ def parallel_duration_run_suit():
 
     return
 
+def compare_all_techniques(NUM_PARALLEL=[1,3,5,10], TIMEOUTS=[2,5,10]):
+    print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    starttime = time.time()
+
+    measurement_folder_name = raw_input('Enter measurement name: ')
+    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
+
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
+        tot_runs = 1
+        print "Error. Running "+str(tot_runs)+" measurement."
+
+    e = Experiment()
+    # set all to yes
+    e.collect_calibrate = False
+    e.use_iperf_timeout = 1
+    e.USE_IPERF3 = 1
+    e.USE_IPERF_REV = 1
+    e.USE_UDP_PROBE = 1
+    e.USE_NETPERF = 1
+    e.tcp = 1
+    e.udp = 1
+    e.start_servers()
+
+    all_folder_name_list = []
+
+    for nruns in range(tot_runs):
+        for timeout in TIMEOUTS:
+
+            for num_par in NUM_PARALLEL:
+                print "\n\t\tTCP duration: "+str(timeout)+"; parallel: "+str(num_par)+"; RUN: " + str(nruns) + "\n"
+
+                folder_name = measurement_folder_name + '_tcp_duration_' + str(timeout) + '_parallel_' + str(num_par)
+                if not folder_name in all_folder_name_list:
+                    all_folder_name_list.append(folder_name)
+
+                e.timeout = timeout
+                if num_par > 1:
+                    e.parallel = 1
+                else:
+                    e.parallel = 0
+                e.num_parallel_streams = num_par
+                e.set_unique_id(folder_name)
+
+                print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
+                e.run_only_experiment(e.no_traffic, 'no_tra')
+                # iperf
+                e.run_only_experiment(e.iperf_tcp_up_AS, 'AS_tcp')
+                e.run_only_experiment(e.iperf_tcp_up_AR, 'AR_tcp')
+                e.run_only_experiment(e.iperf_tcp_up_RS, 'RS_tcp')
+                #iperf3
+                e.run_only_experiment(e.iperf3_tcp_up_AS, 'AS_tcp')
+                e.run_only_experiment(e.iperf3_tcp_up_AR, 'AR_tcp')
+                e.run_only_experiment(e.iperf3_tcp_up_RS, 'RS_tcp')
+                e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
+                e.run_only_experiment(e.iperf3_tcp_dw_RA, 'RA_tcp')
+                e.run_only_experiment(e.iperf3_tcp_dw_SR, 'SR_tcp')
+                #netperf
+                e.run_only_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
+                e.run_only_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+                e.run_only_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
+                e.run_only_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
+                e.run_only_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
+                e.run_only_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
+
+            #UDP
+            folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
+            if not folder_name in all_folder_name_list:
+                all_folder_name_list.append(folder_name)
+            e.set_udp_rate_mbit(100,100,100)
+            #iperf3
+            e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
+            e.run_only_experiment(e.iperf_udp_up_AR, 'AR_udp')
+            e.run_only_experiment(e.iperf_udp_up_RS, 'RS_udp')
+            e.run_only_experiment(e.iperf_udp_dw_SA, 'SA_udp')
+            e.run_only_experiment(e.iperf_udp_dw_RA, 'RA_udp')
+            e.run_only_experiment(e.iperf_udp_dw_SR, 'SR_udp')
+            #iperf
+            e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
+            e.run_only_experiment(e.iperf_udp_up_AR, 'AR_udp')
+            e.run_only_experiment(e.iperf_udp_up_RS, 'RS_udp')
+            #udp probe
+            e.run_experiment(e.probe_udp_AR, 'AR_udp')
+            e.run_experiment(e.probe_udp_AS, 'AS_udp')
+            e.run_experiment(e.probe_udp_RS, 'RS_udp')
+
+
+    print "DONE ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    endtime = time.time()
+
+    print "\n Total time taken = ", endtime - starttime
+    transfer = raw_input("start transfer... [y]")
+
+    if transfer == 'y' or transfer == 'Y':
+        for folder_name in all_folder_name_list:
+            e.set_unique_id(folder_name)
+            e.transfer_all_later()
+            e.kill_all(1)
+            e.clear_all()
+
+        print "DONE Transfer ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        endtime2 = time.time()
+        print "\n Total transfer time = ", endtime2 - endtime
+
+    return
 
 if __name__ == "__main__":
 
