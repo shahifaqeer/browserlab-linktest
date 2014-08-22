@@ -947,7 +947,9 @@ def compare_all_techniques(NUM_PARALLEL=[1,3,5,10], TIMEOUTS=[2,5,10]):
 
 if __name__ == "__main__":
 
-    parallel_duration_run_suit()
+    compare_all_techniques(NUM_PARALLEL=[1], TIMEOUTS=[2])
+
+    #parallel_duration_run_suit()
     # TCP
     #measurement_folder_name = raw_input('Enter measurement name: ')
     #tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
