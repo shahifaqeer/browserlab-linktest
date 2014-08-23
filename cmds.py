@@ -50,8 +50,8 @@ class Experiment:
         self.set_unique_id(measurement_name)
         self.set_test_timeout(const.EXPERIMENT_TIMEOUT)
 
-        self.kill_all(1)  #kill tcpdump, iperf, netperf, fping on all
-        self.clear_all(0) #clear /tmp/browserlab/* but don't close the connection to R
+        self.kill_all(1)    #kill tcpdump, iperf, netperf, fping on all
+        self.clear_all(0)   #clear /tmp/browserlab/* but don't close the connection to R
 
         self.set_config_options(const.METHOD)
         self.set_iperf_config_options()
@@ -271,9 +271,9 @@ class Experiment:
             self.R.command({'CMD': 'netserver -p '+const.NETPERF_PORT})
             self.A.command({'CMD': 'netserver -p '+const.NETPERF_PORT})
         else:
-            self.S.command({'CMD': 'netserver'})
-            self.R.command({'CMD': 'netserver'})
-            self.A.command({'CMD': 'netserver'})
+            self.S.command({'CMD': 'netserver -p '+const.NETPERF_PORT})
+            self.R.command({'CMD': 'netserver -p '+const.NETPERF_PORT})
+            self.A.command({'CMD': 'netserver -p '+const.NETPERF_PORT})
         return
 
     def start_iperf3_servers(self):
@@ -294,14 +294,14 @@ class Experiment:
     def start_iperf_rev_servers(self, proto):
         if proto == 'udp':
             for rx in [self.R, self.A]:
-                rx.command({'CMD': 'iperf -s -u >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
+                rx.command({'CMD': 'iperf -s -u -p '+ const.IPERF_UDP_PORT +' >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
             rx = self.S
-            rx.command({'CMD': 'iperf -s -u >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_server_'+rx.name+'.log &'})
+            rx.command({'CMD': 'iperf -s -u -p '+ const.IPERF_UDP_PORT +' >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_server_'+rx.name+'.log &'})
         elif proto == 'tcp':
             for rx in [self.R, self.A]:
-                rx.command({'CMD': 'iperf -s >> /tmp/browserlab/iperf_tcp_server_'+rx.name+'.log &'})
+                rx.command({'CMD': 'iperf -s -p '+ const.IPERF_TCP_PORT+' >> /tmp/browserlab/iperf_tcp_server_'+rx.name+'.log &'})
             rx = self.S
-            rx.command({'CMD': 'iperf -s >> '+const.TMP_BROWSERLAB_PATH+'iperf_tcp_server_'+rx.name+'.log &'})
+            rx.command({'CMD': 'iperf -s -p '+const.IPERF_TCP_PORT+' >> '+const.TMP_BROWSERLAB_PATH+'iperf_tcp_server_'+rx.name+'.log &'})
         return
 
     def start_iperf_servers(self):
@@ -479,7 +479,7 @@ class Experiment:
         print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()
         if self.non_blocking_experiment:
-            tIME.Sleep(timeout)
+            time.sleep(timeout)
         print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
 
         state = 'after'
@@ -559,9 +559,9 @@ class Experiment:
         print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()
         if self.non_blocking_experiment:
-	    #takes around 3 sec to transfer results properly for iperf3 RA tcp
-            time.sleep(timeout + 5.0)
+            #takes around 3 sec to transfer results properly for iperf3 RA tcp
             print '\nDEBUG: Sleep for ' + str(timeout + 5.0) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
+            time.sleep(timeout + 5.0)
 
         self.kill_all(1)
         self.transfer_logs(self.run_number, comment)
@@ -678,7 +678,7 @@ class Experiment:
         if tx.name == 'S' and rx.name == 'R':
             recv_ip = const.ROUTER_ADDRESS_GLOBAL
 
-        cmd = 'iperf -c ' + recv_ip + ' -t '+str(timeout)
+        cmd = 'iperf -c ' + recv_ip + ' -t '+str(timeout)+' -p '+const.IPERF_TCP_PORT
         if reverse:
             cmd = cmd + ' -r '                      #do a bidirectional test individually
 
@@ -709,7 +709,7 @@ class Experiment:
         if tx.name == 'S' and rx.name == 'R':
             recv_ip = const.ROUTER_ADDRESS_GLOBAL
 
-        cmd = 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -t '+str(timeout)
+        cmd = 'iperf -c ' + recv_ip + ' -u -b ' + rate_mbit + 'm -t '+str(timeout)+ ' -p '+const.IPERF_UDP_PORT
         if reverse:
             cmd = cmd + ' -r '                  #do a bidirectional test individually
 
@@ -793,7 +793,7 @@ class Experiment:
         return self.iperf3(self.A, self.R, 'AR', self.timeout, 0, 'tcp', 0)
 
     def netperf_tcp_up_AR(self):
-        self.netperf_tcp(self.A, self.R, self.timeout, self.parallel, 0)
+        return self.netperf_tcp(self.A, self.R, self.timeout, self.parallel, 0)
 
     def iperf_tcp_up_RS(self):
         return self.iperf_tcp(self.R, self.S, self.timeout, self.parallel, const.USE_IPERF_REV)
@@ -802,7 +802,7 @@ class Experiment:
         return self.iperf3(self.R, self.S, 'RS', self.timeout, 0, 'tcp', 0)
 
     def netperf_tcp_up_RS(self):
-        self.netperf_tcp(self.R, self.S, self.timeout, self.parallel, 0)
+        return self.netperf_tcp(self.R, self.S, self.timeout, self.parallel, 0)
 
     def iperf_tcp_up_AS(self):
         return self.iperf_tcp(self.A, self.S, self.timeout, self.parallel, const.USE_IPERF_REV)
@@ -811,7 +811,7 @@ class Experiment:
         return self.iperf3(self.A, self.S, 'AS', self.timeout, 0, 'tcp', 0)
 
     def netperf_tcp_up_AS(self):
-        self.netperf_tcp(self.A, self.s, self.timeout, self.parallel, 0)
+        return self.netperf_tcp(self.A, self.S, self.timeout, self.parallel, 0)
 
     def iperf_tcp_dw_RA(self):
         return self.iperf_tcp(self.A, self.R, self.timeout, self.parallel, const.USE_IPERF_REV)
@@ -820,16 +820,16 @@ class Experiment:
         return self.iperf3(self.A, self.R, 'RA', self.timeout, 1, 'tcp', 0)
 
     def netperf_tcp_dw_RA(self):
-        self.netperf_tcp(self.R, self.A, self.timeout, self.parallel, 1)
+        return self.netperf_tcp(self.R, self.A, self.timeout, self.parallel, 1)
 
     def iperf_tcp_dw_SR(self):
         return self.iperf_tcp(self.S, self.R, self.timeout, self.parallel, const.USE_IPERF_REV)
 
-    def iperf_tcp_dw_SR(self):
+    def iperf3_tcp_dw_SR(self):
         return self.iperf3(self.R, self.S, 'SR', self.timeout, 1, 'tcp', 0)
 
     def netperf_tcp_dw_SR(self):
-        self.netperf_tcp(self.S, self.R, self.timeout, self.parallel, 1)
+        return self.netperf_tcp(self.S, self.R, self.timeout, self.parallel, 1)
 
     def iperf_tcp_dw_SA(self):
         return self.iperf_tcp(self.S, self.A, self.timeout, self.parallel, const.USE_IPERF_REV)
@@ -998,4 +998,3 @@ class Experiment:
     def fabprobe_SR(self):
         self.S.command({'CMD': 'time fabprobe_snd -d ' + const.ROUTER_ADDRESS_GLOBAL + ' > /tmp/browserlab/fabprobe_SR.log', 'BLK':self.blk})
         return 'SR_fab'
-

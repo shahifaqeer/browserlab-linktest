@@ -16,6 +16,8 @@ USE_UDPPROBE = 1
 
 # PERF CONFIG OPTIONS
 PERF_PORT = '5201'
+IPERF_TCP_PORT = '5001'
+IPERF_UDP_PORT = '5002'
 NETPERF_PORT = '5205'
 INIT_HOME_RATE = 100        # Mbps threshold for wireless iperf udp -b
 INIT_ACCESS_RATE = 100      # Mbps for access link iperf udp -b
