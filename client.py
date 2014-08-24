@@ -882,30 +882,10 @@ def compare_all_techniques(NUM_PARALLEL=[1,3,5,10], TIMEOUTS=[2,5,10]):
                 e.num_parallel_streams = num_par
                 e.set_unique_id(folder_name)
 
-                print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run no traff " +str(e.experiment_counter)
                 e.run_only_experiment(e.no_traffic, 'no_tra')
-                # iperf
-                e.run_only_experiment(e.iperf_tcp_up_AS, 'AS_tcp')
-                e.run_only_experiment(e.iperf_tcp_up_AR, 'AR_tcp')
-                e.run_only_experiment(e.iperf_tcp_up_RS, 'RS_tcp')
-                e.run_only_experiment(e.iperf_tcp_dw_SA, 'SA_tcp')
-                e.run_only_experiment(e.iperf_tcp_dw_RA, 'RA_tcp')
-                e.run_only_experiment(e.iperf_tcp_dw_SR, 'SR_tcp')
-                #iperf3
-                e.run_only_experiment(e.iperf3_tcp_up_AS, 'AS_tcp')
-                e.run_only_experiment(e.iperf3_tcp_up_AR, 'AR_tcp')
-                e.run_only_experiment(e.iperf3_tcp_up_RS, 'RS_tcp')
-                e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
-                e.run_only_experiment(e.iperf3_tcp_dw_RA, 'RA_tcp')
-                e.run_only_experiment(e.iperf3_tcp_dw_SR, 'SR_tcp')
-                #netperf
-                e.run_only_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
-                e.run_only_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
-                e.run_only_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
-                e.run_only_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
-                e.run_only_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
-                e.run_only_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
-
+                iperf_tcp(e)
+                iperf3_tcp(e)
+                netperf_tcp(e)
             #UDP
             folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
             if not folder_name in all_folder_name_list:
@@ -913,26 +893,67 @@ def compare_all_techniques(NUM_PARALLEL=[1,3,5,10], TIMEOUTS=[2,5,10]):
             e.set_unique_id(folder_name)
             e.set_udp_rate_mbit(100,100,100)
             #iperf3
-            e.run_only_experiment(e.iperf3_udp_up_AS, 'AS_udp')
-            e.run_only_experiment(e.iperf3_udp_up_AR, 'AR_udp')
-            e.run_only_experiment(e.iperf3_udp_up_RS, 'RS_udp')
-            e.run_only_experiment(e.iperf3_udp_dw_SA, 'SA_udp')
-            e.run_only_experiment(e.iperf3_udp_dw_RA, 'RA_udp')
-            e.run_only_experiment(e.iperf3_udp_dw_SR, 'SR_udp')
+            iperf3_udp(e)
             #iperf
-            e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
-            e.run_only_experiment(e.iperf_udp_up_AR, 'AR_udp')
-            e.run_only_experiment(e.iperf_udp_up_RS, 'RS_udp')
-            e.run_only_experiment(e.iperf_udp_dw_SA, 'SA_udp')
-            e.run_only_experiment(e.iperf_udp_dw_RA, 'RA_udp')
-            e.run_only_experiment(e.iperf_udp_dw_SR, 'SR_udp')
+            iperf_udp(e)
             #udp probe
-            e.run_only_experiment(e.probe_udp_AR, 'AR_udp')
-            e.run_only_experiment(e.probe_udp_AS, 'AS_udp')
-            e.run_only_experiment(e.probe_udp_RS, 'RS_udp')
+            probe_udp(e)
 
     return e, all_folder_name_list
 
+# iperf
+def iperf_tcp(e):
+    e.run_only_experiment(e.iperf_tcp_up_AS, 'AS_tcp')
+    e.run_only_experiment(e.iperf_tcp_up_AR, 'AR_tcp')
+    e.run_only_experiment(e.iperf_tcp_up_RS, 'RS_tcp')
+    e.run_only_experiment(e.iperf_tcp_dw_SA, 'SA_tcp')
+    e.run_only_experiment(e.iperf_tcp_dw_RA, 'RA_tcp')
+    e.run_only_experiment(e.iperf_tcp_dw_SR, 'SR_tcp')
+    return
+
+#iperf3
+def iperf3_tcp(e):
+    e.run_only_experiment(e.iperf3_tcp_up_AS, 'AS_tcp')
+    e.run_only_experiment(e.iperf3_tcp_up_AR, 'AR_tcp')
+    e.run_only_experiment(e.iperf3_tcp_up_RS, 'RS_tcp')
+    e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
+    e.run_only_experiment(e.iperf3_tcp_dw_RA, 'RA_tcp')
+    e.run_only_experiment(e.iperf3_tcp_dw_SR, 'SR_tcp')
+    return
+
+#netperf
+def netperf_tcp(e):
+    e.run_only_experiment(e.netperf_tcp_up_AS, 'AS_tcp')
+    e.run_only_experiment(e.netperf_tcp_up_AR, 'AR_tcp')
+    e.run_only_experiment(e.netperf_tcp_up_RS, 'RS_tcp')
+    e.run_only_experiment(e.netperf_tcp_dw_SA, 'SA_tcp')
+    e.run_only_experiment(e.netperf_tcp_dw_RA, 'RA_tcp')
+    e.run_only_experiment(e.netperf_tcp_dw_SR, 'SR_tcp')
+    return
+
+def iperf3_udp(e):
+    e.run_only_experiment(e.iperf3_udp_up_AS, 'AS_udp')
+    e.run_only_experiment(e.iperf3_udp_up_AR, 'AR_udp')
+    e.run_only_experiment(e.iperf3_udp_up_RS, 'RS_udp')
+    e.run_only_experiment(e.iperf3_udp_dw_SA, 'SA_udp')
+    e.run_only_experiment(e.iperf3_udp_dw_RA, 'RA_udp')
+    e.run_only_experiment(e.iperf3_udp_dw_SR, 'SR_udp')
+    return
+
+def iperf_udp(e):
+    e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
+    e.run_only_experiment(e.iperf_udp_up_AR, 'AR_udp')
+    e.run_only_experiment(e.iperf_udp_up_RS, 'RS_udp')
+    e.run_only_experiment(e.iperf_udp_dw_SA, 'SA_udp')
+    e.run_only_experiment(e.iperf_udp_dw_RA, 'RA_udp')
+    e.run_only_experiment(e.iperf_udp_dw_SR, 'SR_udp')
+    return
+
+def probe_udp(e):
+    e.run_only_experiment(e.probe_udp_AR, 'AR_udp')
+    e.run_only_experiment(e.probe_udp_AS, 'AS_udp')
+    e.run_only_experiment(e.probe_udp_RS, 'RS_udp')
+    return
 
 def transfer_all_folder_names(e, all_folder_name_list):
 
@@ -968,6 +989,7 @@ if __name__ == "__main__":
     print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     starttime = time.time()
 
+    #e, all_folder_name_list = compare_all_techniques([1],[2])
     e, all_folder_name_list = compare_all_techniques()
 
     print "DONE ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())

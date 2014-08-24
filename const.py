@@ -1,5 +1,5 @@
 # DO NOT CHANGE THESE VALUES
-CONTROL_PORT = 12345
+CONTROL_PORT = 12346
 MSG_SIZE = 1024
 PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
@@ -10,7 +10,7 @@ SERVER = 'CMON'
 # bandiwdth data collection
 METHOD = 'iperf3'    #'iperf', 'netperf', 'udpprobe', 'all'
 USE_IPERF3 = 1
-USE_IPERF_REV = 1               #if using iperf instead of iperf3 for udp/tcp, use -r flag for 2 way test
+USE_IPERF_REV = 0               #if using iperf instead of iperf3 for udp/tcp, use -r flag for 2 way test
 USE_NETPERF = 1
 USE_UDPPROBE = 1
 

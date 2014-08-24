@@ -105,11 +105,11 @@ class Experiment:
             self.start_shaperprobe_udp_servers()
         if self.USE_IPERF3:
             self.start_iperf3_servers()
-        if self.udp and self.USE_IPERF_REV:
+        if self.udp:
             self.start_iperf_rev_servers('udp')
-        if self.tcp and self.USE_IPERF_REV:
+        if self.tcp:
             self.start_iperf_rev_servers('tcp')
-        if self.tcp and self.USE_NETPERF:
+        if self.USE_NETPERF:
             self.start_netperf_servers()
         return
 
