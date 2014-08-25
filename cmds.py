@@ -758,20 +758,22 @@ class Experiment:
         cmd = 'netperf -P 0 -f k -c -C -l ' + str(timeout) + ' -H ' + rx.ip + ' -p '+ const.NETPERF_PORT
         if reverse:
             proto = 'TCP_MAERTS'
+            linkname = rx.name + tx.name
         else:
             proto = 'TCP_STREAM'
+            linkname = tx.name + rx.name
         cmd += ' -t ' + proto
-        logfile = ' > /tmp/browserlab/netperf_'+ tx.name + rx.name +'_'+tx.name+'.log'
+        logfile = ' > /tmp/browserlab/netperf_'+ linkname +'_'+tx.name+'.log'
 
         if parallel:
-            logfile2 = ' > /tmp/browserlab/netperf_'+ tx.name + rx.name +'_'+tx.name
+            logfile2 = ' > /tmp/browserlab/netperf_'+ linkname +'_'+tx.name
             cmd = 'for num in {1..'+str(self.num_parallel_streams)+'}; do echo "netperf $num";'+cmd + logfile2 +'$(num).log & done'
         else:
             cmd += logfile+self.experiment_suffix
 
         tx.command({'CMD': cmd})
         print "DEBUG: " + tx.name+ " " + str(time.time()) + " DONE: " + cmd
-        return tx.name+rx.name + '_tcp'
+        return linkname + '_tcp'
 
     def probe_udp(self, tx, rx):
         cmd = 'udpprober -s ' + rx.ip + ' >> /tmp/browserlab/probe_'+ tx.name+rx.name+'_'+tx.name+'.log'+self.experiment_suffix
@@ -820,7 +822,7 @@ class Experiment:
         return self.iperf3(self.A, self.R, 'RA', self.timeout, 1, 'tcp', 0)
 
     def netperf_tcp_dw_RA(self):
-        return self.netperf_tcp(self.R, self.A, self.timeout, self.parallel, 1)
+        return self.netperf_tcp(self.A, self.R, self.timeout, self.parallel, 1)
 
     def iperf_tcp_dw_SR(self):
         return self.iperf_tcp(self.S, self.R, self.timeout, self.parallel, const.USE_IPERF_REV)
@@ -829,7 +831,7 @@ class Experiment:
         return self.iperf3(self.R, self.S, 'SR', self.timeout, 1, 'tcp', 0)
 
     def netperf_tcp_dw_SR(self):
-        return self.netperf_tcp(self.S, self.R, self.timeout, self.parallel, 1)
+        return self.netperf_tcp(self.R, self.S, self.timeout, self.parallel, 1)
 
     def iperf_tcp_dw_SA(self):
         return self.iperf_tcp(self.S, self.A, self.timeout, self.parallel, const.USE_IPERF_REV)
@@ -838,7 +840,7 @@ class Experiment:
         return self.iperf3(self.A, self.S, 'SA', self.timeout, 1, 'tcp', 0)
 
     def netperf_tcp_dw_SA(self):
-        return self.netperf_tcp(self.S, self.A, self.timeout, self.parallel, 1)
+        return self.netperf_tcp(self.A, self.S, self.timeout, self.parallel, 1)
 
     #UDP
     def netperf_udp_up_AR(self):
