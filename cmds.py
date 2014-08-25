@@ -814,7 +814,7 @@ class Experiment:
         return self.netperf_tcp(self.A, self.S, self.timeout, self.parallel, 0)
 
     def iperf_tcp_dw_RA(self):
-        return self.iperf_tcp(self.A, self.R, self.timeout, self.parallel, const.USE_IPERF_REV)
+        return self.iperf_tcp(self.R, self.A, self.timeout, self.parallel, const.USE_IPERF_REV)
 
     def iperf3_tcp_dw_RA(self):
         return self.iperf3(self.A, self.R, 'RA', self.timeout, 1, 'tcp', 0)
