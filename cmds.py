@@ -533,11 +533,6 @@ class Experiment:
 
         #hack to start udp servers for next round
         self.start_servers()
-        #self.start_iperf3_servers()
-        #if self.udp == 1:
-        #    self.start_iperf_udp_servers()
-        #    self.start_shaperprobe_udp_servers()
-
 
         return
 
@@ -568,9 +563,6 @@ class Experiment:
 
         #hack to start udp servers for next round
         self.start_servers()
-        #self.start_iperf3_servers()
-        #if self.udp == 1:
-        #    self.start_shaperprobe_udp_servers()
         return
 
     def parse_probe(self, filename):
@@ -672,8 +664,9 @@ class Experiment:
     def iperf_tcp(self, tx, rx, timeout, parallel, reverse=0):
 
         tx.command({'CMD':'killall iperf'})
+        #rx.command({'CMD':'iperf -s -p '+ const.IPERF_TCP_PORT+' >> /tmp/browserlab/iperf_tcp_server_'+rx.name+'.log &'})
+        time.sleep()
         print str(time.time()) + " TCP DEBUG: start "+tx.name + rx.name
-
         recv_ip = rx.ip
         if tx.name == 'S' and rx.name == 'R':
             recv_ip = const.ROUTER_ADDRESS_GLOBAL
