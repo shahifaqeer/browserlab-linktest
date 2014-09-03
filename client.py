@@ -885,19 +885,20 @@ def compare_all_techniques(NUM_PARALLEL=[1,3,5,10], TIMEOUTS=[2,5,10]):
                 e.run_only_experiment(e.no_traffic, 'no_tra')
                 iperf_tcp(e)
                 iperf3_tcp(e)
-                netperf_tcp(e)
+                #netperf_tcp(e)
             #UDP
             folder_name = measurement_folder_name + '_udp_duration_'+str(timeout)
             if not folder_name in all_folder_name_list:
                 all_folder_name_list.append(folder_name)
             e.set_unique_id(folder_name)
             e.set_udp_rate_mbit(100,100,100)
+            e.parallel = 0
             #iperf3
             iperf3_udp(e)
             #iperf
             iperf_udp(e)
             #udp probe
-            probe_udp(e)
+            #probe_udp(e)
 
     return e, all_folder_name_list
 
