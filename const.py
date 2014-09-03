@@ -1,5 +1,5 @@
 # DO NOT CHANGE THESE VALUES
-CONTROL_PORT = 12346
+CONTROL_PORT = 12345
 MSG_SIZE = 1024
 PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
@@ -62,7 +62,7 @@ SERVER_INTERFACE_NAME = 'eth1'      #testbed
 ROUTER_PASS = 'passw0rd'            #testbed
 ROUTER_ADDRESS_GLOBAL = '192.168.1.2'
 ROUTER_ADDRESS_LOCAL = '192.168.10.1'
-CLIENT_ADDRESS = '192.168.10.184'
+CLIENT_ADDRESS = '192.168.10.158'
 
 # Real settings
 #SERVER_ADDRESS = '130.207.97.240'

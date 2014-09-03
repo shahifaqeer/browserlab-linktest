@@ -970,7 +970,7 @@ def transfer_all_folder_names(e, all_folder_name_list):
 
 if __name__ == "__main__":
 
-    rate = 12
+    rate = 4
     rate_bit = str(rate * 8)
     rate_byte = str(rate)
 
