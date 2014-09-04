@@ -665,7 +665,7 @@ class Experiment:
 
         tx.command({'CMD':'killall iperf'})
         #rx.command({'CMD':'iperf -s -p '+ const.IPERF_TCP_PORT+' >> /tmp/browserlab/iperf_tcp_server_'+rx.name+'.log &'})
-        time.sleep()
+        #time.sleep()
         print str(time.time()) + " TCP DEBUG: start "+tx.name + rx.name
         recv_ip = rx.ip
         if tx.name == 'S' and rx.name == 'R':
