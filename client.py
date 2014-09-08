@@ -982,7 +982,7 @@ if __name__ == "__main__":
     rate_byte = str(rate)
 
     Q = Router('192.168.1.1', 'root', 'passw0rd')
-    Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 40ms;tc qdisc show dev br-lan')
+    Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 10ms;tc qdisc show dev br-lan')
 
     if rate != 0 and rate_byte != '0':
         Q.remoteCommand('sh ratelimit3.sh eth0 '+rate_byte)

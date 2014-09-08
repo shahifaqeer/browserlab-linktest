@@ -98,6 +98,7 @@ class Experiment:
         if self.use_omit_n_sec:
             self.omit_n_sec = const.OMIT_N_SEC
         self.WTF_enable = const.WTF_ENABLE
+        self.ROUTER_TCPDUMP_enable = const.ROUTER_TCP_DUMP
 
         return
 
@@ -233,7 +234,7 @@ class Experiment:
         else:
             router_interface_name = const.ROUTER_WIRELESS_INTERFACE_NAME
 
-        if const.ROUTER_TCP_DUMP:
+        if self.ROUTER_TCPDUMP_enable:
             if router_interface_name[:4] == const.GENERIC_WIRELESS_INTERFACE_NAME:    #wlan
                 # take only radiotap
                 self.R.command({'CMD':'tcpdump -i '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon -s 200 -p -U -w /tmp/browserlab/radio_R'+state+'.pcap'})
