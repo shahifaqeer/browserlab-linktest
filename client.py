@@ -861,6 +861,7 @@ def compare_all_techniques(NUM_PARALLEL=[1,3,5,10], TIMEOUTS=[2,5,10]):
     e.tcp = 1
     e.udp = 1
     e.start_servers()
+    e.WTF_enable = 0
 
     all_folder_name_list = []
 
@@ -908,6 +909,9 @@ def iperf_tcp(e):
     e.run_only_experiment(e.iperf_tcp_up_AR, 'AR_tcp')
     e.run_only_experiment(e.iperf_tcp_up_RS, 'RS_tcp')
     e.run_only_experiment(e.iperf_tcp_dw_SA, 'SA_tcp')
+    e.WTF_enable = 1
+    e.run_only_experiment(e.iperf_tcp_dw_SA, 'SA_tcp')
+    e.WTF_enable = 0
     e.run_only_experiment(e.iperf_tcp_dw_RA, 'RA_tcp')
     e.run_only_experiment(e.iperf_tcp_dw_SR, 'SR_tcp')
     return
@@ -918,6 +922,9 @@ def iperf3_tcp(e):
     e.run_only_experiment(e.iperf3_tcp_up_AR, 'AR_tcp')
     e.run_only_experiment(e.iperf3_tcp_up_RS, 'RS_tcp')
     e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
+    e.WTF_enable = 1
+    e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
+    e.WTF_enable = 0
     e.run_only_experiment(e.iperf3_tcp_dw_RA, 'RA_tcp')
     e.run_only_experiment(e.iperf3_tcp_dw_SR, 'SR_tcp')
     return
