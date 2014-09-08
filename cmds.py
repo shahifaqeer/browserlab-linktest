@@ -97,6 +97,7 @@ class Experiment:
         self.use_omit_n_sec = const.USE_OMIT_N_SEC
         if self.use_omit_n_sec:
             self.omit_n_sec = const.OMIT_N_SEC
+        self.WTF_enable = const.WTF_ENABLE
 
         return
 
@@ -242,6 +243,9 @@ class Experiment:
                 #self.R.command({'CMD':'tcpdump -s 100 -i eth1 -w /tmp/browserlab/tcpdump_eth1_R'+state+'.pcap'})
             else:
                 self.R.command({'CMD':'tcpdump -s 100 -i '+router_interface_name+' -w /tmp/browserlab/tcpdump_R'+state+'.pcap'})
+
+        if self.WTF_enable:
+            self.R.command({'CMD':'tcpdump -i br-lan -s 200 -p -U -w /tmp/browserlab/wtf_R'+state+'.pcap'})
 
         if self.iface[:4] == const.GENERIC_WIRELESS_INTERFACE_NAME:
             # take only radiotap
