@@ -77,6 +77,7 @@ class Experiment:
         self.blk = not self.non_blocking_experiment
         self.before_timeout = const.BEFORE_TIMEOUT
         self.ping_timed = const.PING_TIMED
+        self.DIFF_PING = const.DIFF_PING
 
         if self.non_blocking_experiment:
             self.experiment_suffix = ' &'
@@ -269,6 +270,17 @@ class Experiment:
             self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -l -b ' + const.PING_SIZE +  ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
 
         return
+
+    def differential_ping(self):
+        if self.ping_timed:
+            timeout = 2 * self.timeout      # 20 sec
+            # ALWAYS pass fping with & not to thread - thread seems to be blocking
+            self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE +  ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
+        else:
+            self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -l -b ' + const.PING_SIZE +  ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
+
+        return
+
 
     def start_netperf_servers(self):
         if const.SERVER_ADDRESS == '132.227.126.1':
@@ -554,7 +566,10 @@ class Experiment:
 
         nrepeats = int(self.timeout)
         self.active_logs(nrepeats)
-        self.ping_all()
+        if e.DIFF_PING:
+            self.differential_ping()
+        else:
+            self.ping_all()
 
         print "DEBUG: "+str(time.time())+" state = " + state
         comment = exp()

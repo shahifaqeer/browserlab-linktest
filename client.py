@@ -975,9 +975,8 @@ def transfer_all_folder_names(e, all_folder_name_list):
 
     return
 
-if __name__ == "__main__":
+def main_testbed_compare(rate=4):
 
-    rate = 4
     rate_bit = str(rate * 8)
     rate_byte = str(rate)
 
@@ -1019,6 +1018,77 @@ if __name__ == "__main__":
     print "\n Total transfer time = ", endtime2 - endtime
 
     subprocess.check_output('sudo ifconfig eth0 down', shell=True)
+    return e
+
+def ping_buffer_endhost_test():
+
+    print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    starttime = time.time()
+
+    measurement_folder_name = raw_input('Enter measurement name: ')
+    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
+
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
+        tot_runs = 1
+        print "Error. Running "+str(tot_runs)+" measurement."
+
+    e = Experiment(measurement_folder_name)
+    # set all to yes
+    e.collect_calibrate = False
+    e.use_iperf_timeout = 1
+    e.USE_IPERF3 = 1
+    e.USE_IPERF_REV = 1
+    e.USE_UDP_PROBE = 0
+    e.USE_NETPERF = 0
+    e.tcp = 1
+    e.udp = 1
+    e.start_servers()
+    e.WTF_enable = 1
+    e.timeout = 5
+    e.parallel = 1
+    e.num_parallel_streams = num_par
+
+
+    for nruns in range(tot_runs):
+        e.run_only_experiment(e.no_traffic, 'no_tra')
+        e.run_only_experiment(e.iperf3_tcp_up_AS, 'AS_tcp')
+        e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
+
+        e.parallel = 0
+        e.run_only_experiment(e.iperf3_udp_up_AS, 'AS_udp')
+        e.run_only_experiment(e.iperf3_udp_dw_SA, 'SA_udp')
+
+        time.sleep(5)
+
+    print "DONE ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    endtime = time.time()
+    print "\n Total time taken = ", endtime - starttime
+
+    e.transfer_all_later()
+
+    e.kill_all(1)
+    e.clear_all()
+
+    transfer = 'y'
+    #transfer = raw_input("start transfer... [y]")
+
+    if transfer == 'y' or transfer == 'Y':
+        transfer_all_folder_names(e, all_folder_name_list)
+
+    endtime2 = time.time()
+    print "\n Total transfer time = ", endtime2 - endtime
+
+    return e
+
+
+if __name__ == "__main__":
+
+    ping_buffer_endhost_test()
+
+    #e = main_testbed_compare(4)
+
     #parallel_duration_run_suit()
     # TCP
     #measurement_folder_name = raw_input('Enter measurement name: ')

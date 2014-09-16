@@ -46,6 +46,7 @@ DATA_SERVER_PATH = 'browserlab@130.207.97.240:'
 EXTRA_NODES = 0
 ROUTER_TCP_DUMP = 0
 PING_TIMED = 0              #ping for 2 * timeout; if 0 then ping until kill in loop
+DIFF_PING = 1               #only diff ping A to R or A to S
 WTF_ENABLE = 0              #take tcpdump on br-lan router and pass this pcap through WTF code
 
 # UPDATE THE FOLLOWING VALUES
