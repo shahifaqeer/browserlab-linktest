@@ -566,7 +566,7 @@ class Experiment:
 
         nrepeats = int(self.timeout)
         self.active_logs(nrepeats)
-        if e.DIFF_PING:
+        if self.DIFF_PING:
             self.differential_ping()
         else:
             self.ping_all()

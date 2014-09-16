@@ -1048,17 +1048,19 @@ def ping_buffer_endhost_test():
     e.WTF_enable = 1
     e.timeout = 5
     e.parallel = 1
-    e.num_parallel_streams = num_par
+    e.num_parallel_streams = 4
 
 
     for nruns in range(tot_runs):
         e.run_only_experiment(e.no_traffic, 'no_tra')
         e.run_only_experiment(e.iperf3_tcp_up_AS, 'AS_tcp')
         e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
+        e.run_only_experiment(e.iperf_tcp_up_AS, 'AS_tcp')
+        e.run_only_experiment(e.iperf_tcp_dw_SA, 'SA_tcp')
 
         e.parallel = 0
-        e.run_only_experiment(e.iperf3_udp_up_AS, 'AS_udp')
-        e.run_only_experiment(e.iperf3_udp_dw_SA, 'SA_udp')
+        e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
+        e.run_only_experiment(e.iperf_udp_dw_SA, 'SA_udp')
 
         time.sleep(5)
 
@@ -1070,12 +1072,6 @@ def ping_buffer_endhost_test():
 
     e.kill_all(1)
     e.clear_all()
-
-    transfer = 'y'
-    #transfer = raw_input("start transfer... [y]")
-
-    if transfer == 'y' or transfer == 'Y':
-        transfer_all_folder_names(e, all_folder_name_list)
 
     endtime2 = time.time()
     print "\n Total transfer time = ", endtime2 - endtime
