@@ -857,7 +857,7 @@ def compare_all_techniques(NUM_PARALLEL=[1,3,5,10], TIMEOUTS=[2,5,10]):
     e.USE_IPERF3 = 1
     e.USE_IPERF_REV = 1
     e.USE_UDP_PROBE = 1
-    e.USE_NETPERF = 1
+    e.USE_NETPERF = 0
     e.tcp = 1
     e.udp = 1
     e.start_servers()
@@ -884,7 +884,7 @@ def compare_all_techniques(NUM_PARALLEL=[1,3,5,10], TIMEOUTS=[2,5,10]):
                 e.set_unique_id(folder_name)
 
                 e.run_only_experiment(e.no_traffic, 'no_tra')
-                iperf_tcp(e)
+                #iperf_tcp(e)
                 iperf3_tcp(e)
                 #netperf_tcp(e)
             #UDP
@@ -892,14 +892,14 @@ def compare_all_techniques(NUM_PARALLEL=[1,3,5,10], TIMEOUTS=[2,5,10]):
             if not folder_name in all_folder_name_list:
                 all_folder_name_list.append(folder_name)
             e.set_unique_id(folder_name)
-            e.set_udp_rate_mbit(100,100,100)
+            e.set_udp_rate_mbit(128,100,150)
             e.parallel = 0
             #iperf3
-            iperf3_udp(e)
+            #iperf3_udp(e)
             #iperf
             iperf_udp(e)
             #udp probe
-            #probe_udp(e)
+            probe_udp(e)
 
     return e, all_folder_name_list
 
@@ -918,10 +918,11 @@ def iperf_tcp(e):
 
 #iperf3
 def iperf3_tcp(e):
+    e.WTF_enable = 1
     e.run_only_experiment(e.iperf3_tcp_up_AS, 'AS_tcp')
+    e.WTF_enable = 0
     e.run_only_experiment(e.iperf3_tcp_up_AR, 'AR_tcp')
     e.run_only_experiment(e.iperf3_tcp_up_RS, 'RS_tcp')
-    e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
     e.WTF_enable = 1
     e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
     e.WTF_enable = 0
@@ -949,10 +950,14 @@ def iperf3_udp(e):
     return
 
 def iperf_udp(e):
+    e.WTF_enable = 1
     e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
+    e.WTF_enable = 0
     e.run_only_experiment(e.iperf_udp_up_AR, 'AR_udp')
     e.run_only_experiment(e.iperf_udp_up_RS, 'RS_udp')
+    e.WTF_enable = 1
     e.run_only_experiment(e.iperf_udp_dw_SA, 'SA_udp')
+    e.WTF_enable = 0
     e.run_only_experiment(e.iperf_udp_dw_RA, 'RA_udp')
     e.run_only_experiment(e.iperf_udp_dw_SR, 'SR_udp')
     return
@@ -981,7 +986,7 @@ def main_testbed_compare(rate=4):
     rate_byte = str(rate)
 
     Q = Router('192.168.1.1', 'root', 'passw0rd')
-    Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 10ms;tc qdisc show dev br-lan')
+    Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 40ms;tc qdisc show dev br-lan')
 
     if rate != 0 and rate_byte != '0':
         Q.remoteCommand('sh ratelimit3.sh eth0 '+rate_byte)
@@ -996,8 +1001,8 @@ def main_testbed_compare(rate=4):
     print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     starttime = time.time()
 
-    #e, all_folder_name_list = compare_all_techniques([1],[2])
-    e, all_folder_name_list = compare_all_techniques()
+    e, all_folder_name_list = compare_all_techniques([1,2,3,4,5,6,7,8,9,10],[5])
+    #e, all_folder_name_list = compare_all_techniques()
 
     print "DONE ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     endtime = time.time()
@@ -1081,9 +1086,9 @@ def ping_buffer_endhost_test():
 
 if __name__ == "__main__":
 
-    ping_buffer_endhost_test()
+    #ping_buffer_endhost_test()
 
-    #e = main_testbed_compare(4)
+    e = main_testbed_compare(15)
 
     #parallel_duration_run_suit()
     # TCP
@@ -1126,6 +1131,6 @@ if __name__ == "__main__":
     #    print "Error. Running "+str(tot_runs)+" measurement."
 
 
-    #for rate in [1, 2, 4 ,8, 16]:
+    #for rate in [1, 3, 5 ,7, 9, 11, 13, 15]:
     #    for timeout in [2, 5, 10]:
     #        test_measurements(tot_runs, rate, timeout, comment)
