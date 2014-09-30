@@ -1183,7 +1183,7 @@ if __name__ == "__main__":
 
     e = bottleneck_vs_scenario()
 
-    e = main_testbed_compare(15)
+    #e = main_testbed_compare(15)
 
     #parallel_duration_run_suit()
     # TCP
