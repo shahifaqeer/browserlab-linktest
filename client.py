@@ -1060,8 +1060,8 @@ def ping_buffer_endhost_test():
         e.run_only_experiment(e.no_traffic, 'no_tra')
         e.run_only_experiment(e.iperf3_tcp_up_AS, 'AS_tcp')
         e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
-        e.run_only_experiment(e.iperf_tcp_up_AS, 'AS_tcp')
-        e.run_only_experiment(e.iperf_tcp_dw_SA, 'SA_tcp')
+        #e.run_only_experiment(e.iperf_tcp_up_AS, 'AS_tcp')
+        #e.run_only_experiment(e.iperf_tcp_dw_SA, 'SA_tcp')
 
         e.parallel = 0
         e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
@@ -1083,10 +1083,105 @@ def ping_buffer_endhost_test():
 
     return e
 
+def bottleneck_vs_scenario():
+
+    measurement_folder_name = raw_input('Enter measurement name: ')
+    tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
+
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
+        tot_runs = 1
+        print "Error. Running "+str(tot_runs)+" measurement."
+
+    e = Experiment()
+    # set all to yes
+    e.collect_calibrate = False
+    e.use_iperf_timeout = 1
+    e.USE_IPERF3 = 1
+    e.USE_IPERF_REV = 1
+    e.USE_UDP_PROBE = 1
+    e.USE_NETPERF = 0
+    e.tcp = 1
+    e.udp = 1
+    e.start_servers()
+    e.WTF_enable = 1
+    e.timeout = 5
+    e.num_parallel_streams = 4
+
+    print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    starttime = time.time()
+
+    all_folder_name_list = []
+
+    for rate in range(16):
+
+        rate_bit = str(rate * 8)
+        rate_byte = str(rate)
+
+        folder_name = measurement_folder_name + '_access_' + str(rate_bit)
+        if not folder_name in all_folder_name_list:
+            all_folder_name_list.append(folder_name)
+        e.set_unique_id(folder_name)
+
+        Q = Router('192.168.1.1', 'root', 'passw0rd')
+        Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 40ms;tc qdisc show dev br-lan')
+        if rate != 0 and rate_byte != '0':
+            Q.remoteCommand('sh ratelimit3.sh eth0 '+rate_byte)
+            Q.remoteCommand('sh ratelimit3.sh eth1 '+rate_byte)
+        else:
+            Q.remoteCommand('tc qdisc del dev eth0 root')
+            Q.remoteCommand('tc qdisc del dev eth1 root')
+            #Q.remoteCommand('tc qdisc del dev br-lan root')
+        Q.host.close()
+
+        for runs in range(tot_runs):
+            e.parallel = 1
+            e.run_only_experiment(e.no_traffic, 'no_tra')
+            #iperf3_tcp
+            e.run_only_experiment(e.iperf3_tcp_up_AS, 'AS_tcp')
+            e.run_only_experiment(e.iperf3_tcp_up_AR, 'AR_tcp')
+            e.run_only_experiment(e.iperf3_tcp_up_RS, 'RS_tcp')
+            e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
+            e.run_only_experiment(e.iperf3_tcp_dw_RA, 'RA_tcp')
+            e.run_only_experiment(e.iperf3_tcp_dw_SR, 'SR_tcp')
+            #iperf_udp
+            e.parallel = 0
+            e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
+            e.run_only_experiment(e.iperf_udp_dw_SA, 'SA_udp')
+            #probe_udp
+            e.run_only_experiment(e.probe_udp_AR, 'AR_udp')
+            e.run_only_experiment(e.probe_udp_AS, 'AS_udp')
+            e.run_only_experiment(e.probe_udp_RS, 'RS_udp')
+
+    print "DONE ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    endtime = time.time()
+
+    print "\n Total time taken = ", endtime - starttime
+
+    # Transfer to server
+    Q = Router('192.168.1.1', 'root', 'passw0rd')
+    Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc del dev eth0 root;tc qdisc del dev eth1 root')
+    subprocess.check_output('sudo ifconfig eth0 up', shell=True)
+    time.sleep(5)
+    transfer = 'y'
+    #transfer = raw_input("start transfer... [y]")
+    if transfer == 'y' or transfer == 'Y':
+        transfer_all_folder_names(e, all_folder_name_list)
+    subprocess.check_output('sudo ifconfig eth0 down', shell=True)
+
+    endtime2 = time.time()
+    print "\n Total transfer time = ", endtime2 - endtime
+    print "\n Total script time = ", endtime2 - starttime
+
+    return e
+
 
 if __name__ == "__main__":
 
     #ping_buffer_endhost_test()
+
+    e = bottleneck_vs_scenario()
 
     e = main_testbed_compare(15)
 
