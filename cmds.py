@@ -796,6 +796,8 @@ class Experiment:
     def probe_udp(self, tx, rx):
         cmd = 'udpprober -s ' + rx.ip + ' >> /tmp/browserlab/probe_'+ tx.name+rx.name+'_'+tx.name+'.log'+self.experiment_suffix
         tx.command({'CMD': cmd})
+        #TODO hack: add sleep function here itself
+        time.sleep(15)
         print "DEBUG: " + tx.name+ " " + str(time.time()) + " DONE: " + cmd
         return tx.name+rx.name+'_pro'
 
