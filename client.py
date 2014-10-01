@@ -1150,9 +1150,10 @@ def bottleneck_vs_scenario():
             e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
             e.run_only_experiment(e.iperf_udp_dw_SA, 'SA_udp')
             #probe_udp
-            e.run_only_experiment(e.probe_udp_AR, 'AR_udp')
-            e.run_only_experiment(e.probe_udp_AS, 'AS_udp')
-            e.run_only_experiment(e.probe_udp_RS, 'RS_udp')
+            e.get_udpprobe_rate(-1)
+            #e.run_only_experiment(e.probe_udp_AR, 'AR_udp')
+            #e.run_only_experiment(e.probe_udp_AS, 'AS_udp')
+            #e.run_only_experiment(e.probe_udp_RS, 'RS_udp')
 
     print "DONE ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     endtime = time.time()

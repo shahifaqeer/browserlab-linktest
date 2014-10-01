@@ -668,7 +668,12 @@ class Experiment:
         self.probe_rate['access'] = self.parse_udpprobe_output(probe_path + 'probe_RS_R.log')
         print "DEBUG: "+str(time.time())+": UDP probe (up, dw) home, access, e2e: ", self.probe_rate
 
-        self.set_udp_rate_mbit(float(self.probe_rate['access'][x])/1000, float(self.probe_rate['home'][x])/1000)
+        fout = open(probe_path + 'udp_probe.log', w)
+        fout.write(self.probe_rate)
+        fout.close()
+
+        if x!= -1:
+            self.set_udp_rate_mbit(float(self.probe_rate['access'][x])/1000, float(self.probe_rate['home'][x])/1000)
 
         return
 
