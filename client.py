@@ -1150,7 +1150,7 @@ def bottleneck_vs_scenario():
             e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
             e.run_only_experiment(e.iperf_udp_dw_SA, 'SA_udp')
             #probe_udp
-            e.get_udpprobe_rate(-1)
+            #TODO problem in probe_udp - time insufficient
             #e.run_only_experiment(e.probe_udp_AR, 'AR_udp')
             #e.run_only_experiment(e.probe_udp_AS, 'AS_udp')
             #e.run_only_experiment(e.probe_udp_RS, 'RS_udp')
