@@ -668,7 +668,7 @@ class Experiment:
         self.probe_rate['access'] = self.parse_udpprobe_output(probe_path + 'probe_RS_R.log')
         print "DEBUG: "+str(time.time())+": UDP probe (up, dw) home, access, e2e: ", self.probe_rate
 
-        fout = open(probe_path + 'udp_probe.log', w)
+        fout = open(probe_path + 'udp_probe.log', 'w')
         fout.write(self.probe_rate)
         fout.close()
 
@@ -757,9 +757,9 @@ class Experiment:
         if self.parallel:
             cmd = cmd + ' -P '+str(self.num_parallel_streams)
         if self.use_window_size:
-            cmd = cmd + ' -w '+self.window_size
+            cmd = cmd + ' -w '+str(self.window_size)
         if self.use_omit_n_sec:
-            cmd = cmd + ' -O '+self.omit_n_sec
+            cmd = cmd + ' -O '+str(self.omit_n_sec)
 
         if tx.name == 'S':
             tx.command({'CMD': cmd + ' > '+const.TMP_BROWSERLAB_PATH+'iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})
@@ -771,6 +771,43 @@ class Experiment:
         print "DEBUG: " + tx.name+ " " + str(time.time()) + " DONE: " + cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix
 
         return link + '_' + proto
+
+    def iperf3_test(self, timeout, reverse, proto='tcp'):
+        link1 = 'AR'
+        link2 = 'RS'
+        link3 = 'ARS'
+        cmd = 'iperf3 -p '+const.PERF_PORT
+        if self.use_iperf_timeout:
+            cmd = cmd +' -t '+str(timeout)+' -J -Z '
+        else:
+            cmd = cmd +' -n '+self.num_bits_to_send+' -J -Z '        #where timeout is number of bytes instead
+        if reverse:
+            cmd = cmd + ' -R '
+            link1 = link1[::-1]
+            link2 = link2[::-1]
+            link3 = link3[::-1]
+        if proto != 'tcp':
+            cmd = cmd + ' -u -b '+rate_mbit +'m'
+        if self.parallel:
+            cmd = cmd + ' -P '+str(self.num_parallel_streams)
+        if self.use_window_size:
+            cmd = cmd + ' -w '+str(self.window_size)
+        if self.use_omit_n_sec:
+            cmd = cmd + ' -O '+str(self.omit_n_sec)
+
+        #AR and RS in parallel
+        self.A.command({'CMD': cmd + ' -c ' + self.R.ip +' > /tmp/browserlab/iperf3_'+proto+'_'+link1+'_A.log'+self.experiment_suffix, 'BLK':self.blk})
+        self.R.command({'CMD': cmd + ' -c ' + self.S.ip +' > /tmp/browserlab/iperf3_'+proto+'_'+link2+'_R.log'+self.experiment_suffix, 'BLK':self.blk})
+
+        print "DEBUG: " + self.A.name+ ", " + self.R.name + " " + str(time.time()) + " DONE: " + cmd +' test both links'
+
+        return link3 + '_' + proto
+
+    def tcp_uplink(self):
+        return self.iperf3_test(self.timeout, 0, 'tcp')
+
+    def tcp_downlink(self):
+        return self.iperf3_test(self.timeout, 1, 'tcp')
 
     def netperf_tcp(self, tx, rx, timeout, parallel=0, reverse=0):
         cmd = 'netperf -P 0 -f k -c -C -l ' + str(timeout) + ' -H ' + rx.ip + ' -p '+ const.NETPERF_PORT
@@ -796,6 +833,8 @@ class Experiment:
     def probe_udp(self, tx, rx):
         cmd = 'udpprober -s ' + rx.ip + ' >> /tmp/browserlab/probe_'+ tx.name+rx.name+'_'+tx.name+'.log'+self.experiment_suffix
         tx.command({'CMD': cmd})
+        #TODO hack
+        time.sleep(15)
         print "DEBUG: " + tx.name+ " " + str(time.time()) + " DONE: " + cmd
         return tx.name+rx.name+'_pro'
 
