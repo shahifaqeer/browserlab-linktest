@@ -2,15 +2,16 @@
 
 #SERVER
 from __future__ import division
-from datetime import datetime
+#from datetime import datetime
 import socket
-import random
+#import random
 import subprocess
 import threading
 import os
 import time
 import traceback
-import const
+#import json
+#import const
 
 SERVER_NAME = 'S'
 port = raw_input("Enter CONTROL PORT [DEFAULT = 12345]: ")
@@ -61,13 +62,36 @@ class Command(object):
         self.fout.write(str(now) + ': ' + self.cmd + '\n')
 
 
-def execute_command(msg):
+def clientthread(conn):
+    conn.send("Type command\n")
+
+    while True:
+        data = conn.recv(size)
+        reply = 'OK...' + data
+        if not data:
+            break
+        else:
+            ret_code = execute_command(data)
+            reply = str(ret_code)
+        conn.sendall(reply)
+    conn.close()
+    return
+
+def execute_command(data):
 
     if not (os.path.exists('/tmp/browserlab/')):
         os.mkdir('/tmp/browserlab/')
 
-    #if msg == 'tcpdump':
-    #    return tcpdump()
+    try:
+        msg = eval(data)
+        #msg = json.loads(data)
+    except Exception:
+        traceback.print_exc()
+        return -1
+
+    if 'START' in msg:
+        run_time = time.time()
+        return run_time
 
     if 'CMD' in msg:
         print 'DEBUG: Started command: ' + msg['CMD'] + ' at time: '+str(time.time())+'\n'
@@ -81,7 +105,8 @@ def execute_command(msg):
                 outfile = msg['STDOUT']
             else:
                 outfile = None
-            pid = subprocess.call(msg['CMD'], stdout=outfile, shell=True)
+            pid = subprocess.call(msg['CMD'], stdout=outfile, stderr=subprocess.STDOUT, shell=True)
+            #out = subprocess.check_output(msg['CMD'], stdout=outfile, shell=True)
         print 'DEBUG: Finished command: ' + msg['CMD'] + ' at time: '+str(time.time())+'; PID = '+str(pid)+'\n'
         return 0
     else:
@@ -89,33 +114,32 @@ def execute_command(msg):
         return -1
 
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-while (port<port_max):
-    #try ports 12345 to 12349
-    try:
-        s.bind(('', port))
-        print "Open server at port " + str(port)
-        break;
-    except Exception:
-        port += 1
-        traceback.print_exc()
+if __name__ == "__main__":
 
-s.listen(backlog)
-global BUSY
-BUSY = 0
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    while (port<port_max):
+        #try ports 12345 to 12349
+        try:
+            s.bind(('', port))
+            print "Open server at port " + str(port)
+            break;
+        except Exception:
+            port += 1
+            traceback.print_exc()
 
-while 1:
-    client, address = s.accept()
-    print "Connection by ", address
-    data = client.recv(size)
-    if data:
-        print data
-        #print 'BUSY = ', BUSY
-        BUSY = 0
-        msg = eval(data)
-        if 'START' in msg:
-            #instead of run number lets use time.time()
-            run_number = time.time()
-        client.send(str(BUSY)+','+str(run_number)+','+str(0))
-        pid = execute_command(msg)
-        print 'execute command ', msg, ' PID: ', pid
+    s.listen(backlog)
+    global BUSY
+    BUSY = 0
+
+
+    while 1:
+        conn, address = s.accept()
+        print "Connected with ", address
+        #start_new_thread( clientthread, (conn,))
+        clientthread(conn)
+        #data = client.recv(size)
+        #if data:
+        #    ret_code = execute_command(data)
+        #    client.send(str(ret_code))
+
+    s.close()
