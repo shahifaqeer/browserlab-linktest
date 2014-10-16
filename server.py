@@ -4,6 +4,7 @@
 from __future__ import division
 #from datetime import datetime
 import socket
+import select
 #import random
 import subprocess
 import threading
@@ -14,14 +15,10 @@ import traceback
 #import const
 
 SERVER_NAME = 'S'
-port = raw_input("Enter CONTROL PORT [DEFAULT = 12345]: ")
-if port == "":
-    port = 12345
-else:
-    port = int(port)
-password = raw_input("Enter password for sudo access *not compulsary* (cleartext): ")
-port_max = port+5
-backlog = 5
+PORT = 12345
+PORT_MAX = 12355
+backlog = 10
+RECV_BUFFER = 4096 # Advisable to keep it as an exponent of 2
 size = 1024
 run_number = 100000
 experiment_timeout = 10
@@ -113,24 +110,67 @@ def execute_command(data):
         print 'PROBLEM: no CMD in msg'
         return -1
 
+def select_socket_server(PORT, password):
+    CONNECTION_LIST = []    # list of socket clients
 
-if __name__ == "__main__":
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # this has no effect, why ?
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    while (port<port_max):
+    while (PORT<PORT_MAX):
         #try ports 12345 to 12349
         try:
-            s.bind(('', port))
-            print "Open server at port " + str(port)
+            server_socket.bind(("", PORT))
+            print "Open server at port " + str(PORT)
             break;
         except Exception:
-            port += 1
+            PORT += 1
+            traceback.print_exc()
+
+    server_socket.listen(backlog)
+
+    CONNECTION_LIST.append(server_socket)
+
+    while 1:
+        read_sockets,write_sockets,error_sockets = select.select(CONNECTION_LIST,[],[])
+
+        for sock in read_sockets:
+            if sock == server_socket:
+                sockfd, addr = server_socket.accept()
+                CONNECTION_LIST.append(sockfd)
+                print "Client (%s, %s) connected" % addr
+            #Some incoming message from a client
+            else:
+                # Data recieved from client, process it
+                try:
+                    data = sock.recv(RECV_BUFFER)
+                    if data:
+                        ret_code = execute_command(data)
+                        reply = str(ret_code)
+                        sock.send(reply)
+                # client disconnected, so remove from socket list
+                except:
+                    #broadcast_data(sock, "Client (%s, %s) is offline" % addr)
+                    print "Client (%s, %s) is offline" % addr
+                    sock.close()
+                    CONNECTION_LIST.remove(sock)
+                    continue
+    server_socket.close()
+    return
+
+def thread_socket_server(PORT, password):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    while (PORT<PORT_MAX):
+        #try ports 12345 to 12349
+        try:
+            s.bind(('', PORT))
+            print "Open server at port " + str(PORT)
+            break;
+        except Exception:
+            PORT += 1
             traceback.print_exc()
 
     s.listen(backlog)
-    global BUSY
-    BUSY = 0
-
 
     while 1:
         conn, address = s.accept()
@@ -143,3 +183,15 @@ if __name__ == "__main__":
         #    client.send(str(ret_code))
 
     s.close()
+    return
+
+
+if __name__ == "__main__":
+    port = raw_input("Enter CONTROL PORT [DEFAULT = 12345]: ")
+    if port == "":
+        PORT = 12345
+    else:
+        PORT = int(port)
+    password = raw_input("Enter password for sudo access *not compulsary* (cleartext): ")
+
+    thread_socket_server(PORT, password)
