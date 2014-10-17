@@ -15,6 +15,7 @@ import time
 import traceback
 #import json
 #import const
+import logging
 
 SERVER_NAME = 'S'
 PORT = 12345
