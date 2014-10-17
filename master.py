@@ -24,11 +24,43 @@ import const
 CONTROL_PORT = const.CONTROL_PORT
 RECV_BUFFER = 4096 #const.RECV_BUFFER
 
+def debug(message):
+    """print output to debug file AND screen using logging library"""
+    #TODO
+    print message
+    return
+
+get_device = {'A': master_slave,
+                'B': wireless_slave
+                'C': wired_slave
+                'D': ip_addr_only
+                'R': router
+                'S': server_slave}
+def master_slave(dev_name='A0', ipaddr='127.0.0.1', port=CONTROL_PORT):
+    return Slave(dev_name, ipaddr, port, dev_type = 'A')
+
+def wireless_slave(dev_name, ipaddr, port=CONTROL_PORT):
+    return Slave(dev_name, ipaddr, port, dev_type = 'B')
+
+def wired_slave(dev_name, ipaddr, port=CONTROL_PORT):
+    return Slave(dev_name, ipaddr, port, dev_type = 'C')
+
+def ip_addr_only(dev_name, ipaddr):
+    return IPAddrOnly(dev_name, ipaddr, dev_type = 'D')
+
+def router(dev_name, username, password, ipaddr, port=CONTROL_PORT):
+    return Router(dev_name, username, password, ipaddr, port, dev_type = 'R')
+
+def server_slave(dev_name, ipaddr, port=CONTROL_PORT):
+    return Slave(dev_name, ipaddr, port, dev_type = 'S')
+
+
 class Slave:
-    def __init__(self, name, ipaddr, port=CONTROL_PORT):
+    def __init__(self, name, ipaddr, port, dev_type):
         self.name = name
         self.ip = ipaddr
         self.port = port
+        self.devType =
         self.sock = self.connect_socket()
 
     def connect_socket(self):
@@ -41,16 +73,86 @@ class Slave:
         print self.sock.recv(RECV_BUFFER)
 
 
+class Router:
+    #TODO
+    def __init__(self, name, ipaddr, port, dev_type):
+        self.name = name
+        self.ip = ipaddr
+        self.port = port
+        self.devType = dev_type
+        self.sock = self.connect_socket()
+
+    def connect_socket(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((self.ipaddr, self.port))
+        return s
+
+    def command(self, msg):
+        self.sock.send(msg)
+        print self.sock.recv(RECV_BUFFER)
+
+
+class IPAddrOnly:
+    #TODO
+    def __init__(self, name, ipaddr, dev_type):
+        self.name = name
+        self.ip = ipaddr
+        self.port = port
+        self.devType = dev_type
+        self.sock = self.connect_socket()
+
+    def connect_socket(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((self.ipaddr, self.port))
+        return s
+
+    def command(self, msg):
+        self.sock.send(msg)
+        print self.sock.recv(RECV_BUFFER)
+
+
+class Device:
+    def __init__(dev_name, ipaddr, port, dev_tyoe):
+        self.name = dev_name
+        self.ip = ipaddr
+        self.port = port
+        self.devType = dev_type
+        #get device as Slave (master, wireless, wired, server), Router, or IPAddrOnly
+        self.dev = get_device[dev_type](dev_name, ipaddr, port)
+        #overload dev.command()
+        self.command = self.dev.command
+
+        #add device to self.devices{ dev_name: DEVICE CLASS }
+
+
+
+
 class Master:
     def __init__(self, measurement_name=None):
-        self.slaves = []
-        self.addSlave('A', '127.0.0.1')
 
-    def addSlave(self, name, ipaddr):
+        self.devices = {}
+        self.addDevice('A', '127.0.0.1')
+        self.device_counters = defaultdict(int)
+
+    def get_dev_name(self, dev_type):
+        return dev_type+str(self.device_counters[dev_type])
+
+    def addDevice(self, dev_type, ipaddr, port):
+        """dev_type = slave/router/server/IP only
+        return device [device.name, device.ip]"""
+        #update dev counter
+        self.device_counters[dev_type]+=1
+        #get device_name
+        dev_name = self.get_dev_name(dev_type)
+        #create Device dev
+        self.devices[dev_name] = Device(dev_name, ipaddr, port, dev_type)
+        return
 
     def command(self, device, cmd)
+    #TODO
 
 
+# TODO --------------------------------------------------------------------------------------------------------
 class Experiment:
     def __init__(self, measurement_name=None):
         self.A = Client(const.CLIENT_ADDRESS)
