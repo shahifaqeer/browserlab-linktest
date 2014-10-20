@@ -22,8 +22,7 @@ from device import *
 
 
 class Master:
-    def __init__(self, measurement_name=None):
-
+    def __init__(self):
         self.devices = {}
         self.device_counters = defaultdict(int)
         self.addDevice('A', '127.0.0.1', CONTROL_PORT)
