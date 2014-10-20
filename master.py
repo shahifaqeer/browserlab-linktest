@@ -16,7 +16,7 @@ import struct
 import fcntl
 import sys
 import traceback
-import logging
+#import logging
 import const
 from device import *
 
@@ -39,6 +39,9 @@ class Master:
         dev_name = self.get_dev_name(dev_type)
         #create Device dev
         self.devices[dev_name] = Device(dev_name, ipaddr, port, dev_type)
+        # if FAILURE
+        if self.devices[dev_name].dev.sock is None:
+            self.device_counters[dev_type]-=1
         return
 
     def command(self, cmd, dev):

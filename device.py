@@ -3,20 +3,21 @@
 from __future__ import division
 #from datetime import datetime
 #from random import randint
-from classes import Router, Client, Server
+#from classes import Router, Client, Server
 #from parsers import MyParser
-from collections import defaultdict
+#from collections import defaultdict
 
-import numpy as np
-import time
+#import numpy as np
+#import time
 import socket
-import subprocess
+import paramiko
+#import subprocess
 #import shlex
-import struct
-import fcntl
-import sys
+#import struct
+#import fcntl
+#import sys
 import traceback
-import logging
+#import logging
 
 import const
 
@@ -64,17 +65,18 @@ class Slave:
         self.ip = ipaddr
         self.port = port
         self.devType = dev_type
-        self.sock = self.connect_socket()
+        self.sock = None
+        self.connect_socket()
         self.command({'CMD':'mkdir -p /tmp/browserlab/'})
 
     def connect_socket(self):
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect((self.ipaddr, self.port))
-            return s
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.connect((self.ip, self.port))
         except Exception, error:
+            traceback.print_exc()
             debug("Can't connect to "+self.ip+":"+str(self.port)+". Check slave on "+self.name)
-            return None
+        return
 
     def command(self, msg):
         msg = str(msg)
@@ -93,7 +95,7 @@ class Router:
         self.user = user
         self.passwd = passwd
         self.devType = dev_type
-        self.host = self.connectHost(ip, user, passwd)
+        self.host = self.connectHost(ipaddr, user, passwd)
         self.blocking_cmd = 0
         self.remoteCommand('mkdir -p /tmp/browserlab/')
 
@@ -146,3 +148,9 @@ class Device:
         self.command = self.dev.command
 
         #add device to self.devices{ dev_name: DEVICE CLASS }
+
+    def check_alive(self):
+        #TODO by pinging IP
+        #TODO but maybe this is better as a higher level functionality
+        return
+
