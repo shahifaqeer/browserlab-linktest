@@ -25,7 +25,7 @@ class Master:
     def __init__(self, measurement_name=None):
 
         self.devices = {}
-        self.addDevice('A', '127.0.0.1')
+        self.addDevice('A', '127.0.0.1', CONTROL_PORT)
         self.device_counters = defaultdict(int)
 
     def get_dev_name(self, dev_type):
