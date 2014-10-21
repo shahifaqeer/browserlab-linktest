@@ -422,7 +422,7 @@ class Experiment:
         return
 
     def kill_all(self, all_proc = 0):
-        for node in [self.A, self.R, self.S]:
+        for node in [self.A, self.R, self.B, self.S]:
             node.command({'CMD': 'killall tcpdump;killall fping'})
             if all_proc:
                 node.command({'CMD': 'killall iperf;killall iperf3;killall netperf'})
@@ -593,6 +593,7 @@ class Experiment:
 
         nrepeats = int(self.timeout)
         self.active_logs(nrepeats)
+        print "DEBUG: "+str(time.time())+" START PINGING LOOP "
         if self.DIFF_PING:
             self.differential_ping()
         else:
