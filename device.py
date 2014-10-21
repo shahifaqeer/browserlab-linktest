@@ -137,6 +137,7 @@ class IPAddrOnly:
 
 
 class Device:
+    """expose name, ip, port, devType, command, and dev"""
     def __init__(self, dev_name, ipaddr, port, dev_type):
         self.name = dev_name
         self.ip = ipaddr

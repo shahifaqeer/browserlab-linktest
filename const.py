@@ -5,14 +5,14 @@ PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
 CALIBRATE_TIMEOUT = 120
 PING_SIZE = '1400'
-SERVER = 'CMON'
+#SERVER = 'CMON'
 
 # bandiwdth data collection
 METHOD = 'iperf3'    #'iperf', 'netperf', 'udpprobe', 'all'
 USE_IPERF3 = 1
 USE_IPERF_REV = 0               #if using iperf instead of iperf3 for udp/tcp, use -r flag for 2 way test
-USE_NETPERF = 1
-USE_UDPPROBE = 1
+USE_NETPERF = 0
+USE_UDPPROBE = 0
 
 # PERF CONFIG OPTIONS
 PERF_PORT = '5201'
@@ -24,7 +24,7 @@ INIT_ACCESS_RATE = 100      # Mbps for access link iperf udp -b
 INIT_BLAST_RATE = 150       # Mbps for access link iperf udp -b
 NON_BLOCKING_EXP = 1        # wait time is part of the test or separate as timeout?
 USE_PARALLEL_TCP = 1        # in case we need to test parallel
-TCP_PARALLEL_STREAMS = 10   # in case we need to test parallel
+TCP_PARALLEL_STREAMS = 4    # in case we need to test parallel
 USE_IPERF_TIMEOUT = 1       # use -t <EXPERIMENT_TIMEOUT> instead of -n
 NUM_BITS_TO_SEND = '100M'   # use -b <NUM_BITS_TO_SEND> instead of -t
 USE_WINDOW_SIZE = False
@@ -33,7 +33,7 @@ USE_OMIT_N_SEC = False
 OMIT_N_SEC = 2
 
 # Configuration and measurement options
-EXPERIMENT_TIMEOUT = 10      # test time for tcp and udp tests
+EXPERIMENT_TIMEOUT = 5      # test time for tcp and udp tests
 BEFORE_TIMEOUT = 2
 COLLECT_tcp = 1
 COLLECT_udp = 0
@@ -55,7 +55,6 @@ CLIENT_WIRELESS_INTERFACE_NAME = 'wlan0' #'eth0' #'wlan0'
 #CLIENT_WIRELESS_INTERFACE_NAME = 'wlan1' #if 5 GHz ?
 ROUTER_WIRELESS_INTERFACE_NAME = 'wlan0'
 #ROUTER_WIRELESS_INTERFACE_NAME = 'wlan1' #if 5 GHz
-ROUTER_ADDRESS_PINGS = ''
 GENERIC_WIRELESS_INTERFACE_NAME = "wlan"
 
 # Testbed settings
@@ -65,6 +64,10 @@ ROUTER_PASS = 'passw0rd'            #testbed
 ROUTER_ADDRESS_GLOBAL = '192.168.1.2'
 ROUTER_ADDRESS_LOCAL = '192.168.10.1'
 CLIENT_ADDRESS = '192.168.10.158'
+CLIENT_ADDRESS2 = '192.168.10.184'
+ROUTER_ADDRESS_PINGS = CLIENT_ADDRESS2
+CLIENT2_PASS = 'gtnoise'
+CLIENT2_USER = 'gtnoise'
 
 # Real settings
 #SERVER_ADDRESS = '130.207.97.240'

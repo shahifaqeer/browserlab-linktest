@@ -32,6 +32,8 @@ class Experiment:
     def __init__(self, measurement_name=None):
         self.A = Client(const.CLIENT_ADDRESS)
         self.R = Router(const.ROUTER_ADDRESS_LOCAL, const.ROUTER_USER, const.ROUTER_PASS)
+        self.B = Server(const.CLIENT_ADDRESS2)
+        self.B.name = 'B'
         self.S = Server(const.SERVER_ADDRESS)
         self.EXTRA_NODES = const.EXTRA_NODES
         if self.EXTRA_NODES:
@@ -209,14 +211,17 @@ class Experiment:
 
     def create_monitor_interface(self):
         self.A.command({'CMD': 'iw dev '+ self.iface +'mon del'})
+        self.B.command({'CMD': 'iw dev '+ self.iface +'mon del'})
         self.R.command({'CMD': 'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon del'})
         self.A.command({'CMD': 'iw dev '+self.iface+' interface add '+self.iface+'mon type monitor flags none'})
+        self.B.command({'CMD': 'iw dev '+self.iface+' interface add '+self.iface+'mon type monitor flags none'})
         self.R.command({'CMD': 'iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' interface add '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon type monitor flags none'})
         self.ifup_monitor_interface()
         return
 
     def ifup_monitor_interface(self):
         self.A.command({'CMD': 'ifconfig '+self.iface+'mon up'})
+        self.B.command({'CMD': 'ifconfig '+self.iface+'mon up'})
         self.R.command({'CMD': 'ifconfig '+const.ROUTER_WIRELESS_INTERFACE_NAME+'mon up'})
         return
 
@@ -252,9 +257,11 @@ class Experiment:
         if self.iface[:4] == const.GENERIC_WIRELESS_INTERFACE_NAME:
             # take only radiotap
             self.A.command({'CMD':'tcpdump -i '+self.iface+'mon -s 200 -p -U -w /tmp/browserlab/radio_A'+state+'.pcap &'})
+            self.B.command({'CMD':'tcpdump -i '+self.iface+'mon -s 200 -p -U -w /tmp/browserlab/radio_B'+state+'.pcap &'})
         else:
             #self.A.command({'CMD':'tcpdump -s 100 -i '+const.CLIENT_WIRELESS_INTERFACE_NAME+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap', 'TIMEOUT': timeout})
             self.A.command({'CMD':'tcpdump -s 100 -i '+self.iface+' -w /tmp/browserlab/tcpdump_A'+state+'.pcap &'})
+            self.B.command({'CMD':'tcpdump -s 100 -i '+self.iface+' -w /tmp/browserlab/tcpdump_B'+state+'.pcap &'})
         return
 
     def ping_all(self):
@@ -264,10 +271,12 @@ class Experiment:
             self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > '+const.TMP_BROWSERLAB_PATH+'fping_S.log &'})
             self.R.command({'CMD':'fping '+self.A.ip+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
             self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE +  ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
+            self.B.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + self.A.ip + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE +  ' -r 1 -A > /tmp/browserlab/fping_B.log &'})
         else:
             self.S.command({'CMD':'fping '+const.ROUTER_ADDRESS_GLOBAL+' -p 100 -l -b ' + const.PING_SIZE + ' -r 1 -A > '+const.TMP_BROWSERLAB_PATH+'fping_S.log &'})
             self.R.command({'CMD':'fping '+self.A.ip+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -l -b ' + const.PING_SIZE + ' -r 1 -A > /tmp/browserlab/fping_R.log &'})
             self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -l -b ' + const.PING_SIZE +  ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
+            self.B.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + self.A.ip + ' -p 100 -l -b ' + const.PING_SIZE +  ' -r 1 -A > /tmp/browserlab/fping_B.log &'})
 
         return
 
@@ -276,8 +285,10 @@ class Experiment:
             timeout = 2 * self.timeout      # 20 sec
             # ALWAYS pass fping with & not to thread - thread seems to be blocking
             self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE +  ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
+            self.B.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + self.A.ip + ' -p 100 -c '+ str(timeout * 10) + ' -b ' + const.PING_SIZE +  ' -r 1 -A > /tmp/browserlab/fping_B.log &'})
         else:
             self.A.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + const.ROUTER_ADDRESS_PINGS + ' -p 100 -l -b ' + const.PING_SIZE +  ' -r 1 -A > /tmp/browserlab/fping_A.log &'})
+            self.B.command({'CMD':'fping '+const.ROUTER_ADDRESS_LOCAL+' '+ const.SERVER_ADDRESS +' ' + self.A.ip + ' -p 100 -l -b ' + const.PING_SIZE +  ' -r 1 -A > /tmp/browserlab/fping_B.log &'})
 
         return
 
@@ -286,10 +297,12 @@ class Experiment:
         if const.SERVER_ADDRESS == '132.227.126.1':
             self.S.command({'CMD': './netserver -p '+const.NETPERF_PORT})
             self.R.command({'CMD': 'netserver -p '+const.NETPERF_PORT})
+            self.B.command({'CMD': 'netserver -p '+const.NETPERF_PORT})
             self.A.command({'CMD': 'netserver -p '+const.NETPERF_PORT})
         else:
             self.S.command({'CMD': 'netserver -p '+const.NETPERF_PORT})
             self.R.command({'CMD': 'netserver -p '+const.NETPERF_PORT})
+            self.B.command({'CMD': 'netserver -p '+const.NETPERF_PORT})
             self.A.command({'CMD': 'netserver -p '+const.NETPERF_PORT})
         return
 
@@ -301,8 +314,10 @@ class Experiment:
             rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log'})
             rx = self.A
             rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log &'})
+            rx = self.B
+            rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log &'})
         else:
-            for rx in [self.R, self.A]:
+            for rx in [self.R, self.A, self.B]:
                 rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
             rx = self.S
             rx.command({'CMD': 'iperf -s -u -f k -y C >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_server_'+rx.name+'.log &'})
@@ -310,12 +325,12 @@ class Experiment:
 
     def start_iperf_rev_servers(self, proto):
         if proto == 'udp':
-            for rx in [self.R, self.A]:
+            for rx in [self.R, self.A, self.B]:
                 rx.command({'CMD': 'iperf -s -u -p '+ const.IPERF_UDP_PORT +' >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
             rx = self.S
             rx.command({'CMD': 'iperf -s -u -p '+ const.IPERF_UDP_PORT +' >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_server_'+rx.name+'.log &'})
         elif proto == 'tcp':
-            for rx in [self.R, self.A]:
+            for rx in [self.R, self.A, self.B]:
                 rx.command({'CMD': 'iperf -s -p '+ const.IPERF_TCP_PORT+' >> /tmp/browserlab/iperf_tcp_server_'+rx.name+'.log &'})
             rx = self.S
             rx.command({'CMD': 'iperf -s -p '+const.IPERF_TCP_PORT+' >> '+const.TMP_BROWSERLAB_PATH+'iperf_tcp_server_'+rx.name+'.log &'})
@@ -323,20 +338,20 @@ class Experiment:
 
     def start_iperf_servers(self):
         if not const.USE_IPERF3:
-            for rx in [self.R, self.A]:
+            for rx in [self.R, self.A, self.B]:
                 rx.command({'CMD': 'iperf -s -u >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
             rx = self.S
             self.S.command({'CMD': 'iperf -s -u >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_server_'+rx.name+'.log &'})
         return
 
     def start_shaperprobe_udp_servers(self):
-        for rx in [self.R, self.A]:
+        for rx in [self.R, self.A, self.B]:
             rx.command({'CMD': 'udpprobeserver >> /tmp/browserlab/probe_server_'+rx.name+'.log &'})
         self.S.command({'CMD': 'udpprobeserver >> '+const.TMP_BROWSERLAB_PATH+'probe_server_'+self.S.name+'.log &'})
         return
 
     def convert_sar_to_log(self):
-        for dev in [self.R, self.A]:
+        for dev in [self.R, self.A, self.B]:
             dev.command({'CMD':'sar -f /tmp/browserlab/sar_' + dev.name + '.out > /tmp/browserlab/sar_' + dev.name + '.log;rm -rf /tmp/browserlab/sar_' + dev.name + '.out'})
         dev = self.S
         dev.command({'CMD':'sar -f '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out > '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.log;rm -rf '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out'})
@@ -348,6 +363,7 @@ class Experiment:
         self.S.command({'CMD': 'nohup sar -o '+const.TMP_BROWSERLAB_PATH+'sar_S.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
         self.R.command({'CMD': 'sar -o /tmp/browserlab/sar_R.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
         self.A.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_A.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
+        self.B.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_B.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
 
         self.S.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
         echo "$i: $(date)" >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_S.log;\
@@ -361,18 +377,22 @@ class Experiment:
         ifconfig >> /tmp/browserlab/iw_R.log;\
         sleep ' + delta_time + '; done &'})
 
+        self.B.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
+        echo "$i: $(date)" >> /tmp/browserlab/iw_B.log;\
+        iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iw_B.log;\
+        sleep ' + delta_time + '; done &'})
+
         self.A.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
         echo "$i: $(date)" >> /tmp/browserlab/iw_A.log;\
         iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iw_A.log;\
         sleep ' + delta_time + '; done &'})
-
         return
 
     def process_log(self, comment):
         poll_freq = 1
         ctr_len = str(int(self.timeout/poll_freq))
 
-        for dev in [self.S, self.R, self.A]:
+        for dev in [self.S, self.R, self.B, self.A]:
             #dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
             dev.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/top_'+dev.name+'.log;top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log;'})
         return
@@ -389,6 +409,7 @@ class Experiment:
         #self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
         #self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
         self.R.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/iwdev_'+self.R.name+'.log;iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log'})
+        self.B.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/iwdev_'+self.B.name+'.log;iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.B.name+'.log'})
         self.A.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/iwdev_'+self.A.name+'.log;iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log'})
         return
 
@@ -408,6 +429,7 @@ class Experiment:
     def clear_all(self, close_R=0):
         self.S.command({'CMD': 'rm -rf '+const.TMP_BROWSERLAB_PATH+'*'})
         self.R.command({'CMD': 'rm -rf /tmp/browserlab/*'})
+        self.B.command({'CMD': 'rm -rf /tmp/browserlab/*.log;rm -rf /tmp/browserlab/*.pcap'})
         self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.log;rm -rf /tmp/browserlab/*.pcap'})
         if close_R:
             self.R.host.close()
@@ -425,6 +447,9 @@ class Experiment:
                         cp /tmp/browserlab/*.pcap /tmp/browserlab/'+run_number+'_'+comment+'/'})
 
         self.A.command({'CMD':'sshpass -p '+ const.ROUTER_PASS +' scp -o StrictHostKeyChecking=no '+ const.ROUTER_USER + '@' + const.ROUTER_ADDRESS_LOCAL + ':/tmp/browserlab/* /tmp/browserlab/'+run_number+'_'+comment+'/'})
+        # from B
+        self.A.command({'CMD':'sshpass -p '+ const.CLIENT2_PASS +' scp -o StrictHostKeyChecking=no '+ const.CLIENT2_USER + '@' + const.CLIENT_ADDRESS2 + ':/tmp/browserlab/* /tmp/browserlab/'+run_number+'_'+comment+'/'})
+        self.B.command({'CMD':'rm -rf /tmp/browserlab/*.pcap;rm -rf /tmp/browserlab/*.log'})
 
         self.R.command({'CMD':'rm -rf /tmp/browserlab/*.pcap;rm -rf /tmp/browserlab/*.log'})
         self.A.command({'CMD':'rm -rf /tmp/browserlab/*.pcap;rm -rf /tmp/browserlab/*.log'})
@@ -813,6 +838,24 @@ class Experiment:
 
     def iperf3_tcp_up_AR(self):
         return self.iperf3(self.A, self.R, 'AR', self.timeout, 0, 'tcp', 0)
+
+    def iperf3_tcp_up_AB(self):
+        return self.iperf3(self.A, self.B, 'AB', self.timeout, 0, 'tcp', 0)
+
+    def iperf3_tcp_up_BR(self):
+        return self.iperf3(self.B, self.R, 'BR', self.timeout, 0, 'tcp', 0)
+
+    def iperf3_tcp_dw_RB(self):
+        return self.iperf3(self.B, self.R, 'RB', self.timeout, 1, 'tcp', 0)
+
+    def iperf3_tcp_dw_BA(self):
+        return self.iperf3(self.A, self.B, 'BA', self.timeout, 1, 'tcp', 0)
+
+    def iperf3_tcp_up_BS(self):
+        return self.iperf3(self.B, self.S, 'BS', self.timeout, 0, 'tcp', 0)
+
+    def iperf3_tcp_dw_SB(self):
+        return self.iperf3(self.B, self.S, 'SB', self.timeout, 1, 'tcp', 0)
 
     def netperf_tcp_up_AR(self):
         return self.netperf_tcp(self.A, self.R, self.timeout, self.parallel, 0)

@@ -45,14 +45,153 @@ class Master:
         return
 
     def command(self, cmd, dev):
+        """run cmd string on device dev"""
         dev.command(cmd)
         return
 
     def commandAll(self, cmd, dev_type_list = ['A', 'B', 'C', 'R', 'S']):
+        """run cmd string on all devices of type dev_type_list"""
         for dev_name, dev in self.devices.iteritems():
-            if dev.type in dev_type_list:
+            if dev.devType in dev_type_list:
                 dev.command(cmd)
         return
+
+
+class Tools:
+    """ tools may be based on dev class"""
+    def __init__(self, dev):
+        self.dev = dev
+        print "tools for dev"
+
+    def create_monitor_interface(self, dev):
+        #only for wireless i.e. class A, B, R
+        dev.command({'CMD': 'iw dev '+ dev.iface +'mon del'})
+        dev.command({'CMD': 'iw dev '+dev.iface+' interface add '+dev.iface+'mon type monitor flags none'})
+        dev.command({'CMD': 'ifconfig '+dev.iface+'mon up'})
+        return
+
+    def tcpdump_radiotapdump(self, dev):
+        dump_size = 200 #bytes
+        cmd = '/usr/sbin/tcpdump -i '+dev.iface+' -s '+dump_size+' -p -U -w /tmp/browserlab/radio_'+dev.name+'.pcap'
+        if dev.devType != 'R':
+            cmd += ' &'
+        dev.command({'CMD': cmd})
+        return
+
+    def ping_ip(self, dev, ipaddr_list):
+        ipaddr = ''
+        for ip in ipaddr_list:
+            ipaddr = ipaddr + ip + ' '
+        ms_gap = 100 #ms
+        ping_size = const.PING_SIZE #1400
+        tmp_path = '/tmp/browserlab/'
+        cmd = 'fping '+ipaddr+' -p '+ms_gap+' -l -b '+ping_size+' -r 1 -A > '+tmp_path+'fping_'+dev.name+'.log &'
+        dev.command({'CMD':cmd})
+        return
+
+    def convert_sar_to_log(self):
+        for dev in [self.R, self.A]:
+            dev.command({'CMD':'sar -f /tmp/browserlab/sar_' + dev.name + '.out > /tmp/browserlab/sar_' + dev.name + '.log;rm -rf /tmp/browserlab/sar_' + dev.name + '.out'})
+        dev = self.S
+        dev.command({'CMD':'sar -f '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out > '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.log;rm -rf '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out'})
+        return
+
+    def active_logs(self, nrepeats, delta_time=1):
+        nrepeats = str(nrepeats)
+        delta_time = str(delta_time)
+        self.S.command({'CMD': 'nohup sar -o '+const.TMP_BROWSERLAB_PATH+'sar_S.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
+        self.R.command({'CMD': 'sar -o /tmp/browserlab/sar_R.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
+        self.A.command({'CMD': 'nohup sar -o /tmp/browserlab/sar_A.out ' + delta_time + ' ' + nrepeats + ' >/dev/null 2>&1 &'})
+
+        self.S.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
+        echo "$i: $(date)" >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_S.log;\
+        /sbin/ifconfig  >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_S.log;\
+        sleep ' + delta_time + '; done &'})
+
+        self.R.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
+        echo "$i: $(date)" >> /tmp/browserlab/iw_R.log;\
+        iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iw_R.log;\
+        iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iw_R.log;\
+        ifconfig >> /tmp/browserlab/iw_R.log;\
+        sleep ' + delta_time + '; done &'})
+
+        self.A.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
+        echo "$i: $(date)" >> /tmp/browserlab/iw_A.log;\
+        iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iw_A.log;\
+        sleep ' + delta_time + '; done &'})
+
+        return
+
+    def process_log(self, comment):
+        poll_freq = 1
+        ctr_len = str(int(self.timeout/poll_freq))
+
+        for dev in [self.S, self.R, self.A]:
+            #dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
+            dev.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/top_'+dev.name+'.log;top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log;'})
+        return
+
+    def interface_log(self, comment):
+        poll_freq = 1
+        ctr_len = str(int(self.timeout/poll_freq))
+
+        #ifconfig (byte counters) for S
+        #self.S.command({'CMD':'for i in {1..'+ctr_len+'}; do ifconfig >> /tmp/browserlab/ifconfig_'+self.S.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        self.S.command({'CMD':'echo "$(date): ' + comment + '" >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_'+self.S.name+'.log;/sbin/ifconfig >> '+const.TMP_BROWSERLAB_PATH+'ifconfig_'+self.S.name+'.log'})
+
+        #iw dev (radiotap info) for wireless
+        #self.R.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        #self.A.command({'CMD':'for i in {1..'+ctr_len+'}; do iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        self.R.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/iwdev_'+self.R.name+'.log;iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iwdev_'+self.R.name+'.log'})
+        self.A.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/iwdev_'+self.A.name+'.log;iw dev '+self.iface+' station dump >> /tmp/browserlab/iwdev_'+self.A.name+'.log'})
+        return
+
+    def airtime_util_log(self, comment, poll_freq=1):
+        ctr_len = str(int(self.timeout/poll_freq))
+        if comment == 'during':
+            self.R.command({'CMD':'for i in (seq 1 1 '+ctr_len+'); do iw dev '+const.ROUTER_WIRELESS_INTERFACE_NAME+' survey dump >> /tmp/browserlab/iwsurvey_'+self.R.name+'.log; sleep '+str(poll_freq)+'; done &'})
+        return
+
+    def kill_all(self, all_proc = 0):
+        for node in [self.A, self.R, self.S]:
+            node.command({'CMD': 'killall tcpdump;killall fping'})
+            if all_proc:
+                node.command({'CMD': 'killall iperf;killall iperf3;killall netperf'})
+        return
+
+    def clear_all(self, close_R=0):
+        self.S.command({'CMD': 'rm -rf '+const.TMP_BROWSERLAB_PATH+'*'})
+        self.R.command({'CMD': 'rm -rf /tmp/browserlab/*'})
+        self.A.command({'CMD': 'rm -rf /tmp/browserlab/*.log;rm -rf /tmp/browserlab/*.pcap'})
+        if close_R:
+            self.R.host.close()
+        return
+
+    def transfer_logs(self, run_number, comment):
+        self.convert_sar_to_log()
+
+        self.S.command({'CMD':'mkdir -p '+const.TMP_DATA_PATH+self.unique_id+'/'+run_number+'_'+comment})
+        self.S.command({'CMD':'cp '+const.TMP_BROWSERLAB_PATH+'*.log '+const.TMP_DATA_PATH+self.unique_id+'/'+run_number+'_'+comment+';\
+                        cp '+const.TMP_BROWSERLAB_PATH+'*.pcap '+const.TMP_DATA_PATH+self.unique_id+'/'+run_number+'_'+comment})
+
+        self.A.command({'CMD': 'mkdir -p /tmp/browserlab/'+run_number+'_'+comment}) # instead of time use blocking resource to sync properly
+        self.A.command({'CMD':'cp /tmp/browserlab/*.log /tmp/browserlab/'+run_number+'_'+comment+'/;\
+                        cp /tmp/browserlab/*.pcap /tmp/browserlab/'+run_number+'_'+comment+'/'})
+
+        self.A.command({'CMD':'sshpass -p '+ const.ROUTER_PASS +' scp -o StrictHostKeyChecking=no '+ const.ROUTER_USER + '@' + const.ROUTER_ADDRESS_LOCAL + ':/tmp/browserlab/* /tmp/browserlab/'+run_number+'_'+comment+'/'})
+
+        self.R.command({'CMD':'rm -rf /tmp/browserlab/*.pcap;rm -rf /tmp/browserlab/*.log'})
+        self.A.command({'CMD':'rm -rf /tmp/browserlab/*.pcap;rm -rf /tmp/browserlab/*.log'})
+        self.S.command({'CMD':'rm -rf '+const.TMP_BROWSERLAB_PATH+'*.pcap;rm -rf '+const.TMP_BROWSERLAB_PATH+'*.log'})
+
+        #self.S.command({'CMD': 'chown -R browserlab:browserlab /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
+        #self.S.command({'CMD': 'chmod -R 777 /home/browserlab/'+self.unique_id+'/'+run_number+'_'+comment})
+        #self.A.command({'CMD': 'sshpass -p passw0rd scp -o StrictHostKeyChecking=no -r /tmp/browserlab/'+run_number+'_'+comment+' browserlab@' + const.SERVER_ADDRESS + ':'+self.unique_id})
+        self.A.command({'CMD': 'mkdir -p /tmp/data/' + self.unique_id})
+        self.A.command({'CMD': 'mv -f /tmp/browserlab/* /tmp/data/' + self.unique_id + '/'})
+
+        return
+
 
 
 # TODO --------------------------------------------------------------------------------------------------------

@@ -1083,7 +1083,7 @@ def ping_buffer_endhost_test():
 
     return e
 
-def bottleneck_vs_scenario():
+def two_client_bottleneck_vs_scenario():
 
     measurement_folder_name = raw_input('Enter measurement name: ')
     tot_runs = raw_input('how many runs? each run should last around 5-6 mins - I suggest at least 30 with laptop in the same location. ')
@@ -1097,17 +1097,8 @@ def bottleneck_vs_scenario():
     e = Experiment()
     # set all to yes
     e.collect_calibrate = False
-    e.use_iperf_timeout = 1
-    e.USE_IPERF3 = 1
-    e.USE_IPERF_REV = 1
-    e.USE_UDP_PROBE = 1
-    e.USE_NETPERF = 0
-    e.tcp = 1
-    e.udp = 1
+    e.parallel = 1
     e.start_servers()
-    e.WTF_enable = 1
-    e.timeout = 5
-    e.num_parallel_streams = 4
 
     print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     starttime = time.time()
@@ -1136,19 +1127,27 @@ def bottleneck_vs_scenario():
         Q.host.close()
 
         for runs in range(tot_runs):
-            e.parallel = 1
             e.run_only_experiment(e.no_traffic, 'no_tra')
             #iperf3_tcp
+            e.run_only_experiment(e.iperf3_tcp_up_AB, 'AB_tcp')
+            e.run_only_experiment(e.iperf3_tcp_dw_BA, 'BA_tcp')
+            # UPLINK
             e.run_only_experiment(e.iperf3_tcp_up_AS, 'AS_tcp')
             e.run_only_experiment(e.iperf3_tcp_up_AR, 'AR_tcp')
+            e.run_only_experiment(e.iperf3_tcp_up_BS, 'BS_tcp')
+            e.run_only_experiment(e.iperf3_tcp_up_BR, 'BR_tcp')
             e.run_only_experiment(e.iperf3_tcp_up_RS, 'RS_tcp')
+
+            #DOWNLINK
             e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
             e.run_only_experiment(e.iperf3_tcp_dw_RA, 'RA_tcp')
+            e.run_only_experiment(e.iperf3_tcp_dw_SB, 'SB_tcp')
+            e.run_only_experiment(e.iperf3_tcp_dw_RB, 'RB_tcp')
             e.run_only_experiment(e.iperf3_tcp_dw_SR, 'SR_tcp')
             #iperf_udp
-            e.parallel = 0
-            e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
-            e.run_only_experiment(e.iperf_udp_dw_SA, 'SA_udp')
+            #e.parallel = 0
+            #e.run_only_experiment(e.iperf_udp_up_AS, 'AS_udp')
+            #e.run_only_experiment(e.iperf_udp_dw_SA, 'SA_udp')
             #probe_udp
             #TODO problem in probe_udp - time insufficient
             #e.run_only_experiment(e.probe_udp_AR, 'AR_udp')
@@ -1182,7 +1181,7 @@ if __name__ == "__main__":
 
     #ping_buffer_endhost_test()
 
-    e = bottleneck_vs_scenario()
+    e = two_client_bottleneck_vs_scenario()
 
     #e = main_testbed_compare(15)
 
