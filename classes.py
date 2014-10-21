@@ -124,15 +124,16 @@ class Server:
                 s.send(msg)
                 response = s.recv(const.MSG_SIZE)
                 print 'RECEIVED ', response
-                res, run_num, pid = response.split(',')
-                while res == 1:
+                res = response
+                #res, run_num, pid = response.split(',')
+                while res == 1 or res == '1':
                     print 'Server is busy. Try again later.'
                 s.close()
                 if num_retries > 0:
                     run_num = "x"+run_num
                     msg = 'SCREWED ' + msg
                 logcmd(msg, self.name)
-                return res, run_num, pid
+                return res#, run_num, pid
             except Exception, error:
                 print "DEBUG: Can't connect to "+str(self.ip)+":"+str(self.port)+". This measurement is screwed "+ str(error) +". \nRETRY "+str(num_retries+1)+" in 2 seconds."
                 traceback.print_exc()

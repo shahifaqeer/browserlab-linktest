@@ -6,6 +6,7 @@ PASSIVE_TIMEOUT = 5
 CALIBRATE_TIMEOUT = 120
 PING_SIZE = '1400'
 #SERVER = 'CMON'
+TOTAL_PORTS_TO_TRY = 5
 
 # bandiwdth data collection
 METHOD = 'iperf3'    #'iperf', 'netperf', 'udpprobe', 'all'
@@ -35,7 +36,7 @@ OMIT_N_SEC = 2
 # Configuration and measurement options
 EXPERIMENT_TIMEOUT = 5      # test time for tcp and udp tests
 BEFORE_TIMEOUT = 2
-COLLECT_tcp = 1
+COLLECT_tcp = 0             # for iperf tcp servers
 COLLECT_udp = 0
 COLLECT_udp_blast = 0
 COLLECT_tcpdump = 1         # tcpdump is messing things up so don't collect at the moment

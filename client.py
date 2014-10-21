@@ -1098,6 +1098,7 @@ def two_client_bottleneck_vs_scenario():
     # set all to yes
     e.collect_calibrate = False
     e.parallel = 1
+    e.timeout = 5
     e.start_servers()
 
     print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())

@@ -106,16 +106,16 @@ class Experiment:
         return
 
     def start_servers(self):
-        if self.USE_UDPPROBE:
-            self.start_shaperprobe_udp_servers()
+        #if self.USE_UDPPROBE:
+        #    self.start_shaperprobe_udp_servers()
         if self.USE_IPERF3:
             self.start_iperf3_servers()
-        if self.udp:
-            self.start_iperf_rev_servers('udp')
-        if self.tcp:
-            self.start_iperf_rev_servers('tcp')
-        if self.USE_NETPERF:
-            self.start_netperf_servers()
+        #if self.udp:
+        #    self.start_iperf_rev_servers('udp')
+        #if self.tcp:
+        #    self.start_iperf_rev_servers('tcp')
+        #if self.USE_NETPERF:
+        #    self.start_netperf_servers()
         return
 
     def set_unique_id(self, measurement_name):
@@ -143,15 +143,16 @@ class Experiment:
                 s.send(msg)
                 response = s.recv(const.MSG_SIZE)
                 print 'RECEIVED ', response
-                res, run_num, pid = response.split(',')
+                res = response
+                #res, run_num, pid = response.split(',')
                 s.close()
                 print "DEBUG: connection successful to "+serv.ip + ":" + str(serv.port)
-                return res, run_num, pid
+                return res#, run_num, pid
             except Exception, error:
                 print "DEBUG: Can't connect to "+str(serv.ip)+":"+str(serv.port)+". \nRETRY "+str(num_retries+1)+" in 2 seconds."
                 traceback.print_exc()
                 num_retries += 1
-                port = serv.port + num_retries % 5    #try ports 12345 to 12349 twice each
+                port = serv.port + num_retries % const.TOTAL_PORTS_TO_TRY    #try ports 12345 to 12349 twice each
                 time.sleep(2)
                 continue
             break
@@ -204,7 +205,8 @@ class Experiment:
         return ''.join(['%02x:' % ord(char) for char in info[18:24]])[:-1].replace(':', '')
 
     def get_folder_name_from_server(self):
-        serv, run_number, pid = self.S.command({'CMD': 'echo "Bollocks!"', 'START': 1})
+        #serv, run_number, pid = self.S.command({'CMD': 'echo "Bollocks!"', 'START': 1})
+        run_number = self.S.command({'CMD': 'echo "Bollocks!"', 'START': 1})
         self.run_number = run_number
         #print 'DEBUG: run_number ' + run_number
         return 0
