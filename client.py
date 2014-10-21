@@ -1105,7 +1105,8 @@ def two_client_bottleneck_vs_scenario():
 
     all_folder_name_list = []
 
-    for rate in range(16):
+    #for rate in range(16):
+    for rate in [1, 16]:
 
         rate_bit = str(rate * 8)
         rate_byte = str(rate)
@@ -1153,6 +1154,7 @@ def two_client_bottleneck_vs_scenario():
             #e.run_only_experiment(e.probe_udp_AR, 'AR_udp')
             #e.run_only_experiment(e.probe_udp_AS, 'AS_udp')
             #e.run_only_experiment(e.probe_udp_RS, 'RS_udp')
+            e.increment_experiment_counter()
 
     print "DONE ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     endtime = time.time()
