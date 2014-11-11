@@ -319,7 +319,7 @@ class Experiment:
             #rx = self.B
             #rx.command({'CMD': 'iperf3 -s -p '+const.PERF_PORT+' -J >> /tmp/browserlab/iperf3_server_'+rx.name+'.log &'})
         else:
-            for rx in [self.R, self.A] #, self.B]:
+            for rx in [self.R, self.A]: #, self.B]:
                 rx.command({'CMD': 'iperf -s -u -f k -y C >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
             rx = self.S
             rx.command({'CMD': 'iperf -s -u -f k -y C >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_server_'+rx.name+'.log &'})
@@ -327,12 +327,12 @@ class Experiment:
 
     def start_iperf_rev_servers(self, proto):
         if proto == 'udp':
-            for rx in [self.R, self.A] #, self.B]:
+            for rx in [self.R, self.A]: #, self.B]:
                 rx.command({'CMD': 'iperf -s -u -p '+ const.IPERF_UDP_PORT +' >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
             rx = self.S
             rx.command({'CMD': 'iperf -s -u -p '+ const.IPERF_UDP_PORT +' >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_server_'+rx.name+'.log &'})
         elif proto == 'tcp':
-            for rx in [self.R, self.A] #, self.B]:
+            for rx in [self.R, self.A]: #, self.B]:
                 rx.command({'CMD': 'iperf -s -p '+ const.IPERF_TCP_PORT+' >> /tmp/browserlab/iperf_tcp_server_'+rx.name+'.log &'})
             rx = self.S
             rx.command({'CMD': 'iperf -s -p '+const.IPERF_TCP_PORT+' >> '+const.TMP_BROWSERLAB_PATH+'iperf_tcp_server_'+rx.name+'.log &'})
@@ -340,20 +340,20 @@ class Experiment:
 
     def start_iperf_servers(self):
         if not const.USE_IPERF3:
-            for rx in [self.R, self.A] #, self.B]:
+            for rx in [self.R, self.A]: #, self.B]:
                 rx.command({'CMD': 'iperf -s -u >> /tmp/browserlab/iperf_udp_server_'+rx.name+'.log &'})
             rx = self.S
             self.S.command({'CMD': 'iperf -s -u >> '+const.TMP_BROWSERLAB_PATH+'iperf_udp_server_'+rx.name+'.log &'})
         return
 
     def start_shaperprobe_udp_servers(self):
-        for rx in [self.R, self.A ] #, self.B]:
+        for rx in [self.R, self.A]: #, self.B]:
             rx.command({'CMD': 'udpprobeserver >> /tmp/browserlab/probe_server_'+rx.name+'.log &'})
         self.S.command({'CMD': 'udpprobeserver >> '+const.TMP_BROWSERLAB_PATH+'probe_server_'+self.S.name+'.log &'})
         return
 
     def convert_sar_to_log(self):
-        for dev in [self.R, self.A] #, self.B]:
+        for dev in [self.R, self.A]: #, self.B]:
             dev.command({'CMD':'sar -f /tmp/browserlab/sar_' + dev.name + '.out > /tmp/browserlab/sar_' + dev.name + '.log;rm -rf /tmp/browserlab/sar_' + dev.name + '.out'})
         dev = self.S
         dev.command({'CMD':'sar -f '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out > '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.log;rm -rf '+const.TMP_BROWSERLAB_PATH+'sar_' + dev.name + '.out'})
@@ -380,9 +380,9 @@ class Experiment:
         sleep ' + delta_time + '; done &'})
 
         #self.B.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
-        echo "$i: $(date)" >> /tmp/browserlab/iw_B.log;\
-        iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iw_B.log;\
-        sleep ' + delta_time + '; done &'})
+        #echo "$i: $(date)" >> /tmp/browserlab/iw_B.log;\
+        #iw dev '+const.CLIENT_WIRELESS_INTERFACE_NAME+' station dump >> /tmp/browserlab/iw_B.log;\
+        #sleep ' + delta_time + '; done &'})
 
         self.A.command({'CMD':'for i in $(seq 1 1 '+nrepeats+');do\
         echo "$i: $(date)" >> /tmp/browserlab/iw_A.log;\
@@ -394,7 +394,7 @@ class Experiment:
         poll_freq = 1
         ctr_len = str(int(self.timeout/poll_freq))
 
-        for dev in [self.S, self.R, self.A] #, self.B]:
+        for dev in [self.S, self.R, self.A]: #, self.B]:
             #dev.command({'CMD':'for i in {1..'+ctr_len+'}; do top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log; sleep '+str(poll_freq)+'; done &'})
             dev.command({'CMD':'echo "$(date): ' + comment + '" >> /tmp/browserlab/top_'+dev.name+'.log;top -b -n1 >> /tmp/browserlab/top_'+dev.name+'.log;'})
         return
@@ -422,7 +422,7 @@ class Experiment:
         return
 
     def kill_all(self, all_proc = 0):
-        for node in [self.A, self.R, self.S] #self.B, self.S]:
+        for node in [self.A, self.R, self.S]: #self.B, self.S]:
             node.command({'CMD': 'killall tcpdump;killall fping'})
             if all_proc:
                 node.command({'CMD': 'killall iperf;killall iperf3;killall netperf'})

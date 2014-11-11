@@ -1276,11 +1276,82 @@ def two_client_bottleneck_vs_scenario():
     return e
 
 
+def client_home_wifi(meas_name, nruns, mode = ['wifi'], parallel=4):
+    # call as client_wifi_vs_access(name, 10, ['wifi', 'access', 'e2e'], 1, 0)
+
+    measurement_folder_name = meas_name
+    tot_runs = nruns
+
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
+        tot_runs = 1
+        print "Error. Running "+str(tot_runs)+" measurement."
+
+    e = Experiment()
+    # set all to yes
+    e.collect_calibrate = False
+    if parallel <= 1:
+        e.parallel = 0
+    else:
+        e.parallel = 1
+        e.num_parallel_streams = parallel
+
+    e.timeout = 5
+    e.start_servers()
+
+    print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    starttime = time.time()
+
+    all_folder_name_list = []
+
+    for runs in range(tot_runs):
+
+        folder_name = measurement_folder_name + '-parallel_'+str(parallel)
+        if not folder_name in all_folder_name_list:
+            all_folder_name_list.append(folder_name)
+        e.set_unique_id(folder_name)
+
+        #uplink only
+        if 'wifi' in mode:
+            e.run_fast_experiment(e.iperf3_tcp_up_AR, 'AR_tcp')
+            e.run_fast_experiment(e.iperf3_tcp_dw_RA, 'RA_tcp')
+        if 'e2e' in mode:
+            e.run_fast_experiment(e.iperf3_tcp_up_AS, 'AS_tcp')
+            e.run_fast_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
+        if 'access' in mode:
+            e.run_fast_experiment(e.iperf3_tcp_up_RS, 'RS_tcp')
+            e.run_fast_experiment(e.iperf3_tcp_dw_SR, 'SR_tcp')
+
+        e.increment_experiment_counter()
+
+    print "DONE ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    endtime = time.time()
+
+    print "\n Total time taken = ", endtime - starttime
+
+    # Transfer to server
+    time.sleep(5)
+    transfer = 'y'
+    #transfer = raw_input("start transfer... [y]")
+    if transfer == 'y' or transfer == 'Y':
+        transfer_all_folder_names(e, all_folder_name_list)
+
+    endtime2 = time.time()
+    print "\n Total transfer time = ", endtime2 - endtime
+    print "\n Total script time = ", endtime2 - starttime
+
+    return e
+
 if __name__ == "__main__":
 
+    #for parallel in [1,2,3,4,5,6,7,8,9,10,20,30]:
+    for parallel in [1, 6]:
+        #client_home_wifi('home_killermonkey_threads', 10, mode = ['wifi', 'e2e', 'access'], parallel)
+        client_home_wifi('try_home_killermonkey_threads', 2, ['wifi', 'e2e', 'access'], parallel)
     #ping_buffer_endhost_test()
 
-    e = two_client_bottleneck_vs_scenario()
+    #e = two_client_bottleneck_vs_scenario()
 
     #e = main_testbed_compare(15)
 
