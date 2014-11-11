@@ -45,9 +45,9 @@ TMP_BROWSERLAB_PATH = '$HOME/tmp/browserlab/'
 TMP_DATA_PATH = '$HOME/browserlab/'
 DATA_SERVER_PATH = 'browserlab@130.207.97.240:'
 EXTRA_NODES = 0
-ROUTER_TCP_DUMP = 1
 PING_TIMED = 0              #ping for 2 * timeout; if 0 then ping until kill in loop
 DIFF_PING = 0               #only diff ping A to R or A to S
+ROUTER_TCP_DUMP = 1         #tcpdump at wlan0mon on R
 WTF_ENABLE = 0              #take tcpdump on br-lan router and pass this pcap through WTF code
 
 # UPDATE THE FOLLOWING VALUES

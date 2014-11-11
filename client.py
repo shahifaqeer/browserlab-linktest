@@ -1084,8 +1084,8 @@ def ping_buffer_endhost_test():
     return e
 
 
-def client_wifi_vs_access(meas_name, nruns, mode = ['wifi'], parallel=4, latency=40):
-    # call as client_wifi_vs_access(name, 10, ['wifi', 'access', 'e2e'], 1, 0)
+def client_wifi_vs_access(meas_name, nruns, mode = ['wifi'], parallel=4, latency=40, tcpdump=['router']):
+    # call as client_wifi_vs_access(name, 10, ['wifi', 'access', 'e2e'], 1, 0, ['wtf'])
 
     latency_str = str(latency)
     measurement_folder_name = meas_name
@@ -1107,6 +1107,15 @@ def client_wifi_vs_access(meas_name, nruns, mode = ['wifi'], parallel=4, latency
         e.num_parallel_streams = parallel
 
     e.timeout = 5
+
+    if 'router' in tcpdump:
+        e.ROUTER_TCPDUMP_enable = 1
+    else:
+        e.ROUTER_TCPDUMP_enable = 0
+    if 'wtf' in tcpdump:
+        e.WTF_enable = 1
+    else:
+        e.WTF_enable = 0
     e.start_servers()
 
     print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -1280,7 +1289,23 @@ if __name__ == "__main__":
 
     #ping_buffer_endhost_test()
 
-    e = two_client_bottleneck_vs_scenario()
+    # check tcpdump wifi vs wtf wifi vs no dump wifi for 1 thread 0 delay and 4 thread 10ms delay
+    #client_wifi_vs_access(name, nruns, [links], parallel, latency, [tcpdump])
+    #client_wifi_vs_access('no_tcpdump_uplink_onethread', 2, ['wifi', 'access', 'e2e'], 1, 0, [])
+    #client_wifi_vs_access('only_wtf_uplink_onethread', 2, ['wifi', 'access', 'e2e'], 1, 0, ['wtf'])
+    #client_wifi_vs_access('router_tcpdump_uplink_fourthread', 2, ['wifi', 'access', 'e2e'], 4, 10, ['router'])
+    #client_wifi_vs_access('no_tcpdump_uplink_fourthread', 2, ['wifi', 'access', 'e2e'], 4, 10, [])
+    #client_wifi_vs_access('only_wtf_uplink_fourthread', 2, ['wifi', 'access', 'e2e'], 4, 10, ['wtf'])
+
+    # threads = 1, 4, 6, 10
+    # latency = 0, 10, 40, 100
+    # tcpdump = 1
+    # only uplink measurements
+    for latency in [0, 10, 40, 100]:
+        for threads in [1, 4, 6, 10]:
+            client_wifi_vs_access('uplink_threads', 10, ['wifi', 'access', 'e2e'], threads, latency, ['router'])
+
+    #e = two_client_bottleneck_vs_scenario()
 
     #e = main_testbed_compare(15)
 
