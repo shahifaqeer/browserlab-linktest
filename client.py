@@ -1083,6 +1083,101 @@ def ping_buffer_endhost_test():
 
     return e
 
+
+def client_wifi_vs_access(meas_name, nruns, mode = ['wifi'], parallel=4, latency=40):
+    # call as client_wifi_vs_access(name, 10, ['wifi', 'access', 'e2e'], 1, 0)
+
+    latency_str = str(latency)
+    measurement_folder_name = meas_name
+    tot_runs = nruns
+
+    try:
+        tot_runs = int(tot_runs)
+    except Exception:
+        tot_runs = 1
+        print "Error. Running "+str(tot_runs)+" measurement."
+
+    e = Experiment()
+    # set all to yes
+    e.collect_calibrate = False
+    if parallel <= 1:
+        e.parallel = 0
+    else:
+        e.parallel = 1
+        e.num_parallel_streams = parallel
+
+    e.timeout = 5
+    e.start_servers()
+
+    print "START ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    starttime = time.time()
+
+    all_folder_name_list = []
+
+    for runs in range(tot_runs):
+        #for rate in range(16):
+        for rate in range(20):
+        #for rate in [16]:
+
+            rate_bit = str(rate * 8)
+            rate_byte = str(rate)
+
+            folder_name = measurement_folder_name + '-access_' + str(rate_bit) + '-parallel_'+str(parallel)+'-latency_'+str(latency)
+            if not folder_name in all_folder_name_list:
+                all_folder_name_list.append(folder_name)
+            e.set_unique_id(folder_name)
+
+            Q = Router('192.168.1.1', 'root', 'passw0rd')
+            #Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc add dev br-lan root netem delay 40ms;tc qdisc show dev br-lan')
+            if rate != 0 and rate_byte != '0':
+                Q.remoteCommand('sh ratelimit4.sh eth0 '+rate_byte+' '+latency_str)
+                Q.remoteCommand('sh ratelimit4.sh eth1 '+rate_byte+' '+latency_str)
+            else:
+                Q.remoteCommand('tc qdisc del dev eth0 root')
+                Q.remoteCommand('tc qdisc del dev eth1 root')
+                #Q.remoteCommand('tc qdisc del dev br-lan root')
+            if latency == 0 or latency == '0':
+                Q.remoteCommand('tc qdisc del dev br-lan root')
+
+            Q.host.close()
+
+            #uplink only
+            if 'wifi' in mode:
+                e.run_fast_experiment(e.iperf3_tcp_up_AR, 'AR_tcp')
+                #e.run_only_experiment(e.iperf3_tcp_dw_RA, 'RA_tcp')
+            if 'e2e' in mode:
+                e.run_fast_experiment(e.iperf3_tcp_up_AS, 'AS_tcp')
+                #e.run_only_experiment(e.iperf3_tcp_dw_SA, 'SA_tcp')
+            if 'access' in mode:
+                e.run_fast_experiment(e.iperf3_tcp_up_RS, 'RS_tcp')
+                #e.run_only_experiment(e.iperf3_tcp_dw_SR, 'SR_tcp')
+                #e.run_only_experiment(e.iperf3_tcp_dw_SR2, 'SR_tcp')
+
+        e.increment_experiment_counter()
+
+    print "DONE ", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    endtime = time.time()
+
+    print "\n Total time taken = ", endtime - starttime
+
+    # Transfer to server
+    Q = Router('192.168.1.1', 'root', 'passw0rd')
+    Q.remoteCommand('tc qdisc del dev br-lan root;tc qdisc del dev eth0 root;tc qdisc del dev eth1 root')
+    subprocess.check_output('sudo ifconfig eth0 up', shell=True)
+    time.sleep(5)
+    transfer = 'y'
+    #transfer = raw_input("start transfer... [y]")
+    if transfer == 'y' or transfer == 'Y':
+        transfer_all_folder_names(e, all_folder_name_list)
+    subprocess.check_output('sudo ifconfig eth0 down', shell=True)
+
+    endtime2 = time.time()
+    print "\n Total transfer time = ", endtime2 - endtime
+    print "\n Total script time = ", endtime2 - starttime
+
+    return e
+
+
 def two_client_bottleneck_vs_scenario():
 
     measurement_folder_name = raw_input('Enter measurement name: ')
@@ -1107,7 +1202,8 @@ def two_client_bottleneck_vs_scenario():
     all_folder_name_list = []
 
     #for rate in range(16):
-    for rate in [1, 16]:
+    for rate in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]:
+    #for rate in [16]:
 
         rate_bit = str(rate * 8)
         rate_byte = str(rate)

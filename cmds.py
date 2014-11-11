@@ -613,6 +613,38 @@ class Experiment:
         self.start_servers()
         return
 
+    def run_fast_experiment(self, exp, exp_name):
+
+        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time())) + ": Run "+ exp_name + " " + str(self.experiment_counter)
+        self.experiment_name = exp_name #same as comment
+        state = exp_name
+        timeout = self.timeout
+        self.get_folder_name_from_server()
+
+        if self.tcpdump == 1:
+            self.tcpdump_radiotapdump('', 0)
+
+        nrepeats = int(self.timeout)
+        self.active_logs(nrepeats)
+        print "DEBUG: "+str(time.time())+" START PINGING LOOP "
+        if self.DIFF_PING:
+            self.differential_ping()
+        else:
+            self.ping_all()
+
+        print "DEBUG: "+str(time.time())+" state = " + state
+        comment = exp()
+        if self.non_blocking_experiment:
+            #takes around 3 sec to transfer results properly for iperf3 RA tcp
+            print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
+            time.sleep(timeout)
+
+        self.kill_all()
+        self.transfer_logs(self.run_number, comment)
+
+        #don't kill the servers
+        return
+
     def parse_probe(self, filename):
         fread = open(filename, 'r')
         capacity = defaultdict(list)
@@ -895,6 +927,9 @@ class Experiment:
 
     def iperf3_tcp_dw_SR(self):
         return self.iperf3(self.R, self.S, 'SR', self.timeout, 1, 'tcp', 0)
+
+    def iperf3_tcp_dw_SR2(self):
+        return self.iperf3(self.S, self.R, 'SR', self.timeout, 0, 'tcp', 0)
 
     def netperf_tcp_dw_SR(self):
         return self.netperf_tcp(self.R, self.S, self.timeout, self.parallel, 1)
