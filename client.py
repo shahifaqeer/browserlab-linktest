@@ -1276,7 +1276,7 @@ def two_client_bottleneck_vs_scenario():
     return e
 
 
-def client_home_wifi(meas_name, nruns, mode = ['wifi'], parallel=4):
+def client_home_wifi(meas_name, nruns, mode = ['wifi'], parallel=4, tcpdump=['router']):
     # call as client_wifi_vs_access(name, 10, ['wifi', 'access', 'e2e'], 1, 0)
 
     measurement_folder_name = meas_name
@@ -1296,6 +1296,16 @@ def client_home_wifi(meas_name, nruns, mode = ['wifi'], parallel=4):
     else:
         e.parallel = 1
         e.num_parallel_streams = parallel
+
+    if 'router' in tcpdump:
+        e.ROUTER_TCPDUMP_enable = 1
+    else:
+        e.ROUTER_TCPDUMP_enable = 0
+
+    if 'wtf' in tcpdump:
+        e.WTF_enable = 1
+    else:
+        e.WTF_enable = 0
 
     e.timeout = 5
     e.start_servers()
@@ -1345,10 +1355,13 @@ def client_home_wifi(meas_name, nruns, mode = ['wifi'], parallel=4):
 
 if __name__ == "__main__":
 
-    #for parallel in [1,2,3,4,5,6,7,8,9,10,20,30]:
-    for parallel in [1, 6]:
-        #client_home_wifi('home_killermonkey_threads', 10, mode = ['wifi', 'e2e', 'access'], parallel)
-        client_home_wifi('try_home_killermonkey_threads', 2, ['wifi', 'e2e', 'access'], parallel)
+    #for parallel in [1, 6]:
+        #client_home_wifi('try_home_killermonkey_threads', 2, ['wifi', 'e2e', 'access'], parallel, ['router'])
+    for parallel in [1,2,3,4,5,6,7,8,9,10,20,30]:
+        client_home_wifi('home_killermonkey_10runs_threads_tcpdump', 10, mode = ['wifi', 'e2e', 'access'], parallel, ['router'])
+        client_home_wifi('home_killermonkey_10runs_threads_wtfdump', 10, mode = ['wifi', 'e2e', 'access'], parallel, ['wtf'])
+        client_home_wifi('home_killermonkey_10runs_threads_nodump', 10, mode = ['wifi', 'e2e', 'access'], parallel, [])
+
     #ping_buffer_endhost_test()
 
     #e = two_client_bottleneck_vs_scenario()
