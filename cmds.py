@@ -450,7 +450,7 @@ class Experiment:
 
         self.A.command({'CMD':'sshpass -p '+ const.ROUTER_PASS +' scp -o StrictHostKeyChecking=no '+ const.ROUTER_USER + '@' + const.ROUTER_ADDRESS_LOCAL + ':/tmp/browserlab/* /tmp/browserlab/'+run_number+'_'+comment+'/'})
         # from B
-        self.A.command({'CMD':'sshpass -p '+ const.CLIENT2_PASS +' scp -o StrictHostKeyChecking=no '+ const.CLIENT2_USER + '@' + const.CLIENT_ADDRESS2 + ':/tmp/browserlab/* /tmp/browserlab/'+run_number+'_'+comment+'/'})
+        #self.A.command({'CMD':'sshpass -p '+ const.CLIENT2_PASS +' scp -o StrictHostKeyChecking=no '+ const.CLIENT2_USER + '@' + const.CLIENT_ADDRESS2 + ':/tmp/browserlab/* /tmp/browserlab/'+run_number+'_'+comment+'/'})
         #self.B.command({'CMD':'rm -rf /tmp/browserlab/*.pcap;rm -rf /tmp/browserlab/*.log'})
 
         self.R.command({'CMD':'rm -rf /tmp/browserlab/*.pcap;rm -rf /tmp/browserlab/*.log'})
