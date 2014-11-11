@@ -1357,10 +1357,10 @@ if __name__ == "__main__":
 
     #for parallel in [1, 6]:
         #client_home_wifi('try_home_killermonkey_threads', 2, ['wifi', 'e2e', 'access'], parallel, ['router'])
+
     for parallel in [1,2,3,4,5,6,7,8,9,10,20,30]:
-        client_home_wifi('home_killermonkey_10runs_threads_tcpdump', 10, mode = ['wifi', 'e2e', 'access'], parallel, ['router'])
-        client_home_wifi('home_killermonkey_10runs_threads_wtfdump', 10, mode = ['wifi', 'e2e', 'access'], parallel, ['wtf'])
-        client_home_wifi('home_killermonkey_10runs_threads_nodump', 10, mode = ['wifi', 'e2e', 'access'], parallel, [])
+        for tcpdump in [['router'], ['wtf'], ['nodump']]:
+            client_home_wifi('home_killermonkey_10runs_threads_'+tcpdump[0], 10, ['wifi', 'e2e', 'access'], parallel, tcpdump)
 
     #ping_buffer_endhost_test()
 
