@@ -1322,7 +1322,8 @@ def client_home_wifi(meas_name, nruns, mode = ['wifi'], parallel=4, tcpdump=['ro
             all_folder_name_list.append(folder_name)
         e.set_unique_id(folder_name)
 
-        #uplink only
+        if 'base' in mode:
+            e.run_fast_experiment(e.no_traffic, 'no_tra')
         if 'wifi' in mode:
             e.run_fast_experiment(e.iperf3_tcp_up_AR, 'AR_tcp')
             e.run_fast_experiment(e.iperf3_tcp_dw_RA, 'RA_tcp')
@@ -1356,12 +1357,12 @@ def client_home_wifi(meas_name, nruns, mode = ['wifi'], parallel=4, tcpdump=['ro
 if __name__ == "__main__":
 
 
-    client_home_wifi('home_killermonkey_10runs_threads_cmon', 10, ['wifi', 'e2e', 'access'], 1, ['router'])
-    client_home_wifi('home_killermonkey_10runs_threads_cmon', 10, ['wifi', 'e2e', 'access'], 2, ['router'])
-    client_home_wifi('home_killermonkey_10runs_threads_cmon', 10, ['wifi', 'e2e', 'access'], 3, ['router'])
-    client_home_wifi('home_killermonkey_10runs_threads_cmon', 10, ['wifi', 'e2e', 'access'], 4, ['router'])
-    client_home_wifi('home_killermonkey_10runs_threads_cmon', 10, ['wifi', 'e2e', 'access'], 6, ['router'])
-    client_home_wifi('home_killermonkey_10runs_threads_cmon', 10, ['wifi', 'e2e', 'access'], 10, ['router'])
+    client_home_wifi('home_killermonkey_10runs_threads_cmon', 10, ['base', 'wifi', 'e2e', 'access'], 1, ['router'])
+    client_home_wifi('home_killermonkey_10runs_threads_cmon', 10, ['base', 'wifi', 'e2e', 'access'], 2, ['router'])
+    client_home_wifi('home_killermonkey_10runs_threads_cmon', 10, ['base', 'wifi', 'e2e', 'access'], 3, ['router'])
+    client_home_wifi('home_killermonkey_10runs_threads_cmon', 10, ['base', 'wifi', 'e2e', 'access'], 4, ['router'])
+    client_home_wifi('home_killermonkey_10runs_threads_cmon', 10, ['base', 'wifi', 'e2e', 'access'], 6, ['router'])
+    client_home_wifi('home_killermonkey_10runs_threads_cmon', 10, ['base', 'wifi', 'e2e', 'access'], 10, ['router'])
     #ping_buffer_endhost_test()
     #ping_buffer_endhost_test()
 
