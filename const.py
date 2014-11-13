@@ -1,5 +1,5 @@
 # DO NOT CHANGE THESE VALUES
-CONTROL_PORT = 12346
+CONTROL_PORT = 12345
 MSG_SIZE = 1024
 PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
@@ -54,7 +54,7 @@ WTF_ENABLE = 0              #take tcpdump on br-lan router and pass this pcap th
 ROUTER_USER = 'root'
 CLIENT_WIRELESS_INTERFACE_NAME = 'wlan0' #'eth0' #'wlan0'
 #CLIENT_WIRELESS_INTERFACE_NAME = 'wlan1' #if 5 GHz ?
-ROUTER_WIRELESS_INTERFACE_NAME = 'wlan0'
+ROUTER_WIRELESS_INTERFACE_NAME = 'wlan1'
 #ROUTER_WIRELESS_INTERFACE_NAME = 'wlan1' #if 5 GHz
 GENERIC_WIRELESS_INTERFACE_NAME = "wlan"
 
