@@ -633,13 +633,16 @@ class Experiment:
             self.ping_all()
 
         print "DEBUG: "+str(time.time())+" state = " + state
+        #make this blocking experiment - currently works only with iperf3
         comment = exp()
-        if self.non_blocking_experiment:
+        #if self.non_blocking_experiment:
             #takes around 3 sec to transfer results properly for iperf3 RA tcp
-            print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
-            time.sleep(timeout)
+            #print '\nDEBUG: Sleep for ' + str(timeout) + ' seconds as ' + comment + ' runs '+ str(self.experiment_counter) +'\n'
+            #time.sleep(timeout)
 
         self.kill_all()
+        #wait before transfer
+        #time.sleep(1)
         self.transfer_logs(self.run_number, comment)
 
         #don't kill the servers
@@ -821,13 +824,12 @@ class Experiment:
         if self.use_omit_n_sec:
             cmd = cmd + ' -O '+self.omit_n_sec
 
+        # MAKE THIS BLOCKING put BLK = 1 and no '&'
         if tx.name == 'S':
-            tx.command({'CMD': cmd + ' > '+const.TMP_BROWSERLAB_PATH+'iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})
+            tx.command({'CMD': cmd + ' > '+const.TMP_BROWSERLAB_PATH+'iperf3_'+proto+'_'+link+'_'+tx.name+'.log', 'BLK':1})
         else:
-            tx.command({'CMD': cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix, 'BLK':self.blk})
+            tx.command({'CMD': cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log', 'BLK':1})
 
-        #if self.non_blocking_experiment:
-        #    time.sleep(timeout+1.0)
         print "DEBUG: " + tx.name+ " " + str(time.time()) + " DONE: " + cmd + ' > /tmp/browserlab/iperf3_'+proto+'_'+link+'_'+tx.name+'.log'+self.experiment_suffix
 
         return link + '_' + proto
