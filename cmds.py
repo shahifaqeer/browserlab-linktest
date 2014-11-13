@@ -741,11 +741,11 @@ class Experiment:
         return
 
 
-    def no_traffic(self, timeout=self.timeout):
+    def no_traffic(self, timeout=0):
         if timeout == 0:
             timeout = self.timeout
         # make this blocking process
-        time.sleep(self.timeout)
+        time.sleep(timeout)
         #if not self.non_blocking_experiment:
         #    time.sleep(timeout)
         return 'no_tra'
