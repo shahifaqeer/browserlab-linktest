@@ -741,11 +741,13 @@ class Experiment:
         return
 
 
-    def no_traffic(self, timeout=0):
+    def no_traffic(self, timeout=self.timeout):
         if timeout == 0:
             timeout = self.timeout
-        if not self.non_blocking_experiment:
-            time.sleep(timeout)
+        # make this blocking process
+        time.sleep(self.timeout)
+        #if not self.non_blocking_experiment:
+        #    time.sleep(timeout)
         return 'no_tra'
 
     # iperf tcp
