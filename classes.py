@@ -66,21 +66,22 @@ class Router:
         host.connect(ip, username=user, password=passwd)
         return host
 
-    def remoteCommand(self, cmd):
+    def remoteCommand(self, cmd, block=0):
         """This should be used for starting iperf servers, pings,
         tcpdumps, etc.
         """
         stdin, stdout, stderr = self.host.exec_command(cmd)
-        if self.blocking_cmd:
+        if block:
             for line in stdout:
                 print 'DEBUG: '+ line
         return
 
     def command(self, cmd):
+        block = 0
         if 'BLK' in cmd:
             if cmd['BLK'] == 1:
-                self.blocking_cmd = 1
-        self.remoteCommand(cmd['CMD'])
+                block = cmd['BLK']
+        self.remoteCommand(cmd['CMD'], block)
         logcmd(str(cmd), self.name)
         return
 
