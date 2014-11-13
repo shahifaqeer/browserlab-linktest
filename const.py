@@ -1,5 +1,5 @@
 # DO NOT CHANGE THESE VALUES
-CONTROL_PORT = 12346
+CONTROL_PORT = 12345
 MSG_SIZE = 1024
 PASSIVE_TIMEOUT = 5
 #collect passive trace + tcpdump without active probe traffic for 2 mins
