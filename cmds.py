@@ -29,12 +29,12 @@ def test_cmd(dev, cmd):
 
 
 class Experiment:
-    def __init__(self, measurement_name=None):
+    def __init__(self, measurement_name=None, port=CONTROL_PORT):
         self.A = Client(const.CLIENT_ADDRESS)
         self.R = Router(const.ROUTER_ADDRESS_LOCAL, const.ROUTER_USER, const.ROUTER_PASS)
         #self.B = Server(const.CLIENT_ADDRESS2)
         #self.B.name = 'B'
-        self.S = Server(const.SERVER_ADDRESS)
+        self.S = Server(const.SERVER_ADDRESS, port)
         self.EXTRA_NODES = const.EXTRA_NODES
         if self.EXTRA_NODES:
             self.arrB = []
